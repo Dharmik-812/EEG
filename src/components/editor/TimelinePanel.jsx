@@ -78,7 +78,7 @@ export default function TimelinePanel() {
   const total = Math.max(0, cols * rows)
 
   return (
-    <div className="p-3 space-y-3">
+    <div className="p-3 space-y-3" data-tour="timeline">
       <div className="flex items-center justify-between">
         <div className="text-xs uppercase text-slate-500">Timeline</div>
         <div className="flex gap-2">

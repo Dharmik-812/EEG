@@ -23,7 +23,7 @@ export default function ScriptEditor() {
   if (!ent) return <div className="p-3 text-sm text-slate-500">Select an entity, then add a Script component to edit code.</div>
 
   return (
-    <div className="p-3 space-y-3">
+    <div className="p-3 space-y-3" data-tour="script-editor">
       <div className="flex items-center justify-between">
         <div className="text-xs uppercase text-slate-500">Script Editor</div>
         <div className="flex gap-2">

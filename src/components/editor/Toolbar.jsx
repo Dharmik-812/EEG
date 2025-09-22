@@ -1,7 +1,8 @@
 import { useEditorStore } from '../../store/editorStore'
 import { buildWebHTML } from '../../engine/exporter'
+import { useLayoutStore } from '../../store/layoutStore'
 
-export default function Toolbar({ onPlay, onSubmit }) {
+export default function Toolbar({ onPlay, onSubmit, onTutorial }) {
   const { setZoom, zoom, toggleGrid, grid, setMode, mode, exportProject, newProject, project, undo, redoAction } = useEditorStore(s => ({
     setZoom: s.setZoom,
     zoom: s.zoom,
@@ -15,6 +16,7 @@ export default function Toolbar({ onPlay, onSubmit }) {
     undo: s.undo,
     redoAction: s.redoAction,
   }))
+  const { showBottom, toggleBottom } = useLayoutStore(s => ({ showBottom: s.showBottom, toggleBottom: s.toggleBottom }))
 
   function downloadWebBuild() {
     try {
@@ -31,7 +33,7 @@ export default function Toolbar({ onPlay, onSubmit }) {
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-2 p-3">
+    <div className="flex flex-wrap items-center gap-2 p-3" data-tour="toolbar">
       <button className="btn-outline !px-3 !py-2" onClick={newProject}>New</button>
       <button className="btn-outline !px-3 !py-2" onClick={undo} title="Undo (Ctrl+Z)">Undo</button>
       <button className="btn-outline !px-3 !py-2" onClick={redoAction} title="Redo (Ctrl+Y)">Redo</button>
@@ -44,6 +46,8 @@ export default function Toolbar({ onPlay, onSubmit }) {
       <button className="btn !px-3 !py-2" onClick={onPlay}>{mode === 'play' ? 'Stop' : 'Play'}</button>
       <button className="btn-outline !px-3 !py-2" onClick={() => navigator.clipboard.writeText(exportProject())}>Copy JSON</button>
       <button className="btn-outline !px-3 !py-2" onClick={downloadWebBuild}>Download Web Build</button>
+      <button className="btn-outline !px-3 !py-2" onClick={onTutorial}>Tutorial</button>
+      <button className="btn-outline !px-3 !py-2" onClick={toggleBottom}>{showBottom ? 'Hide Bottom Panel' : 'Show Bottom Panel'}</button>
       <button className="btn !px-3 !py-2" onClick={onSubmit}>Submit Game</button>
     </div>
   )

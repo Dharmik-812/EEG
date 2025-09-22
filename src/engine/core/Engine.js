@@ -12,6 +12,7 @@ import { AnimationSystem } from './systems/AnimationSystem.js'
 import { ScriptSystem } from './systems/ScriptSystem.js'
 import { TimelineSystem } from './systems/TimelineSystem.js'
 import { WebGLRenderSystem } from './systems/WebGLRenderSystem.js'
+import { ParticleSystem } from './systems/ParticleSystem.js'
 
 export class Engine {
   constructor(canvas, project, opts = {}) {
@@ -33,7 +34,7 @@ export class Engine {
     this.audio = new AudioManager(this.assets)
     this.scenes = new SceneManager(project, this.assets)
 
-    // Systems order: timeline -> animation -> physics -> collisions -> scripts -> render
+    // Systems order: timeline -> animation -> physics -> collisions -> scripts -> render -> particles
     this.systems = [
       new TimelineSystem(this),
       new AnimationSystem(this),
@@ -42,11 +43,18 @@ export class Engine {
       new ScriptSystem(this),
       ...(this.renderMode === 'webgl' ? [new WebGLRenderSystem(this)] : [new RenderSystem(this)]),
     ]
+    // Particle system appended last so particles draw above sprites/UI
+    this.particles = new ParticleSystem(this)
+    this.systems.push(this.particles)
 
     this.running = false
     this.lastTs = 0
     this.accumulator = 0
     this.fixedDt = 1 / 60 // physics step
+
+    // Message manager state (throttle/dedupe/once)
+    this._messageOnce = new Set()
+    this._messageRecent = new Map() // key -> timestamp
 
     // Resize canvas to current scene
     const scene = this.scenes.current()
@@ -174,7 +182,40 @@ export class Engine {
       gotoScene: (sceneId) => engine.scenes.goto(sceneId),
       setAnimation: (name) => { const a = entity.components?.animation; if (a) { a.current = name; a.time=0; a.frameIndex=0 } },
       blendTo: (name, duration=0.25) => { const a = entity.components?.animation; if (a) { a.blend = { target: name, duration, elapsed: 0, frameIndex: 0, time: 0 } } },
-      message: (text) => engine.opts.onMessage?.(text),
+      message: (textOrOpts, maybeOpts) => {
+        const opts = typeof textOrOpts === 'string' ? (maybeOpts || {}) : (textOrOpts || {})
+        const text = typeof textOrOpts === 'string' ? textOrOpts : (textOrOpts?.text || '')
+        const key = opts.key || text
+        if (!text) return
+        if (opts.once) {
+          if (engine._messageOnce.has(key)) return
+          engine._messageOnce.add(key)
+        }
+        const now = performance.now() / 1000
+        const last = engine._messageRecent.get(key) || 0
+        const cooldown = opts.cooldownSec ?? 1.5
+        if ((now - last) < cooldown) return
+        engine._messageRecent.set(key, now)
+        engine.opts.onMessage?.(text)
+      },
+      particles: {
+        burst: (o) => engine.particles?.burst(o || {}),
+      },
+      // Scene/entity helpers for gameplay scripts
+      addEntity: (spec) => {
+        const scene = engine.scenes.current()
+        const id = spec?.id || `e-${Date.now()}-${Math.floor(Math.random()*9999)}`
+        const ent = { id, name: spec?.name || 'Entity', components: spec?.components || {} }
+        scene.entities.push(ent)
+        return ent
+      },
+      removeEntity: (idOrEnt) => {
+        const scene = engine.scenes.current()
+        const id = typeof idOrEnt === 'string' ? idOrEnt : idOrEnt?.id
+        const idx = scene.entities.findIndex(e => e.id === id)
+        if (idx >= 0) scene.entities.splice(idx, 1)
+      },
+      entities: () => engine.scenes.current().entities,
     }
   }
 

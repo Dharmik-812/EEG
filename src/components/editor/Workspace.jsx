@@ -73,6 +73,11 @@ export default function Workspace({ mode, canvasRef }) {
             const move = ev=>onDrag(ev,'bottom'); const up=()=>{window.removeEventListener('mousemove',move);window.removeEventListener('mouseup',up)};window.addEventListener('mousemove',move);window.addEventListener('mouseup',up)
           }} />
         )}
+        {!showBottom && (
+          <div className="absolute left-1/2 -translate-x-1/2 bottom-2">
+            <button className="btn-outline !px-3 !py-1 text-xs" onClick={toggleBottom}>Show Timeline / Console</button>
+          </div>
+        )}
       </div>
     </div>
   )

@@ -32,7 +32,7 @@ export default function HierarchyPanel() {
   }
 
   return (
-    <motion.div className="p-3 space-y-2" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}>
+    <motion.div className="p-3 space-y-2" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }} data-tour="hierarchy">
       <div className="flex gap-2 flex-wrap">
         <button className="btn !px-3 !py-2" onClick={() => addEntity('sprite')}>+ Sprite</button>
         <button className="btn-outline !px-3 !py-2" onClick={() => addEntity('text')}>+ Text</button>

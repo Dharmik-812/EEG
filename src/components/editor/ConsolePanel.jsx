@@ -3,7 +3,7 @@ import { useLogStore } from '../../store/logStore'
 export default function ConsolePanel() {
   const { logs, clear } = useLogStore(s => ({ logs: s.logs, clear: s.clear }))
   return (
-    <div className="p-2">
+    <div className="p-2" data-tour="console">
       <div className="flex items-center justify-between mb-2">
         <div className="text-xs uppercase text-slate-500">Console</div>
         <button className="btn-outline !px-2 !py-1 text-xs" onClick={clear}>Clear</button>

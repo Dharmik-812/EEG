@@ -35,7 +35,7 @@ export default function ScenesPanel() {
   }
 
   return (
-    <motion.div className="p-3 space-y-3" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}>
+    <motion.div className="p-3 space-y-3" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }} data-tour="scenes">
       <div className="flex items-center justify-between">
         <div className="text-xs uppercase text-slate-500">Scenes</div>
         <div className="flex gap-2">

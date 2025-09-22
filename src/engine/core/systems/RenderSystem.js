@@ -60,6 +60,12 @@ export class RenderSystem {
       for (const e of ents.filter(en => !en.components?.tilemap)) {
         const t = e.components?.transform
         if (!t) continue
+        // Simple culling: skip if entirely outside viewport
+        const halfW = (e.components?.ui ? t.w : t.w) / 2
+        const halfH = (e.components?.ui ? t.h : t.h) / 2
+        const minX = t.x - halfW, maxX = t.x + halfW
+        const minY = t.y - halfH, maxY = t.y + halfH
+        if (maxX < 0 || minX > scene.width || maxY < 0 || minY > scene.height) continue
         ctx.save()
         // UI anchoring (root only)
         if (e.components?.ui?.anchor && !e.parentId) {

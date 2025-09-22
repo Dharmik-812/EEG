@@ -17,13 +17,14 @@ import HelpPanel from '../components/editor/HelpPanel'
 import InputPanel from '../components/editor/InputPanel'
 import TimelinePanel from '../components/editor/TimelinePanel'
 import DockWorkspace from '../components/editor/Workspace'
+import TutorialTour from '../components/editor/TutorialTour'
 import { useLogStore } from '../store/logStore'
 
 export default function Editor() {
   const canvasRef = useRef(null)
   const { project, mode, setMode, exportProject } = useEditorStore(s => ({ project: s.project, mode: s.mode, setMode: s.setMode, exportProject: s.exportProject }))
   const { currentUser } = useAuthStore(s => ({ currentUser: s.currentUser }))
-  const { submitGame } = useSubmissionsStore(s => ({ submitGame: s.submitGame }))
+  const { submitGame, approvedGames, seedDemos } = useSubmissionsStore(s => ({ submitGame: s.submitGame, approvedGames: s.approvedGames, seedDemos: s.seedDemos }))
   const [runner, setRunner] = useState(null)
 
   useEffect(() => {
@@ -51,11 +52,12 @@ export default function Editor() {
   }
 
   const [wsError, setWsError] = useState(null)
+  const [showTour, setShowTour] = useState(false)
 
   return (
     <section className="space-y-4">
       <Card>
-        <Toolbar onPlay={togglePlay} onSubmit={submit} />
+        <Toolbar onPlay={togglePlay} onSubmit={submit} onTutorial={()=>setShowTour(true)} />
       </Card>
 
       <div className="relative w-full">
@@ -78,7 +80,21 @@ export default function Editor() {
       </div>
 
       <Card>
-        <HelpPanel />
+        <div className="flex items-center justify-between">
+          <HelpPanel />
+          <button className="btn-outline !px-3 !py-1" onClick={() => {
+            // Quick Start: load Recycle Runner (demo-1)
+            try {
+              if (approvedGames.length === 0) seedDemos()
+              const rr = (approvedGames.find(g => g.id === 'demo-1') || approvedGames.find(g => g.title?.toLowerCase().includes('recycle')))
+              if (!rr) { toast.error('Recycle Runner demo not found'); return }
+              const proj = JSON.parse(JSON.stringify(rr.project))
+              useEditorStore.getState().loadProject(proj)
+              toast.success('Quick Start loaded: Recycle Runner')
+              setShowTour(true)
+            } catch (e) { console.error(e); toast.error('Failed to load Quick Start') }
+          }}>Quick Start: Recycle Runner</button>
+        </div>
       </Card>
 
       <Card>
@@ -92,6 +108,8 @@ export default function Editor() {
       <Card>
         <InputPanel />
       </Card>
+
+      <TutorialTour open={showTour} onClose={()=>setShowTour(false)} />
     </section>
   )
 }

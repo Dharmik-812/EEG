@@ -31,3 +31,7 @@
     @apply px-3 py-2 rounded-md hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors;
   }
 }
+
+@layer utilities {
+  .shadow-glow { box-shadow: 0 10px 30px rgba(16,185,129,.28), 0 6px 16px rgba(14,165,233,.22); }
+}

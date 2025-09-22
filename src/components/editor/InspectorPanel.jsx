@@ -48,7 +48,7 @@ export default function InspectorPanel() {
   const tm = ent.components.tilemap
 
   return (
-    <div className="p-3 space-y-3">
+    <div className="p-3 space-y-3" data-tour="inspector">
       <div className="text-xs uppercase text-slate-500">Transform</div>
       <div className="grid grid-cols-2 gap-2">
         <label className="text-xs">X<input className="w-full mt-1 rounded border bg-transparent px-2 py-1" type="number" value={t.x} onChange={e=>updateSelected(['transform','x'], Number(e.target.value))} /></label>

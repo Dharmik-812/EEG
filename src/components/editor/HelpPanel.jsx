@@ -2,7 +2,7 @@ import React from 'react'
 
 export default function HelpPanel() {
   return (
-    <div className="p-3 space-y-3 text-sm">
+    <div className="p-3 space-y-3 text-sm" data-tour="help">
       <div className="text-xs uppercase text-slate-500">In-Editor Help</div>
       <ul className="list-disc pl-5 space-y-1">
         <li>Left sidebar: add Sprites or Text; select to edit in Inspector.</li>

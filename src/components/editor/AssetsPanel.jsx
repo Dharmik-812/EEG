@@ -51,7 +51,7 @@ export default function AssetsPanel() {
   }
 
   return (
-    <motion.div className="p-3 space-y-4" onDrop={handleDrop} onDragOver={(e)=>e.preventDefault()} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2 }}>
+    <motion.div className="p-3 space-y-4" onDrop={handleDrop} onDragOver={(e)=>e.preventDefault()} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2 }} data-tour="assets">
       <div>
         <div className="flex items-center justify-between">
           <div className="text-xs uppercase text-slate-500">Project Assets</div>
