@@ -1,8 +1,10 @@
+import { useEffect, useState } from 'react'
 import { Routes, Route, useLocation, Navigate } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import Navbar from './components/Navbar.jsx'
 import Footer from './components/Footer.jsx'
 import AnimatedBackground from './components/AnimatedBackground.jsx'
+import SplashScreen from './components/SplashScreen.jsx'
 import Landing from './pages/Landing.jsx'
 import About from './pages/About.jsx'
 import Dashboard from './pages/Dashboard.jsx'
@@ -48,9 +50,18 @@ export default function App() {
 
   const location = useLocation()
   const adminMode = location.pathname.startsWith('/admin')
+  const [showSplash, setShowSplash] = useState(true)
+
+  // Hide splash shortly after mount
+  useEffect(() => {
+    const t = setTimeout(() => setShowSplash(false), 1700)
+    return () => clearTimeout(t)
+  }, [])
+
   return (
     <div className="min-h-screen antialiased font-sans relative">
       <AnimatedBackground />
+      <AnimatePresence>{showSplash && <SplashScreen key="splash" />}</AnimatePresence>
       {!adminMode && <Navbar />}
       <div className={`${adminMode ? 'pt-6' : 'pt-20'} mx-auto max-w-screen-2xl px-4`}>
         <AnimatePresence mode="wait">
