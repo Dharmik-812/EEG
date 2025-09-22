@@ -100,7 +100,11 @@ export default function Challenges() {
   const { approvedQuizzes } = useSubmissionsStore(s => ({ approvedQuizzes: s.approvedQuizzes }))
   const [active, setActive] = useState(null)
 
-  const data = [...baseData, ...approvedQuizzes.map(q => q.quiz)]
+  // Normalize community quizzes and filter to playable ones (must include questions)
+  const community = approvedQuizzes
+    .map(q => q?.quiz)
+    .filter(q => q && Array.isArray(q.questions) && q.questions.length > 0)
+  const data = [...baseData, ...community]
 
   return (
     <section className="space-y-6">
@@ -118,10 +122,10 @@ export default function Challenges() {
                 )}
               </div>
               <div className="mt-4 text-sm text-slate-600 dark:text-slate-300">
-                {ch.facts[0]}
+                {(ch.facts && ch.facts[0]) ? ch.facts[0] : 'Test your knowledge with this challenge.'}
               </div>
               <div className="mt-4 flex items-center justify-between">
-                <div className="text-xs text-slate-500">Earn up to {ch.xp} XP</div>
+                <div className="text-xs text-slate-500">Earn up to {ch.xp ?? 100} XP</div>
                 <button onClick={() => setActive(ch)} className="btn">
                   <Play className="h-5 w-5" /> Start
                 </button>
