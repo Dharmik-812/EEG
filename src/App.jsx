@@ -19,6 +19,7 @@ import Register from './pages/Register.jsx'
 import Admin from './pages/Admin.jsx'
 import CreateQuiz from './pages/CreateQuiz.jsx'
 import HowItWorks from './pages/HowItWorks.jsx'
+import Projects from './pages/Projects.jsx'
 import useTheme from './store/useTheme.js'
 
 function PageWrapper({ children }) {
@@ -73,6 +74,7 @@ export default function App() {
             <Route path="/leaderboard" element={<PageWrapper><Leaderboard /></PageWrapper>} />
             <Route path="/badges" element={<PageWrapper><Badges /></PageWrapper>} />
             <Route path="/community" element={<PageWrapper><Community /></PageWrapper>} />
+            <Route path="/projects" element={<PageWrapper><Projects /></PageWrapper>} />
             <Route path="/editor" element={<PageWrapper><Editor /></PageWrapper>} />
             <Route path="/play/:id" element={<PageWrapper><PlayGame /></PageWrapper>} />
             <Route path="/login" element={<PageWrapper><Login /></PageWrapper>} />
