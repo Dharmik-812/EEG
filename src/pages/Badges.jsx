@@ -3,10 +3,13 @@ import { useGameStore } from '../store/gameStore.js'
 import Card from '../components/Card.jsx'
 import BadgeComp from '../components/Badge.jsx'
 import { motion } from 'framer-motion'
+import SEO from '../components/SEO.jsx'
 
 export default function Badges() {
   const { badges } = useGameStore()
   return (
+    <>
+      <SEO title="Badges" description="Browse badges and rewards you can earn by completing eco challenges and keeping streaks." />
     <section>
       <Card>
         <div className="font-semibold mb-4">Badges & Rewards</div>
@@ -19,6 +22,7 @@ export default function Badges() {
         </div>
       </Card>
     </section>
+    </>
   )
 }
 

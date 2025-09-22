@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom'
 import Card from '../components/Card'
 import { motion } from 'framer-motion'
 import { Rocket, Eye, EyeOff, Stars } from 'lucide-react'
+import SEO from '../components/SEO.jsx'
 
 export default function Register() {
   const { register } = useAuthStore(s => ({ register: s.register }))
@@ -26,6 +27,8 @@ export default function Register() {
   }
 
   return (
+    <>
+      <SEO title="Register" description="Create an AverSoltix account to unlock challenges, badges, leaderboards, and the 2D game editor." />
     <section className="min-h-[calc(100vh-6rem)] grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
       <motion.div initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }} className="order-2 lg:order-1">
         <Card>
@@ -65,6 +68,7 @@ export default function Register() {
         </Card>
       </motion.div>
     </section>
+    </>
   )
 }
 

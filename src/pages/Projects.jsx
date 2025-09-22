@@ -2,6 +2,7 @@ import { useEditorStore } from '../store/editorStore'
 import { useProjectsStore } from '../store/projectsStore'
 import Card from '../components/Card'
 import { useState } from 'react'
+import SEO from '../components/SEO.jsx'
 
 export default function Projects() {
   const { project, loadProject, newProject, exportProject } = useEditorStore(s => ({ project: s.project, loadProject: s.loadProject, newProject: s.newProject, exportProject: s.exportProject }))
@@ -25,6 +26,8 @@ export default function Projects() {
   }
 
   return (
+    <>
+      <SEO title="Projects" description="Manage your editor projects: create, import, export, and open saved projects." />
     <section className="space-y-4">
       <Card>
         <div className="flex items-center justify-between p-3">
@@ -56,5 +59,6 @@ export default function Projects() {
         </div>
       </Card>
     </section>
+    </>
   )
 }

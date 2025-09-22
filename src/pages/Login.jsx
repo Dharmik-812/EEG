@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom'
 import Card from '../components/Card'
 import { motion } from 'framer-motion'
 import { Eye, EyeOff, Sparkles, ShieldCheck } from 'lucide-react'
+import SEO from '../components/SEO.jsx'
 
 export default function Login() {
   const { login } = useAuthStore(s => ({ login: s.login }))
@@ -25,6 +26,8 @@ export default function Login() {
   }
 
   return (
+    <>
+      <SEO title="Login" description="Login to AverSoltix to continue learning, keep your streak, and access the editor." />
     <section className="min-h-[calc(100vh-6rem)] grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
       <motion.div initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5 }} className="order-2 lg:order-1">
         <Card>
@@ -61,6 +64,7 @@ export default function Login() {
         </Card>
       </motion.div>
     </section>
+    </>
   )
 }
 

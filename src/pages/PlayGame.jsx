@@ -4,6 +4,7 @@ import Card from '../components/Card'
 import { useEffect, useRef } from 'react'
 import { runProject } from '../engine/runtime'
 import toast from 'react-hot-toast'
+import SEO from '../components/SEO.jsx'
 
 export default function PlayGame() {
   const { id } = useParams()
@@ -18,9 +19,16 @@ export default function PlayGame() {
     }
   }, [id])
 
-  if (!game) return <section><Card>Game not found.</Card></section>
+  if (!game) return (
+    <>
+      <SEO title="Game" description="Play community-created eco games on AverSoltix." noIndex={true} />
+      <section><Card>Game not found.</Card></section>
+    </>
+  )
 
   return (
+    <>
+      <SEO title={game.title} description={game.description || 'Play a community-created eco game on AverSoltix.'} />
     <section>
       <Card>
         <div className="font-semibold mb-2">{game.title}</div>
@@ -30,6 +38,7 @@ export default function PlayGame() {
         </div>
       </Card>
     </section>
+    </>
   )
 }
 

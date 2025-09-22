@@ -19,6 +19,7 @@ import TimelinePanel from '../components/editor/TimelinePanel'
 import DockWorkspace from '../components/editor/Workspace'
 import TutorialTour from '../components/editor/TutorialTour'
 import { useLogStore } from '../store/logStore'
+import SEO from '../components/SEO.jsx'
 
 export default function Editor() {
   const canvasRef = useRef(null)
@@ -55,6 +56,8 @@ export default function Editor() {
   const [showTour, setShowTour] = useState(false)
 
   return (
+    <>
+      <SEO title="Editor" description="Use the 2D editor to build eco-games with sprites, text, timelines, and scripts." />
     <section className="space-y-4">
       <Card>
         <Toolbar onPlay={togglePlay} onSubmit={submit} onTutorial={()=>setShowTour(true)} />
@@ -111,6 +114,7 @@ export default function Editor() {
 
       <TutorialTour open={showTour} onClose={()=>setShowTour(false)} />
     </section>
+    </>
   )
 }
 

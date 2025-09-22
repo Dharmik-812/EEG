@@ -1,5 +1,9 @@
+import SEO from '../components/SEO.jsx'
+
 export default function About() {
   return (
+    <>
+      <SEO title="About" description="Learn about AverSoltix's mission to teach environmental science through play and inspire action for a sustainable future." />
     <section>
       <div className="card p-8">
         <h2 className="text-2xl font-bold">Our Mission</h2>
@@ -12,6 +16,7 @@ export default function About() {
         </p>
       </div>
     </section>
+    </>
   )
 }
 

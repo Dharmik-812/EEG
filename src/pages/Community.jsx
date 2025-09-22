@@ -1,11 +1,14 @@
 import Card from '../components/Card'
 import { useSubmissionsStore } from '../store/submissionsStore'
 import { Link } from 'react-router-dom'
+import SEO from '../components/SEO.jsx'
 
 export default function Community() {
   const { approvedGames, approvedQuizzes, seedDemos } = useSubmissionsStore(s => ({ approvedGames: s.approvedGames, approvedQuizzes: s.approvedQuizzes, seedDemos: s.seedDemos }))
 
   return (
+    <>
+      <SEO title="Community" description="Explore approved community games and quizzes, or submit your own eco creations." />
     <section className="space-y-6">
       <Card>
         <div className="flex items-center justify-between mb-3">
@@ -48,6 +51,7 @@ export default function Community() {
         </div>
       </Card>
     </section>
+    </>
   )
 }
 

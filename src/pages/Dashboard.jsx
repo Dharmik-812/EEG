@@ -7,6 +7,7 @@ import BadgeComp from '../components/Badge.jsx'
 import badgesData from '../data/badges.json'
 import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip } from 'recharts'
 import { motion } from 'framer-motion'
+import SEO from '../components/SEO.jsx'
 
 export default function Dashboard() {
   const { xp, level, streak, badges, xpLog, touchDailyStreak } = useGameStore()
@@ -29,6 +30,8 @@ export default function Dashboard() {
   }, [xpLog])
 
   return (
+    <>
+      <SEO title="Dashboard" description="Track your XP, level progress, daily streak, and badges on your AverSoltix dashboard." />
     <section className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card>
@@ -82,6 +85,7 @@ export default function Dashboard() {
         </div>
       </Card>
     </section>
+    </>
   )
 }
 

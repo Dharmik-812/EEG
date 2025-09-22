@@ -5,6 +5,7 @@ import { useSubmissionsStore } from '../store/submissionsStore'
 import toast from 'react-hot-toast'
 import { motion } from 'framer-motion'
 import { Plus, CheckCircle2, HelpCircle, Sparkles } from 'lucide-react'
+import SEO from '../components/SEO.jsx'
 
 export default function CreateQuiz() {
   const { currentUser } = useAuthStore(s => ({ currentUser: s.currentUser }))
@@ -45,6 +46,8 @@ export default function CreateQuiz() {
   }
 
   return (
+    <>
+      <SEO title="Create Quiz" description="Create your own environmental quizzes with multiple-choice questions and submit them for review." />
     <section className="space-y-6">
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
         <Card>
@@ -84,6 +87,7 @@ export default function CreateQuiz() {
 
       <button className="btn inline-flex items-center gap-2" onClick={submit}><CheckCircle2 className="h-5 w-5"/> Submit for Review</button>
     </section>
+    </>
   )
 }
 

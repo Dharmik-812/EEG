@@ -1,10 +1,16 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
+import SEO from '../components/SEO.jsx'
 
 export default function Landing() {
   return (
-    <section className="relative">
+    <>
+      <SEO
+        title="Home"
+        description="AverSoltix is a gamified environmental education platform for schools and colleges. Earn XP, collect badges, and climb the leaderboard while learning about climate change, recycling, renewable energy, and biodiversity."
+      />
+      <section className="relative">
       <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center min-h-[calc(100vh-6rem)]">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
@@ -64,6 +70,7 @@ export default function Landing() {
         ))}
       </div>
     </section>
+    </>
   )
 }
 

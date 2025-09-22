@@ -3,6 +3,7 @@ import Card from '../components/Card'
 import { useAuthStore } from '../store/authStore'
 import { Navigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
+import SEO from '../components/SEO.jsx'
 
 export default function Admin() {
   const { pendingGames, approveGame, rejectGame, pendingQuizzes, approveQuiz, rejectQuiz } = useSubmissionsStore(s => ({
@@ -20,6 +21,8 @@ export default function Admin() {
   }
 
   return (
+    <>
+      <SEO title="Admin" description="Admin panel to review and approve community games and quizzes." noIndex={true} />
     <section className="space-y-6">
       <Card>
         <div className="text-xl font-bold">Admin Panel</div>
@@ -63,6 +66,7 @@ export default function Admin() {
         </div>
       </Card>
     </section>
+    </>
   )
 }
 

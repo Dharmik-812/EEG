@@ -15,6 +15,28 @@
     height: auto;
     display: block;
   }
+  /* Accessible skip link */
+  .skip-link {
+    position: absolute;
+    left: -999px;
+    top: auto;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+  .skip-link:focus {
+    position: fixed;
+    left: 1rem;
+    top: 1rem;
+    width: auto;
+    height: auto;
+    padding: 0.5rem 0.75rem;
+    background: #065f46; /* emerald-800 */
+    color: #ecfeff; /* light */
+    border-radius: 0.5rem;
+    z-index: 9999;
+    box-shadow: 0 10px 30px rgba(16,185,129,.28);
+  }
 }
 
 @layer components {

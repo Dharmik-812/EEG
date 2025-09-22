@@ -8,6 +8,7 @@ import { shootConfetti } from '../utils/confetti.js'
 import toast from 'react-hot-toast'
 import { BadgeCheck, Play } from 'lucide-react'
 import { motion } from 'framer-motion'
+import SEO from '../components/SEO.jsx'
 
 function Quiz({ challenge, onClose }) {
   const { addXP, awardBadge, markChallengeComplete, touchDailyStreak, streak } = useGameStore()
@@ -107,6 +108,8 @@ export default function Challenges() {
   const data = [...baseData, ...community]
 
   return (
+    <>
+      <SEO title="Challenges" description="Answer environmental quizzes and complete eco-quests to earn XP and unlock badges." />
     <section className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {data.map((ch, i) => (
@@ -139,6 +142,7 @@ export default function Challenges() {
         {active && <Quiz challenge={active} onClose={() => setActive(null)} />}
       </Modal>
     </section>
+    </>
   )
 }
 

@@ -2,6 +2,7 @@ import { motion } from 'framer-motion'
 import Card from '../components/Card'
 import { BookOpen, Gamepad2, PenTool, CheckCircle2, Crown, Users, Rocket, Leaf } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import SEO from '../components/SEO.jsx'
 
 export default function HowItWorks() {
   const steps = [
@@ -14,6 +15,8 @@ export default function HowItWorks() {
   ]
 
   return (
+    <>
+      <SEO title="How It Works" description="See how AverSoltix helps you learn, play, create, and share environmental content." />
     <section className="space-y-6">
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
         <Card>
@@ -51,6 +54,7 @@ export default function HowItWorks() {
         </div>
       </Card>
     </section>
+    </>
   )
 }
 

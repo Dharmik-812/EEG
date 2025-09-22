@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://aversoltix.example/</loc></url>
+  <url><loc>https://aversoltix.example/about</loc></url>
+  <url><loc>https://aversoltix.example/challenges</loc></url>
+  <url><loc>https://aversoltix.example/dashboard</loc></url>
+  <url><loc>https://aversoltix.example/community</loc></url>
+  <url><loc>https://aversoltix.example/leaderboard</loc></url>
+  <url><loc>https://aversoltix.example/badges</loc></url>
+  <url><loc>https://aversoltix.example/how-it-works</loc></url>
+  <url><loc>https://aversoltix.example/projects</loc></url>
+  <url><loc>https://aversoltix.example/editor</loc></url>
+  <url><loc>https://aversoltix.example/create-quiz</loc></url>
+  <url><loc>https://aversoltix.example/login</loc></url>
+  <url><loc>https://aversoltix.example/register</loc></url>
+  <url><loc>https://aversoltix.example/admin</loc></url>
+</urlset>

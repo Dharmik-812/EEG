@@ -2,17 +2,69 @@
 <html lang="en" class="scroll-smooth">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <title>AverSoltix — Learn. Play. Save the Planet.</title>
+
+    <!-- Icons & theme-color -->
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="theme-color" content="#10b981" />
+
+    <!-- SEO baseline -->
+    <meta name="description" content="AverSoltix is a gamified environmental education platform. Learn climate science, recycling, renewable energy, and biodiversity through challenges, badges, and leaderboards." />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="/" />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="AverSoltix — Learn. Play. Save the Planet." />
+    <meta property="og:description" content="Gamified environmental education: challenges, badges, leaderboards, and a 2D game editor." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="/" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="AverSoltix — Learn. Play. Save the Planet." />
+    <meta name="twitter:description" content="Gamified environmental education: challenges, badges, leaderboards, and a 2D game editor." />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+
     <!-- Prism for syntax highlighting in Script Editor (lightweight, CDN) -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1/themes/prism-tomorrow.min.css" />
     <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-core.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-clike.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/prismjs@1/components/prism-javascript.min.js"></script>
+
+    <!-- JSON-LD: WebSite -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "AverSoltix",
+        "description": "Gamified environmental education platform with challenges, badges, leaderboards, and a 2D editor."
+      }
+    </script>
+
+    <!-- Inline CSS to prevent initial flash and hide skip link until focus -->
+    <style>
+      /* Prevent white flash before app CSS loads */
+      body { background-color: #ecfdf5; }
+      @media (prefers-color-scheme: dark) { body { background-color: #0b1220; } }
+
+      /* Hide skip link until focused */
+      .skip-link {
+        position: absolute; left: -999px; top: auto; width: 1px; height: 1px; overflow: hidden;
+      }
+      .skip-link:focus {
+        position: fixed; left: 1rem; top: 1rem; width: auto; height: auto;
+        padding: 0.5rem 0.75rem; background: #065f46; color: #ecfeff;
+        border-radius: 0.5rem; z-index: 9999; box-shadow: 0 10px 30px rgba(16,185,129,.28);
+      }
+    </style>
   </head>
   <body class="bg-gradient-to-b from-emerald-50 to-sky-50 dark:from-slate-900 dark:to-slate-950 text-slate-800 dark:text-slate-100 overflow-x-hidden">
+    <a href="#main" class="skip-link">Skip to content</a>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
