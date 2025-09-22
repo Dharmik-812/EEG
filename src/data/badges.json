@@ -1,0 +1,8 @@
+[
+  { "id": "starter", "name": "Getting Started", "description": "Completed your first challenge" },
+  { "id": "recycler", "name": "Recycler", "description": "Scored 80% in Recycling Basics" },
+  { "id": "renewable", "name": "Renewable Rookie", "description": "Scored 80% in Renewable Energy 101" },
+  { "id": "streak3", "name": "On a Roll", "description": "3-day learning streak" },
+  { "id": "streak7", "name": "Solar Surfer", "description": "7-day learning streak" }
+]
+

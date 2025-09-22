@@ -1,0 +1,33 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --ring: 110 100% 40%;
+}
+
+@layer base {
+  html, body, #root {
+    height: 100%;
+  }
+  img, video, canvas, svg {
+    max-width: 100%;
+    height: auto;
+    display: block;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-emerald-500 to-sky-500 px-5 py-3 text-white shadow-lg shadow-emerald-500/20 hover:shadow-glow transition-all active:scale-[0.98];
+  }
+  .btn-outline {
+    @apply inline-flex items-center gap-2 rounded-lg border border-emerald-400/40 px-5 py-3 text-emerald-600 dark:text-emerald-300 hover:bg-emerald-50/50 dark:hover:bg-emerald-900/20 transition-all;
+  }
+  .card {
+    @apply rounded-2xl bg-white/70 dark:bg-slate-900/60 backdrop-blur border border-white/20 dark:border-slate-800 shadow-lg;
+  }
+  .nav-link {
+    @apply px-3 py-2 rounded-md hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors;
+  }
+}

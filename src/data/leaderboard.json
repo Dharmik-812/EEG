@@ -1,0 +1,8 @@
+[
+  { "id": "u-001", "name": "Eco Learner", "xp": 850 },
+  { "id": "u-002", "name": "Green Guru", "xp": 1600 },
+  { "id": "u-003", "name": "Solar Spark", "xp": 1200 },
+  { "id": "u-004", "name": "Recycling Ranger", "xp": 980 },
+  { "id": "u-005", "name": "Ocean Guardian", "xp": 1340 }
+]
+

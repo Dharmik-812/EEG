@@ -1,0 +1,135 @@
+[
+  {
+    "id": "recycling-basics",
+    "title": "Recycling Basics",
+    "topic": "Recycling",
+    "xp": 150,
+    "questions": [
+      {
+        "id": "q1",
+        "type": "mcq",
+        "question": "Which of the following is recyclable in most curbside programs?",
+        "options": ["Plastic bags", "Glass bottles", "Greasy pizza boxes", "Ceramics"],
+        "answerIndex": 1
+      },
+      {
+        "id": "q2",
+        "type": "mcq",
+        "question": "What number on plastic indicates that it is commonly recyclable?",
+        "options": ["1 and 2", "3 and 6", "7 only", "None of the above"],
+        "answerIndex": 0
+      },
+      {
+        "id": "q3",
+        "type": "mcq",
+        "question": "Before recycling a container, you should:",
+        "options": ["Crush it", "Rinse it", "Remove the label", "Break it"],
+        "answerIndex": 1
+      }
+    ],
+    "facts": [
+      "Recycling one aluminum can saves enough energy to run a TV for 3 hours.",
+      "Glass can be recycled endlessly without loss of quality."
+    ]
+  },
+  {
+    "id": "renewable-energy",
+    "title": "Renewable Energy 101",
+    "topic": "Renewable Energy",
+    "xp": 200,
+    "questions": [
+      {
+        "id": "q1",
+        "type": "mcq",
+        "question": "Which is NOT a renewable energy source?",
+        "options": ["Solar", "Wind", "Coal", "Hydro"],
+        "answerIndex": 2
+      },
+      {
+        "id": "q2",
+        "type": "mcq",
+        "question": "The main component of a solar panel is:",
+        "options": ["Silicon", "Copper", "Iron", "Gold"],
+        "answerIndex": 0
+      },
+      {
+        "id": "q3",
+        "type": "mcq",
+        "question": "Wind turbines convert kinetic energy into:",
+        "options": ["Heat", "Mechanical energy", "Chemical energy", "Nuclear energy"],
+        "answerIndex": 1
+      }
+    ],
+    "facts": [
+      "The sun provides more energy to Earth in one hour than the world uses in one year.",
+      "Wind power is one of the fastest-growing energy sources."
+    ]
+  },
+  {
+    "id": "climate-change",
+    "title": "Climate Change Essentials",
+    "topic": "Climate Change",
+    "xp": 200,
+    "questions": [
+      {
+        "id": "q1",
+        "type": "mcq",
+        "question": "Which gas is the primary contributor to the greenhouse effect?",
+        "options": ["Oxygen", "Carbon dioxide", "Nitrogen", "Helium"],
+        "answerIndex": 1
+      },
+      {
+        "id": "q2",
+        "type": "mcq",
+        "question": "Which sector emits the most greenhouse gases globally?",
+        "options": ["Agriculture", "Electricity and Heat Production", "Transport", "Buildings"],
+        "answerIndex": 1
+      },
+      {
+        "id": "q3",
+        "type": "mcq",
+        "question": "What action can individuals take to reduce their carbon footprint?",
+        "options": ["Use more single-use plastics", "Drive alone more often", "Reduce energy consumption", "Leave lights on"],
+        "answerIndex": 2
+      }
+    ],
+    "facts": [
+      "Global average temperatures have risen more than 1°C since pre-industrial times.",
+      "Energy efficiency is the quickest, cheapest way to cut emissions."
+    ]
+  },
+  {
+    "id": "biodiversity",
+    "title": "Biodiversity & You",
+    "topic": "Biodiversity",
+    "xp": 150,
+    "questions": [
+      {
+        "id": "q1",
+        "type": "mcq",
+        "question": "Biodiversity refers to:",
+        "options": ["The variety of life in all its forms", "Number of trees in a forest", "Animals only", "Plants only"],
+        "answerIndex": 0
+      },
+      {
+        "id": "q2",
+        "type": "mcq",
+        "question": "Which action best supports urban biodiversity?",
+        "options": ["Paving green spaces", "Planting native species", "Using pesticides widely", "Removing trees"],
+        "answerIndex": 1
+      },
+      {
+        "id": "q3",
+        "type": "mcq",
+        "question": "Pollinators like bees are crucial because they:",
+        "options": ["Spread pests", "Pollute air", "Help plants reproduce", "Increase noise"],
+        "answerIndex": 2
+      }
+    ],
+    "facts": [
+      "One out of every three bites of food depends on pollinators like bees.",
+      "Native plants support local wildlife better than exotic ones."
+    ]
+  }
+]
+
