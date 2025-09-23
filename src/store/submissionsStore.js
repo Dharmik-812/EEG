@@ -246,7 +246,7 @@ export const useSubmissionsStore = create(
           { id: 'q3', type: 'mcq', question: 'Passive solar design focuses on…', options: ['Using sun via orientation/shading','Running AC full-time','Blocking daylight','Painting roofs black'], answerIndex: 0 },
           { id: 'q4', type: 'mcq', question: 'Air sealing targets…', options: ['Leakage paths','Window area','Wall color','Wi‑Fi signals'], answerIndex: 0 },
           { id: 'q5', type: 'mcq', question: 'Heat pumps provide…', options: ['Efficient heating & cooling','Only heating via boilers','Only cooling with water','No efficiency gains'], answerIndex: 0 },
-        ] }, ownerId: 'system', status: 'approved', approvedAt: new Date().toISOString() }
+        ] }, ownerId: 'system', status: 'approved', approvedAt: new Date().toISOString() },
 { id: 'dq-11', quiz: { title: 'Plastic Pollution', topic: 'Waste', difficulty: 'medium', xp: 100, questions: [
           { id: 'q1', type: 'mcq', question: 'Common source of microplastics is…', options: ['Synthetic clothing fibers','Sand','Sea salt only','Glass bottles'], answerIndex: 0 },
           { id: 'q2', type: 'mcq', question: 'Best way to reduce plastic waste?', options: ['Refill/reuse containers','Use more disposables','Burn plastic at home','Throw all in landfill'], answerIndex: 0 },
@@ -260,56 +260,56 @@ export const useSubmissionsStore = create(
           { id: 'q3', type: 'mcq', question: 'Reforestation means…', options: ['Planting trees where forests were removed','Cutting old-growth only','Replacing forests with farms','Draining wetlands'], answerIndex: 0 },
           { id: 'q4', type: 'mcq', question: 'Agroforestry…', options: ['Combines trees with crops','Removes all trees','Is monoculture only','Bans shade'], answerIndex: 0 },
           { id: 'q5', type: 'mcq', question: 'A common driver of deforestation is…', options: ['Commodity expansion','Tree planting','Urban parks','Wetland restoration'], answerIndex: 0 },
-        ] }, ownerId: 'system', status: 'approved', approvedAt: new Date().toISOString() }
+        ] }, ownerId: 'system', status: 'approved', approvedAt: new Date().toISOString() },
 { id: 'dq-13', quiz: { title: 'Soil Health', topic: 'Agriculture', difficulty: 'medium', xp: 100, questions: [
           { id: 'q1', type: 'mcq', question: 'Which practice improves soil health?', options: ['Cover crops','Bare fallow all year','Over-tillage','Excess salt'], answerIndex: 0 },
           { id: 'q2', type: 'mcq', question: 'Soil organic matter helps by…', options: ['Storing water & nutrients','Making soil sterile','Blocking roots','Salinizing soil'], answerIndex: 0 },
           { id: 'q3', type: 'mcq', question: 'A method to reduce erosion is…', options: ['Contour farming','Removing all vegetation','Steeper slopes','Exposed topsoil'], answerIndex: 0 },
           { id: 'q4', type: 'mcq', question: 'Minimal tillage helps by…', options: ['Reducing disturbance','Exposing topsoil','Breaking aggregates','Salting soil'], answerIndex: 0 },
           { id: 'q5', type: 'mcq', question: 'Soil pH affects…', options: ['Nutrient availability','Sunrise time','Wind speed','Star visibility'], answerIndex: 0 },
-        ] }, ownerId: 'system', status: 'approved', approvedAt: new Date().toISOString() }
+        ] }, ownerId: 'system', status: 'approved', approvedAt: new Date().toISOString() },
 { id: 'dq-14', quiz: { title: 'Food Waste', topic: 'Waste', difficulty: 'easy', xp: 100, questions: [
           { id: 'q1', type: 'mcq', question: 'Which action cuts household food waste?', options: ['Meal planning','Buying impulsively','Ignoring dates & storage','Cooking excessive amounts'], answerIndex: 0 },
           { id: 'q2', type: 'mcq', question: 'Which helps keep food fresh longer?', options: ['Proper storage temperature','Leaving fridge door open','Room-temp dairy','Unsealed containers'], answerIndex: 0 },
           { id: 'q3', type: 'mcq', question: 'Unavoidable food scraps should be…', options: ['Composted','Flushed','Thrown on street','Burned indoors'], answerIndex: 0 },
           { id: 'q4', type: 'mcq', question: '“Best before” date typically indicates…', options: ['Quality; often safe after','Unsafe after midnight','Mandatory discard','Product recall'], answerIndex: 0 },
           { id: 'q5', type: 'mcq', question: 'Leftovers should be stored…', options: ['Promptly cooled and sealed','Left out overnight','Uncovered in warm oven','On windowsill'], answerIndex: 0 },
-        ] }, ownerId: 'system', status: 'approved', approvedAt: new Date().toISOString() }
+        ] }, ownerId: 'system', status: 'approved', approvedAt: new Date().toISOString() },
 { id: 'dq-15', quiz: { title: 'Circular Economy', topic: 'Sustainability', difficulty: 'medium', xp: 100, questions: [
           { id: 'q1', type: 'mcq', question: 'A circular economy aims to…', options: ['Keep materials in use longer','Use more landfills','Speed up extraction','Design for single-use'], answerIndex: 0 },
           { id: 'q2', type: 'mcq', question: 'Product-as-a-service is…', options: ['Leasing/servitizing products','One-time disposable sales','Illegal refurbishment','Mandatory ownership'], answerIndex: 0 },
           { id: 'q3', type: 'mcq', question: 'A key design strategy is…', options: ['Design for repair & reuse','Hard-to-open cases','Glued-in batteries only','No spare parts'], answerIndex: 0 },
           { id: 'q4', type: 'mcq', question: 'Remanufacturing is…', options: ['Rebuilding to like-new','Incinerating','Downcycling only','Landfilling'], answerIndex: 0 },
           { id: 'q5', type: 'mcq', question: 'Design for disassembly enables…', options: ['Easy repair/reuse','Harder recycling','Permanent glues everywhere','Single-use parts'], answerIndex: 0 },
-        ] }, ownerId: 'system', status: 'approved', approvedAt: new Date().toISOString() }
+        ] }, ownerId: 'system', status: 'approved', approvedAt: new Date().toISOString() },
 { id: 'dq-16', quiz: { title: 'Energy Efficiency', topic: 'Energy', difficulty: 'easy', xp: 100, questions: [
           { id: 'q1', type: 'mcq', question: 'Which bulb is most efficient?', options: ['LED','Incandescent','Halogen','CFL (older type)'], answerIndex: 0 },
           { id: 'q2', type: 'mcq', question: '“Phantom loads” are reduced by…', options: ['Unplugging/using power strips','Leaving everything on','Higher thermostat always','Blocking vents'], answerIndex: 0 },
           { id: 'q3', type: 'mcq', question: 'Which label indicates efficient appliances?', options: ['ENERGY STAR/efficiency rating','No label','“High watt” only','Random sticker'], answerIndex: 0 },
           { id: 'q4', type: 'mcq', question: 'Which setting saves HVAC energy?', options: ['Programmable thermostats','Open windows in winter','Constant max heat','Doors open'], answerIndex: 0 },
           { id: 'q5', type: 'mcq', question: 'Standby power can be cut by…', options: ['Smart strips','Always-on chargers','Bigger power bricks','Higher voltage outlets'], answerIndex: 0 },
-        ] }, ownerId: 'system', status: 'approved', approvedAt: new Date().toISOString() }
+        ] }, ownerId: 'system', status: 'approved', approvedAt: new Date().toISOString() },
 { id: 'dq-17', quiz: { title: 'Wastewater Treatment', topic: 'Water', difficulty: 'medium', xp: 100, questions: [
           { id: 'q1', type: 'mcq', question: 'Primary treatment mainly…', options: ['Removes solids by settling','Adds perfume','Dyes water blue','Removes all microbes'], answerIndex: 0 },
           { id: 'q2', type: 'mcq', question: 'You should NOT flush…', options: ['Wipes','Toilet paper','Water','Dilute soap'], answerIndex: 0 },
           { id: 'q3', type: 'mcq', question: 'Households can reduce loads by…', options: ['Low-flow fixtures','Running taps constantly','Pouring oil in sink','Flushing paint'], answerIndex: 0 },
           { id: 'q4', type: 'mcq', question: 'Secondary treatment uses…', options: ['Biological processes','Only screening','Nuclear filters','Sand pits only'], answerIndex: 0 },
           { id: 'q5', type: 'mcq', question: 'Fats, oils, and grease should…', options: ['Be collected & disposed','Go down sink','Be flushed','Mixed with paint'], answerIndex: 0 },
-        ] }, ownerId: 'system', status: 'approved', approvedAt: new Date().toISOString() }
+        ] }, ownerId: 'system', status: 'approved', approvedAt: new Date().toISOString() },
 { id: 'dq-18', quiz: { title: 'Urban Heat Islands', topic: 'Climate', difficulty: 'medium', xp: 100, questions: [
           { id: 'q1', type: 'mcq', question: 'Which reduces urban heat islands?', options: ['Trees/green roofs','Dark roofs','More asphalt','Removing parks'], answerIndex: 0 },
           { id: 'q2', type: 'mcq', question: '“Cool roofs” are…', options: ['High-reflectance roofs','Heaters on roofs','Mirrors indoors','Black tar roofs'], answerIndex: 0 },
           { id: 'q3', type: 'mcq', question: 'Pavement strategy to cool cities:', options: ['Permeable/cool pavements','Hotter pavements','More car lanes only','Concrete without shade'], answerIndex: 0 },
           { id: 'q4', type: 'mcq', question: 'Street trees help by…', options: ['Shading & evapotranspiration','Blocking wind only','Heating asphalt','Absorbing CO in roots'], answerIndex: 0 },
           { id: 'q5', type: 'mcq', question: 'Cool roofs are typically…', options: ['Light/reflective','Dark/absorptive','Heated','Sticky tar'], answerIndex: 0 },
-        ] }, ownerId: 'system', status: 'approved', approvedAt: new Date().toISOString() }
+        ] }, ownerId: 'system', status: 'approved', approvedAt: new Date().toISOString() },
 { id: 'dq-19', quiz: { title: 'Green Tech', topic: 'Sustainability', difficulty: 'medium', xp: 100, questions: [
           { id: 'q1', type: 'mcq', question: 'Which is a renewable energy source?', options: ['Geothermal','Diesel','Coal','Peat'], answerIndex: 0 },
           { id: 'q2', type: 'mcq', question: 'A smart grid helps by…', options: ['Balancing demand with renewables','Wasting energy at night','Ignoring outages','Blocking distributed energy'], answerIndex: 0 },
           { id: 'q3', type: 'mcq', question: 'An example of energy storage is…', options: ['Battery systems','Open windows','More diesel tanks','Incandescent lamps'], answerIndex: 0 },
           { id: 'q4', type: 'mcq', question: 'Demand response means…', options: ['Shifting loads in time','Burning more diesel','Running lights 24/7','Banning households'], answerIndex: 0 },
           { id: 'q5', type: 'mcq', question: 'Example of low-carbon heating:', options: ['Heat pump','Coal furnace','Diesel boiler','Open fire pit'], answerIndex: 0 },
-        ] }, ownerId: 'system', status: 'approved', approvedAt: new Date().toISOString() }
+        ] }, ownerId: 'system', status: 'approved', approvedAt: new Date().toISOString() },
 { id: 'dq-20', quiz: { title: 'Ecosystem Services', topic: 'Ecology', difficulty: 'medium', xp: 100, questions: [
           { id: 'q1', type: 'mcq', question: 'Pollination is typically considered a…', options: ['Regulating service','Provisioning service','Cultural service','No service'], answerIndex: 0 },
           { id: 'q2', type: 'mcq', question: 'Wetlands provide which services?', options: ['Flood control & water purification','More dust storms','Noise pollution','Ozone depletion'], answerIndex: 0 },
@@ -373,7 +373,7 @@ export const useSubmissionsStore = create(
         set(state => ({ pendingQuizzes: state.pendingQuizzes.filter(i => i.id !== id) }))
       },
     }),
-    { name: 'aversoltix_submissions' }
+    { name: 'aversoltix_submissions_v2' }
   )
 )
 

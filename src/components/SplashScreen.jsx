@@ -95,15 +95,30 @@ export default function SplashScreen() {
           AverSoltix
         </motion.div>
 
-        {/* loading bar */}
-        <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 w-[75%] max-w-[520px] h-1.5 rounded-full bg-emerald-200/40 dark:bg-emerald-900/40 overflow-hidden">
+        {/* Enhanced loading bar with environmental messaging */}
+        <div className="absolute -bottom-16 left-1/2 -translate-x-1/2 w-[75%] max-w-[520px]">
           <motion.div
-            className="h-full bg-gradient-to-r from-emerald-500 via-teal-500 to-sky-500"
-            style={{ width: '35%' }}
-            initial={{ x: '-110%' }}
-            animate={{ x: ['-110%', '-10%', '110%'] }}
-            transition={{ duration: reduce ? 0.01 : 1.8, repeat: reduce ? 0 : Infinity, ease: 'easeInOut' }}
-          />
+            className="text-xs text-center text-emerald-600 dark:text-emerald-400 mb-2 font-medium"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.8 }}
+          >
+            🌱 Loading your eco-adventure...
+          </motion.div>
+          <div className="h-2 rounded-full bg-emerald-200/50 dark:bg-emerald-900/50 overflow-hidden shadow-inner">
+            <motion.div
+              className="h-full bg-gradient-to-r from-emerald-400 via-teal-400 to-sky-400 shadow-sm"
+              style={{ width: '40%' }}
+              initial={{ x: '-110%' }}
+              animate={{ x: ['-110%', '-5%', '110%'] }}
+              transition={{ duration: reduce ? 0.01 : 2.2, repeat: reduce ? 0 : Infinity, ease: 'easeInOut' }}
+            />
+            <motion.div
+              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
+              animate={{ x: ['-200%', '200%'] }}
+              transition={{ duration: reduce ? 0.01 : 2, repeat: reduce ? 0 : Infinity, ease: 'linear' }}
+            />
+          </div>
         </div>
       </div>
     </motion.div>

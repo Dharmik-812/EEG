@@ -18,12 +18,12 @@ export default function Landing() {
           transition={{ duration: 0.6 }}
           className="md:col-span-7"
         >
-          <h1 className="text-4xl md:text-6xl font-extrabold leading-tight">
-            Learn. Play. <span className="bg-clip-text text-transparent bg-gradient-to-r from-emerald-500 to-sky-500">Save the Planet.</span>
+          <h1 className="font-display text-4xl md:text-6xl font-extrabold leading-tight">
+            Learn. Play. <span className="text-gold">Save the Planet.</span>
           </h1>
           <p className="mt-6 text-lg text-slate-600 dark:text-slate-300">AverSoltix is a gamified environmental education platform for schools and colleges. Earn XP, collect badges, and climb the leaderboard while learning about climate change, recycling, renewable energy, and biodiversity.</p>
           <div className="mt-8 flex items-center gap-3">
-            <Link to="/challenges" className="btn group">
+            <Link to="/challenges" className="btn-gold group">
               Start Learning
               <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
             </Link>

@@ -177,12 +177,12 @@ export default function Community() {
             </div>
             <div className="flex flex-wrap gap-1">
               {allTopics.map(t => (
-                <button key={t} className={`px-2 py-1 rounded border text-xs ${selectedTopics.includes(t)?'border-emerald-400 bg-emerald-50/50 dark:bg-emerald-900/20':'border-slate-200 dark:border-slate-800'}`} onClick={()=>toggleTopic(t)}>{t}</button>
+                <button key={t} className={selectedTopics.includes(t)?'chip-selected':'chip'} onClick={()=>toggleTopic(t)}>{t}</button>
               ))}
             </div>
             <div className="flex flex-wrap gap-1">
               {['easy','medium','hard'].map(d => (
-                <button key={d} className={`px-2 py-1 rounded border text-xs capitalize ${selectedDifficulties.includes(d)?'border-emerald-400 bg-emerald-50/50 dark:bg-emerald-900/20':'border-slate-200 dark:border-slate-800'}`} onClick={()=>toggleDifficulty(d)}>{d}</button>
+                <button key={d} className={(selectedDifficulties.includes(d)?'chip-selected':'chip')+ ' capitalize'} onClick={()=>toggleDifficulty(d)}>{d}</button>
               ))}
             </div>
             <select className="rounded border bg-transparent px-2 py-1 text-sm" value={sortBy} onChange={e=>setSortBy(e.target.value)}>
@@ -227,7 +227,7 @@ export default function Community() {
               const key = quizObj ? `community-${quizObj.id}` : null
               const lastScore = key ? completedChallenges[key] : undefined
               return (
-                <div key={q.id} className="p-4 rounded-lg border">
+                <div key={q.id} className="p-4 rounded-xl border bg-white/60 dark:bg-slate-900/50 backdrop-blur hover-lift transition-all">
                   <div className="font-medium">{q.quiz.title}</div>
                   <div className="text-sm text-slate-500">{q.quiz.topic} • {q.quiz.difficulty || 'normal'}</div>
                   {typeof lastScore === 'number' && (

@@ -1,0 +1,253 @@
+/* Enhanced Environmental Theme CSS */
+
+/* Eco-friendly button styles */
+.btn-eco {
+  @apply bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600;
+  @apply text-white font-semibold px-6 py-3 rounded-xl;
+  @apply transform transition-all duration-300 hover:scale-105 hover:shadow-lg;
+  @apply border-2 border-transparent hover:border-emerald-300;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-eco::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.btn-eco:hover::before {
+  left: 100%;
+}
+
+/* Achievement glow effect */
+.achievement-glow {
+  box-shadow: 
+    0 0 20px rgba(16, 185, 129, 0.3),
+    0 0 40px rgba(16, 185, 129, 0.2),
+    0 0 60px rgba(16, 185, 129, 0.1);
+  animation: achievementPulse 2s ease-in-out infinite;
+}
+
+@keyframes achievementPulse {
+  0%, 100% {
+    box-shadow: 
+      0 0 20px rgba(16, 185, 129, 0.3),
+      0 0 40px rgba(16, 185, 129, 0.2),
+      0 0 60px rgba(16, 185, 129, 0.1);
+  }
+  50% {
+    box-shadow: 
+      0 0 30px rgba(16, 185, 129, 0.5),
+      0 0 60px rgba(16, 185, 129, 0.3),
+      0 0 90px rgba(16, 185, 129, 0.2);
+  }
+}
+
+/* Nature-inspired hover effects */
+.hover-lift {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-lift:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 
+    0 10px 25px rgba(0, 0, 0, 0.1),
+    0 0 30px rgba(16, 185, 129, 0.1);
+}
+
+/* Eco progress bars */
+.eco-progress {
+  background: linear-gradient(90deg, #10b981, #0ea5e9);
+  position: relative;
+  overflow: hidden;
+}
+
+.eco-progress::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+/* Environmental card styles */
+.eco-card {
+  @apply bg-white/70 dark:bg-slate-900/70 backdrop-blur-sm;
+  @apply border border-emerald-200/50 dark:border-emerald-800/30;
+  @apply rounded-xl p-6 shadow-lg;
+  position: relative;
+  overflow: hidden;
+}
+
+.eco-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #10b981, #0ea5e9, #10b981);
+  background-size: 200% 100%;
+  animation: gradientFlow 3s ease infinite;
+}
+
+@keyframes gradientFlow {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+/* Floating elements animation */
+.float-animation {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  25% { transform: translateY(-10px) rotate(2deg); }
+  50% { transform: translateY(-5px) rotate(-1deg); }
+  75% { transform: translateY(-8px) rotate(1deg); }
+}
+
+/* Nature particle effects */
+.nature-particles {
+  position: relative;
+}
+
+.nature-particles::before {
+  content: '🌱';
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  font-size: 12px;
+  opacity: 0;
+  animation: particleFloat 4s infinite;
+  animation-delay: 0s;
+}
+
+.nature-particles::after {
+  content: '✨';
+  position: absolute;
+  bottom: -10px;
+  left: -10px;
+  font-size: 10px;
+  opacity: 0;
+  animation: particleFloat 4s infinite;
+  animation-delay: 2s;
+}
+
+@keyframes particleFloat {
+  0%, 100% { opacity: 0; transform: translateY(0) scale(0.8); }
+  25% { opacity: 1; transform: translateY(-15px) scale(1); }
+  75% { opacity: 0.5; transform: translateY(-30px) scale(0.9); }
+}
+
+/* Eco badge styles */
+.eco-badge {
+  @apply inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium;
+  @apply bg-gradient-to-r from-emerald-100 to-teal-100 text-emerald-700;
+  @apply dark:from-emerald-900/50 dark:to-teal-900/50 dark:text-emerald-300;
+  @apply border border-emerald-200 dark:border-emerald-700;
+}
+
+/* XP counter animation */
+.xp-counter {
+  animation: xpCountUp 0.5s ease-out;
+}
+
+@keyframes xpCountUp {
+  0% { transform: scale(1.2); opacity: 0.7; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* Streak flame effect */
+.streak-flame {
+  position: relative;
+  animation: flameFlicker 2s ease-in-out infinite alternate;
+}
+
+@keyframes flameFlicker {
+  0% { filter: hue-rotate(0deg) brightness(1); }
+  25% { filter: hue-rotate(10deg) brightness(1.1); }
+  50% { filter: hue-rotate(-5deg) brightness(0.9); }
+  75% { filter: hue-rotate(15deg) brightness(1.05); }
+  100% { filter: hue-rotate(0deg) brightness(1); }
+}
+
+/* Level up animation */
+.level-up {
+  animation: levelUpBounce 0.6s ease-out;
+}
+
+@keyframes levelUpBounce {
+  0% { transform: scale(1); }
+  25% { transform: scale(1.2) rotate(-5deg); }
+  50% { transform: scale(1.1) rotate(2deg); }
+  75% { transform: scale(1.15) rotate(-1deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
+/* Environmental loading animation */
+.eco-loading {
+  background: linear-gradient(90deg, #10b981 25%, #0ea5e9 50%, #10b981 75%);
+  background-size: 200% 100%;
+  animation: ecoLoad 2s ease-in-out infinite;
+}
+
+@keyframes ecoLoad {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Gamified tooltip */
+.eco-tooltip {
+  @apply absolute z-50 px-3 py-2 text-sm font-medium text-white;
+  @apply bg-gradient-to-r from-emerald-600 to-teal-600 rounded-lg shadow-lg;
+  @apply border border-emerald-500/30;
+  @apply opacity-0 pointer-events-none transition-all duration-200;
+  transform: translateY(10px);
+}
+
+.eco-tooltip.show {
+  @apply opacity-100 pointer-events-auto;
+  transform: translateY(0);
+}
+
+/* Responsive enhancements */
+@media (max-width: 768px) {
+  .eco-card {
+    @apply p-4;
+  }
+  
+  .btn-eco {
+    @apply px-4 py-2 text-sm;
+  }
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  .eco-card {
+    background: rgba(15, 23, 42, 0.8);
+    border-color: rgba(16, 185, 129, 0.2);
+  }
+  
+  .achievement-glow {
+    box-shadow: 
+      0 0 20px rgba(52, 211, 153, 0.4),
+      0 0 40px rgba(52, 211, 153, 0.3),
+      0 0 60px rgba(52, 211, 153, 0.2);
+  }
+}

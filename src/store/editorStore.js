@@ -585,6 +585,44 @@ export const useEditorStore = create(
 
       // Input mapping
       setInputBinding: (action, keys) => set(state => ({ project: { ...state.project, input: { ...state.project.input, [action]: keys } } })),
+
+      // Enhanced component compatibility functions
+      selectedEntity: null,
+      setSelectedEntity: (id) => set({ selectedEntityId: id, selectedEntity: id }),
+      transformMode: 'select',
+      setTransformMode: (mode) => set({ transformMode: mode }),
+      snapToGrid: false,
+      toggleSnapToGrid: () => set(state => ({ snapToGrid: !state.snapToGrid })),
+      gridSize: 32,
+      setGridSize: (size) => set({ gridSize: size }),
+      
+      // Entity management for enhanced components
+      updateEntity: (id, entity) => set(state => {
+        get().pushHistory()
+        const scene = get().currentScene()
+        if (!scene) return {}
+        const updated = { ...state.project }
+        const sidx = updated.scenes.findIndex(s => s.id === scene.id)
+        const eidx = scene.entities.findIndex(e => e.id === id)
+        if (eidx === -1) return {}
+        const newScene = { ...scene }
+        newScene.entities = [...scene.entities]
+        newScene.entities[eidx] = entity
+        updated.scenes[sidx] = newScene
+        return { project: updated }
+      }),
+      
+      removeEntity: (id) => set(state => {
+        get().pushHistory()
+        const scene = get().currentScene()
+        if (!scene) return {}
+        const updated = { ...state.project }
+        const sidx = updated.scenes.findIndex(s => s.id === scene.id)
+        const newScene = { ...scene }
+        newScene.entities = scene.entities.filter(e => e.id !== id)
+        updated.scenes[sidx] = newScene
+        return { project: updated, selectedEntityId: id === state.selectedEntityId ? null : state.selectedEntityId }
+      }),
     }),
     { name: 'aversoltix_editor' }
   )

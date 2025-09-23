@@ -57,7 +57,7 @@ export default function Navbar() {
       <nav className={`container mx-auto px-4 ${scrolled ? 'py-2' : 'py-3'} flex items-center justify-between transition-all`}>
         <Link to="/" className="group flex items-center gap-2 font-extrabold text-xl tracking-tight">
           <Leaf className="h-6 w-6 text-emerald-500 drop-shadow group-hover:scale-110 transition-transform" aria-hidden />
-          <span className="bg-clip-text text-transparent bg-gradient-to-r from-emerald-500 to-sky-500">AverSoltix</span>
+          <span className="font-display text-gold">AverSoltix</span>
         </Link>
 
         <div className="hidden md:flex items-center gap-2">

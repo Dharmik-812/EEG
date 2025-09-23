@@ -47,13 +47,36 @@
     @apply inline-flex items-center gap-2 rounded-lg border border-emerald-400/40 px-5 py-3 text-emerald-600 dark:text-emerald-300 hover:bg-emerald-50/50 dark:hover:bg-emerald-900/20 transition-all;
   }
   .card {
-    @apply rounded-2xl bg-white/70 dark:bg-slate-900/60 backdrop-blur border border-white/20 dark:border-slate-800 shadow-lg;
+    @apply rounded-2xl bg-white/70 dark:bg-slate-900/60 backdrop-blur border border-white/20 dark:border-slate-800 shadow-lg transition-all;
   }
+  .card-vintage { box-shadow: inset 0 0 0 1px rgba(212,175,55,.25), inset 0 0 0 4px rgba(255,255,255,.05); }
+  .font-display { font-family: 'Playfair Display', serif; }
+  .text-gold { @apply bg-clip-text text-transparent bg-gradient-to-r from-amber-400 to-yellow-200; }
+  .btn-gold { @apply inline-flex items-center gap-2 rounded-lg px-5 py-3 text-slate-900 shadow-lg transition-all active:scale-[0.98]; background: linear-gradient(90deg,#f6e27a,#f7c14b,#f6e27a); background-size:200% 100%; animation: gradient-x 6s ease infinite; box-shadow: 0 10px 30px rgba(247,193,75,.25); }
   .nav-link {
     @apply px-3 py-2 rounded-md hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors;
+  }
+  .chip {
+    @apply px-2 py-1 rounded border border-slate-200 dark:border-slate-800 text-xs text-slate-700 dark:text-slate-300 hover:bg-emerald-50/60 dark:hover:bg-emerald-900/20 transition-colors;
+  }
+  .chip-selected {
+    @apply px-2 py-1 rounded border border-emerald-400 bg-emerald-50/60 dark:bg-emerald-900/20 text-xs text-emerald-700 dark:text-emerald-300;
   }
 }
 
 @layer utilities {
   .shadow-glow { box-shadow: 0 10px 30px rgba(16,185,129,.28), 0 6px 16px rgba(14,165,233,.22); }
+  .hover-lift { transition: transform .25s ease, box-shadow .25s ease; }
+  .hover-lift:hover { transform: translateY(-2px); box-shadow: 0 16px 40px rgba(16,185,129,.18), 0 10px 24px rgba(14,165,233,.16); }
+  .text-gradient { @apply bg-clip-text text-transparent bg-gradient-to-r from-emerald-500 to-sky-500; }
+  .bg-aurora {
+    background-image:
+      radial-gradient(60% 50% at 10% 10%, rgba(16,185,129,.18), rgba(16,185,129,0) 60%),
+      radial-gradient(50% 50% at 90% 20%, rgba(14,165,233,.18), rgba(14,165,233,0) 60%),
+      radial-gradient(60% 60% at 30% 90%, rgba(59,130,246,.15), rgba(59,130,246,0) 60%);
+  }
+  .animate-gradient-x { background-size: 200% 100%; animation: gradient-x 8s ease infinite; }
+  .animation-delay-2000 { animation-delay: 2s; }
+  .animation-delay-4000 { animation-delay: 4s; }
+  @keyframes gradient-x { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
 }

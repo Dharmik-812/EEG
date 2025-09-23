@@ -198,12 +198,18 @@ export default function Challenges() {
       }
     }).catch(()=>{})
   }, [approvedQuizzes.length])
-  const dailyPicks = (dailyApiList.length ? dailyApiList : [playableCommunity[0]?.id, playableCommunity[1]?.id, playableCommunity[2]?.id].filter(Boolean))
+  let dailyPicks = (dailyApiList.length ? dailyApiList : [playableCommunity[0]?.id, playableCommunity[1]?.id, playableCommunity[2]?.id].filter(Boolean))
     .map(id => playableCommunity.find(q => q.id === id))
     .filter(Boolean)
     .map(q => ({ ...q, id: `daily-${today}-${q.id}` }))
 
-  const daily = dailyPicks[0] || ((playableCommunity && playableCommunity.length > 0) ? pickDaily(playableCommunity) : pickDaily(baseData))
+  // Ensure at least one daily pick always shows
+  if (dailyPicks.length === 0) {
+    const fallbackOne = (playableCommunity && playableCommunity.length > 0) ? pickDaily(playableCommunity) : pickDaily(baseData)
+    if (fallbackOne) dailyPicks = [fallbackOne]
+  }
+
+  const daily = dailyPicks[0] || null
 
   // Open specific community quiz if linked via ?quiz=
   useEffect(() => {
@@ -229,7 +235,7 @@ export default function Challenges() {
             </div>
             <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-3">
               {dailyPicks.map((dq, i) => (
-                <div key={i} className="p-3 rounded-lg border">
+                <div key={i} className="p-3 rounded-xl border bg-white/60 dark:bg-slate-900/50 backdrop-blur hover-lift transition-all">
                   <div className="font-semibold">{dq.title}</div>
                   <div className="text-xs text-slate-500">{dq.topic || 'Quiz'} • {dq.difficulty || 'normal'}</div>
                   <div className="mt-2 flex items-center justify-between text-xs">
