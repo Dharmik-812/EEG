@@ -1,15 +1,130 @@
+import { useState } from 'react'
 import Card from '../components/Card'
 import { useSubmissionsStore } from '../store/submissionsStore'
 import { Link } from 'react-router-dom'
 import SEO from '../components/SEO.jsx'
+import Modal from '../components/Modal.jsx'
+import { useGameStore } from '../store/gameStore'
+import { shootConfetti } from '../utils/confetti'
+import toast from 'react-hot-toast'
+import { BadgeCheck } from 'lucide-react'
+
+function CommunityQuizModal({ challenge, onClose }) {
+  const { addXP, awardBadge, markChallengeComplete, touchDailyStreak, streak } = useGameStore()
+  const [idx, setIdx] = useState(0)
+  const [answers, setAnswers] = useState([])
+  const [submitted, setSubmitted] = useState(false)
+  const q = challenge.questions[idx]
+  const total = challenge.questions.length
+
+  const select = (i) => {
+    if (submitted) return
+    setAnswers(prev => { const copy = [...prev]; copy[idx] = i; return copy })
+  }
+  const next = () => { if (!submitted && idx < total - 1) setIdx(idx + 1) }
+  const score = () => challenge.questions.reduce((sum, qq, i) => sum + (answers[i] === qq.answerIndex ? 1 : 0), 0)
+
+  const submit = () => {
+    const correct = score()
+    const scorePct = Math.round((correct / total) * 100)
+    const xpEarned = Math.round((correct / total) * (challenge.xp ?? 100))
+    addXP(xpEarned, `Community Quiz: ${challenge.title}`)
+
+    const s = touchDailyStreak()
+    if (s.type === 'increment' || s.type === 'start') {
+      toast.success(`Streak ${s.type === 'start' ? 1 : streak + 1}! Keep it up!`)
+    }
+
+    let earned = []
+    if (xpEarned > 0) { awardBadge('starter'); earned.push('Getting Started') }
+    markChallengeComplete(`community-${challenge.id || challenge.title}`, scorePct)
+
+    shootConfetti()
+    toast.success(`You scored ${scorePct}% and earned ${xpEarned} XP!`)
+    if (earned.length) toast.success(`Badges unlocked: ${earned.join(', ')}`)
+    setSubmitted(true)
+  }
+
+  if (submitted) {
+    const correctCount = score()
+    return (
+      <div className="space-y-4">
+        <div className="text-xl font-bold">Review</div>
+        <div className="text-sm text-slate-600 dark:text-slate-300">You scored {correctCount}/{total}.</div>
+        <div className="space-y-4 max-h-[60vh] overflow-auto pr-2">
+          {challenge.questions.map((qq, qi) => {
+            const picked = answers[qi]; const correct = qq.answerIndex
+            return (
+              <div key={qq.id || qi} className="p-3 rounded-xl border bg-white/50 dark:bg-slate-900/40">
+                <div className="font-medium">Q{qi+1}. {qq.question}</div>
+                <ul className="mt-2 space-y-2">
+                  {qq.options.map((opt, oi) => {
+                    const isPicked = picked === oi
+                    const isCorrect = correct === oi
+                    const classes = isCorrect ? 'border-emerald-400 bg-emerald-50/50 dark:bg-emerald-900/20' : isPicked ? 'border-rose-400 bg-rose-50/50 dark:bg-rose-900/20' : 'border-slate-200 dark:border-slate-800'
+                    return (
+                      <li key={oi} className={`px-3 py-2 rounded-lg border ${classes}`}>
+                        <div className="flex items-center justify-between">
+                          <span>{opt}</span>
+                          {isCorrect && <span className="text-emerald-600 text-xs">Correct</span>}
+                          {!isCorrect && isPicked && <span className="text-rose-600 text-xs">Your choice</span>}
+                        </div>
+                      </li>
+                    )
+                  })}
+                </ul>
+                <div className="mt-2 text-xs text-slate-500">Right answer: {qq.options[correct]}</div>
+              </div>
+            )
+          })}
+        </div>
+        <div className="flex justify-end gap-2">
+          <button className="btn-outline" onClick={() => { setIdx(0); setAnswers([]); setSubmitted(false) }}>Retry</button>
+          <button className="btn" onClick={onClose}>Close</button>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div>
+      <div className="mb-4">
+        <div className="text-sm text-slate-500">Question {idx + 1} of {total}</div>
+        <div className="mt-2 text-xl font-semibold">{q.question}</div>
+      </div>
+      <div className="space-y-2">
+        {q.options.map((opt, i) => {
+          const selected = answers[idx] === i
+          return (
+            <button key={i} onClick={() => select(i)} className={`w-full text-left p-4 rounded-xl border transition-all ${selected ? 'border-emerald-400 bg-emerald-50/50 dark:bg-emerald-900/20' : 'border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800'}`}>
+              {opt}
+            </button>
+          )
+        })}
+      </div>
+      <div className="mt-6 flex items-center justify-between">
+        <div className="text-sm text-slate-500">XP available: {challenge.xp ?? 100}</div>
+        {idx < total - 1 ? (
+          <button onClick={next} className="btn">Next</button>
+        ) : (
+          <button onClick={submit} className="btn inline-flex items-center gap-2">
+            Submit <BadgeCheck className="h-5 w-5" />
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}
 
 export default function Community() {
   const { approvedGames, approvedQuizzes, seedDemos } = useSubmissionsStore(s => ({ approvedGames: s.approvedGames, approvedQuizzes: s.approvedQuizzes, seedDemos: s.seedDemos }))
+  const [activeQuiz, setActiveQuiz] = useState(null)
+  const [showPlayableOnly, setShowPlayableOnly] = useState(false)
+  const { completedChallenges } = useGameStore(s => ({ completedChallenges: s.completedChallenges }))
 
   return (
-    <>
-      <SEO title="Community" description="Explore approved community games and quizzes, or submit your own eco creations." />
     <section className="space-y-6">
+      <SEO title="Community" description="Explore approved community games and quizzes, or submit your own eco creations." />
       <Card>
         <div className="flex items-center justify-between mb-3">
           <div className="font-semibold">Community Games</div>
@@ -37,21 +152,47 @@ export default function Community() {
       <Card>
         <div className="flex items-center justify-between mb-3">
           <div className="font-semibold">Community Quizzes</div>
-          <Link to="/create-quiz" className="btn-outline !px-3 !py-1">Create Quiz</Link>
+          <div className="flex items-center gap-2">
+            <label className="text-xs flex items-center gap-1">
+              <input type="checkbox" className="rounded" checked={showPlayableOnly} onChange={e=>setShowPlayableOnly(e.target.checked)} />
+              Show playable only
+            </label>
+            <Link to="/create-quiz" className="btn-outline !px-3 !py-1">Create Quiz</Link>
+          </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {approvedQuizzes.length === 0 && <div className="text-sm text-slate-500">No quizzes yet.</div>}
-          {approvedQuizzes.map(q => (
-            <div key={q.id} className="p-4 rounded-lg border">
-              <div className="font-medium">{q.quiz.title}</div>
-              <div className="text-sm text-slate-500">{q.quiz.topic}</div>
-              <Link to="/challenges" className="btn mt-3 !px-3 !py-2">Take</Link>
-            </div>
-          ))}
+          {approvedQuizzes
+            .filter(q => {
+              if (!showPlayableOnly) return true
+              return q?.quiz && Array.isArray(q.quiz.questions) && q.quiz.questions.length > 0
+            })
+            .map(q => {
+              const playable = q?.quiz && Array.isArray(q.quiz.questions) && q.quiz.questions.length > 0
+              const quizObj = playable ? { id: q.quiz.id || q.id, title: q.quiz.title, xp: q.quiz.xp ?? 100, questions: q.quiz.questions } : null
+              const key = quizObj ? `community-${quizObj.id}` : null
+              const lastScore = key ? completedChallenges[key] : undefined
+              return (
+                <div key={q.id} className="p-4 rounded-lg border">
+                  <div className="font-medium">{q.quiz.title}</div>
+                  <div className="text-sm text-slate-500">{q.quiz.topic}</div>
+                  {typeof lastScore === 'number' && (
+                    <div className="mt-1 text-xs text-emerald-600">Last score: {lastScore}%</div>
+                  )}
+                  {playable ? (
+                    <button className="btn mt-3 !px-3 !py-2" onClick={() => setActiveQuiz(quizObj)}>Take</button>
+                  ) : (
+                    <div className="mt-3 text-xs text-slate-500">Not playable: no questions provided.</div>
+                  )}
+                </div>
+              )
+            })}
         </div>
+        <Modal open={!!activeQuiz} onClose={() => setActiveQuiz(null)} title={activeQuiz?.title}>
+          {activeQuiz && <CommunityQuizModal challenge={activeQuiz} onClose={() => setActiveQuiz(null)} />}
+        </Modal>
       </Card>
     </section>
-    </>
   )
 }
 

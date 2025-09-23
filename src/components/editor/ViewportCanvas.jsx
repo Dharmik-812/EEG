@@ -305,10 +305,10 @@ export default function ViewportCanvas() {
   function onDragOver(e) { e.preventDefault() }
 
   return (
-    <div className="relative w-full overflow-auto border rounded-xl bg-slate-50 dark:bg-slate-900" data-tour="viewport">
+    <div className="relative w-full overflow-auto border rounded-xl bg-grid bg-white/40 dark:bg-slate-900/40 backdrop-blur" data-tour="viewport">
       <canvas
         ref={canvasRef}
-        className="block mx-auto my-4 shadow w-full h-auto max-w-full"
+        className="block mx-auto my-4 shadow-glow w-full h-auto max-w-full rounded-xl"
         onMouseDown={onMouseDown}
         onMouseMove={onMouseMove}
         onMouseUp={onMouseUp}

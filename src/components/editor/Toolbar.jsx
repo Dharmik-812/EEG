@@ -33,7 +33,8 @@ export default function Toolbar({ onPlay, onSubmit, onTutorial }) {
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-2 p-3" data-tour="toolbar">
+    <div className="relative flex flex-wrap items-center gap-2 p-3 rounded-xl border border-white/20 dark:border-slate-800 bg-white/50 dark:bg-slate-900/40 backdrop-blur" data-tour="toolbar">
+      <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-emerald-400 via-sky-400 to-emerald-400 opacity-70" />
       <button className="btn-outline !px-3 !py-2" onClick={newProject}>New</button>
       <button className="btn-outline !px-3 !py-2" onClick={undo} title="Undo (Ctrl+Z)">Undo</button>
       <button className="btn-outline !px-3 !py-2" onClick={redoAction} title="Redo (Ctrl+Y)">Redo</button>

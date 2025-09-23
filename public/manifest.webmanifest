@@ -1,0 +1,15 @@
+{
+  "name": "AverSoltix",
+  "short_name": "AverSoltix",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#ecfdf5",
+  "theme_color": "#10b981",
+  "description": "Gamified environmental education: challenges, badges, leaderboards, and a 2D game editor.",
+  "icons": [
+    { "src": "/vite.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/vite.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}

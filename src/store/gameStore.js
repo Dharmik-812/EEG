@@ -14,6 +14,9 @@ const initialState = {
   badges: [],
   streak: 0,
   lastActive: null,
+  // Daily Quiz streak specifically
+  dailyQuizStreak: 0,
+  dailyQuizLastCompleted: null,
   completedChallenges: {}, // challengeId: score
   xpLog: [], // {date, delta, reason}
 }
@@ -58,12 +61,33 @@ export const useGameStore = create(
         set({ streak: 1, lastActive: now.toISOString() })
         return { type: 'reset' }
       },
+      // Daily Quiz streak tracker
+      touchDailyQuizStreak: () => {
+        const last = get().dailyQuizLastCompleted
+        const now = new Date()
+        if (!last) {
+          set({ dailyQuizStreak: 1, dailyQuizLastCompleted: now.toISOString() })
+          return { type: 'start', streak: 1 }
+        }
+        const diff = differenceInCalendarDays(now, new Date(last))
+        if (diff === 0) {
+          set({ dailyQuizLastCompleted: now.toISOString() })
+          return { type: 'same-day', streak: get().dailyQuizStreak }
+        }
+        if (diff === 1) {
+          let newStreak
+          set(state => { newStreak = (state.dailyQuizStreak + 1); return { dailyQuizStreak: newStreak, dailyQuizLastCompleted: now.toISOString() } })
+          return { type: 'increment', streak: newStreak }
+        }
+        set({ dailyQuizStreak: 1, dailyQuizLastCompleted: now.toISOString() })
+        return { type: 'reset', streak: 1 }
+      },
       resetProgress: () => set(initialState),
     }),
     {
       name: 'aversoltix_game',
       partialize: (state) =>
-        ({ xp: state.xp, level: state.level, badges: state.badges, streak: state.streak, lastActive: state.lastActive, completedChallenges: state.completedChallenges, xpLog: state.xpLog, user: state.user }),
+        ({ xp: state.xp, level: state.level, badges: state.badges, streak: state.streak, lastActive: state.lastActive, completedChallenges: state.completedChallenges, xpLog: state.xpLog, user: state.user, dailyQuizStreak: state.dailyQuizStreak, dailyQuizLastCompleted: state.dailyQuizLastCompleted }),
     }
   )
 )

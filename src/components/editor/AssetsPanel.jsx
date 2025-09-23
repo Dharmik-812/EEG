@@ -1,6 +1,7 @@
 import { useEditorStore } from '../../store/editorStore'
 import { useSubmissionsStore } from '../../store/submissionsStore'
 import { motion } from 'framer-motion'
+import { useState } from 'react'
 
 export default function AssetsPanel() {
   const { project, importAsset, updateSelected, selectedEntityId, currentScene, addAssetFromLibrary } = useEditorStore(s => ({
