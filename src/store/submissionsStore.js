@@ -197,21 +197,81 @@ export const useSubmissionsStore = create(
           { id: 'q1', type: 'mcq', question: 'Personal footprint can drop by…', options: ['Flying more','Reducing energy use','Idling car','Single-use plastics'], answerIndex: 1 },
           { id: 'q2', type: 'mcq', question: 'Which has the lowest CO₂ per km?', options: ['Car (solo)','Bus','Bike','Motorbike'], answerIndex: 2 }
         ] }, ownerId: 'system', status: 'approved', approvedAt: new Date().toISOString() },
-        { id: 'dq-06', quiz: { title: 'Composting', topic: 'Waste' }, ownerId: 'system', status: 'approved', approvedAt: new Date().toISOString() },
-        { id: 'dq-07', quiz: { title: 'Air Pollution', topic: 'Climate' }, ownerId: 'system', status: 'approved', approvedAt: new Date().toISOString() },
-        { id: 'dq-08', quiz: { title: 'Ocean Health', topic: 'Water' }, ownerId: 'system', status: 'approved', approvedAt: new Date().toISOString() },
-        { id: 'dq-09', quiz: { title: 'Sustainable Transport', topic: 'Energy' }, ownerId: 'system', status: 'approved', approvedAt: new Date().toISOString() },
-        { id: 'dq-10', quiz: { title: 'Green Buildings', topic: 'Energy' }, ownerId: 'system', status: 'approved', approvedAt: new Date().toISOString() },
-        { id: 'dq-11', quiz: { title: 'Plastic Pollution', topic: 'Waste' }, ownerId: 'system', status: 'approved', approvedAt: new Date().toISOString() },
-        { id: 'dq-12', quiz: { title: 'Deforestation', topic: 'Forests' }, ownerId: 'system', status: 'approved', approvedAt: new Date().toISOString() },
-        { id: 'dq-13', quiz: { title: 'Soil Health', topic: 'Agriculture' }, ownerId: 'system', status: 'approved', approvedAt: new Date().toISOString() },
-        { id: 'dq-14', quiz: { title: 'Food Waste', topic: 'Waste' }, ownerId: 'system', status: 'approved', approvedAt: new Date().toISOString() },
-        { id: 'dq-15', quiz: { title: 'Circular Economy', topic: 'Sustainability' }, ownerId: 'system', status: 'approved', approvedAt: new Date().toISOString() },
-        { id: 'dq-16', quiz: { title: 'Energy Efficiency', topic: 'Energy' }, ownerId: 'system', status: 'approved', approvedAt: new Date().toISOString() },
-        { id: 'dq-17', quiz: { title: 'Wastewater Treatment', topic: 'Water' }, ownerId: 'system', status: 'approved', approvedAt: new Date().toISOString() },
-        { id: 'dq-18', quiz: { title: 'Urban Heat Islands', topic: 'Climate' }, ownerId: 'system', status: 'approved', approvedAt: new Date().toISOString() },
-        { id: 'dq-19', quiz: { title: 'Green Tech', topic: 'Sustainability' }, ownerId: 'system', status: 'approved', approvedAt: new Date().toISOString() },
-        { id: 'dq-20', quiz: { title: 'Ecosystem Services', topic: 'Ecology' }, ownerId: 'system', status: 'approved', approvedAt: new Date().toISOString() },
+        { id: 'dq-06', quiz: { title: 'Composting', topic: 'Waste', xp: 100, questions: [
+          { id: 'q1', type: 'mcq', question: 'Which item belongs in a compost bin?', options: ['Vegetable scraps','Plastic wrapper','Glass shards','Aluminum foil'], answerIndex: 0 },
+          { id: 'q2', type: 'mcq', question: 'Which is a “brown” material for compost?', options: ['Dry leaves','Cooked pasta','Yogurt cup','Metal can'], answerIndex: 0 },
+          { id: 'q3', type: 'mcq', question: 'What helps a compost pile break down faster?', options: ['Turning to add air','Sealing it airtight','Adding plastic daily','Adding more salt'], answerIndex: 0 },
+        ] }, ownerId: 'system', status: 'approved', approvedAt: new Date().toISOString() },
+        { id: 'dq-07', quiz: { title: 'Air Pollution', topic: 'Climate', xp: 100, questions: [
+          { id: 'q1', type: 'mcq', question: 'Which action most helps reduce urban air pollution?', options: ['Using public transport','Idling your car','Burning leaves','Using diesel generators'], answerIndex: 0 },
+          { id: 'q2', type: 'mcq', question: 'Which pollutant is a major component of smog?', options: ['Ground-level ozone (O₃)','Oxygen (O₂)','Nitrogen (N₂)','Water (H₂O)'], answerIndex: 0 },
+          { id: 'q3', type: 'mcq', question: 'Which household habit improves indoor air quality?', options: ['Using kitchen exhaust while cooking','Burning trash in the yard','Smoking indoors','Blocking vents'], answerIndex: 0 },
+        ] }, ownerId: 'system', status: 'approved', approvedAt: new Date().toISOString() },
+        { id: 'dq-08', quiz: { title: 'Ocean Health', topic: 'Water', xp: 100, questions: [
+          { id: 'q1', type: 'mcq', question: 'Which action best protects ocean ecosystems?', options: ['Reducing single-use plastics','Dumping wastewater offshore','Trawling coral reefs','Feeding wild fish bread'], answerIndex: 0 },
+          { id: 'q2', type: 'mcq', question: 'Ocean acidification is mainly caused by…', options: ['CO₂ absorbed by seawater','Extra oxygen in water','Too much salt','Lack of sunlight'], answerIndex: 0 },
+          { id: 'q3', type: 'mcq', question: 'Marine Protected Areas (MPAs) help by…', options: ['Allowing ecosystems to recover','Increasing overfishing','Raising water temperature','Adding plastic habitat'], answerIndex: 0 },
+        ] }, ownerId: 'system', status: 'approved', approvedAt: new Date().toISOString() },
+        { id: 'dq-09', quiz: { title: 'Sustainable Transport', topic: 'Energy', xp: 100, questions: [
+          { id: 'q1', type: 'mcq', question: 'Which mode has the lowest carbon emissions?', options: ['Walking/Cycling','Single-occupancy car','Taxi','Motorbike'], answerIndex: 0 },
+          { id: 'q2', type: 'mcq', question: 'A good commute strategy to cut footprints is…', options: ['Bike + transit combo','Driving faster','Idling at pick-up','Riding alone daily'], answerIndex: 0 },
+          { id: 'q3', type: 'mcq', question: 'Which driving habit saves fuel?', options: ['Smooth acceleration','Hard braking','Excessive idling','Over-inflating tires'], answerIndex: 0 },
+        ] }, ownerId: 'system', status: 'approved', approvedAt: new Date().toISOString() },
+        { id: 'dq-10', quiz: { title: 'Green Buildings', topic: 'Energy', xp: 100, questions: [
+          { id: 'q1', type: 'mcq', question: 'Which upgrade most improves efficiency?', options: ['Insulation','Bigger TV','More halogen bulbs','Open windows in winter'], answerIndex: 0 },
+          { id: 'q2', type: 'mcq', question: 'Which windows reduce heat loss?', options: ['Double/triple glazing','Single pane','Broken seals','Always-open windows'], answerIndex: 0 },
+          { id: 'q3', type: 'mcq', question: 'Passive solar design focuses on…', options: ['Using sun via orientation/shading','Running AC full-time','Blocking daylight','Painting roofs black'], answerIndex: 0 },
+        ] }, ownerId: 'system', status: 'approved', approvedAt: new Date().toISOString() },
+        { id: 'dq-11', quiz: { title: 'Plastic Pollution', topic: 'Waste', xp: 100, questions: [
+          { id: 'q1', type: 'mcq', question: 'Common source of microplastics is…', options: ['Synthetic clothing fibers','Sand','Sea salt only','Glass bottles'], answerIndex: 0 },
+          { id: 'q2', type: 'mcq', question: 'Best way to reduce plastic waste?', options: ['Refill/reuse containers','Use more disposables','Burn plastic at home','Throw all in landfill'], answerIndex: 0 },
+          { id: 'q3', type: 'mcq', question: 'Which is usually NOT curbside-recyclable?', options: ['Plastic bags/film','Paper','Metal cans','Cardboard'], answerIndex: 0 },
+        ] }, ownerId: 'system', status: 'approved', approvedAt: new Date().toISOString() },
+        { id: 'dq-12', quiz: { title: 'Deforestation', topic: 'Forests', xp: 100, questions: [
+          { id: 'q1', type: 'mcq', question: 'A key impact of deforestation is…', options: ['Biodiversity loss & CO₂ emissions','Lower rainfall everywhere','Instant soil recovery','More habitat for all species'], answerIndex: 0 },
+          { id: 'q2', type: 'mcq', question: 'Which practice helps reduce deforestation?', options: ['Sustainable forestry certification','Illegal logging','Slash-and-burn','Unplanned road building'], answerIndex: 0 },
+          { id: 'q3', type: 'mcq', question: 'Reforestation means…', options: ['Planting trees where forests were removed','Cutting old-growth only','Replacing forests with farms','Draining wetlands'], answerIndex: 0 },
+        ] }, ownerId: 'system', status: 'approved', approvedAt: new Date().toISOString() },
+        { id: 'dq-13', quiz: { title: 'Soil Health', topic: 'Agriculture', xp: 100, questions: [
+          { id: 'q1', type: 'mcq', question: 'Which practice improves soil health?', options: ['Cover crops','Bare fallow all year','Over-tillage','Excess salt'], answerIndex: 0 },
+          { id: 'q2', type: 'mcq', question: 'Soil organic matter helps by…', options: ['Storing water & nutrients','Making soil sterile','Blocking roots','Salinizing soil'], answerIndex: 0 },
+          { id: 'q3', type: 'mcq', question: 'A method to reduce erosion is…', options: ['Contour farming','Removing all vegetation','Steeper slopes','Exposed topsoil'], answerIndex: 0 },
+        ] }, ownerId: 'system', status: 'approved', approvedAt: new Date().toISOString() },
+        { id: 'dq-14', quiz: { title: 'Food Waste', topic: 'Waste', xp: 100, questions: [
+          { id: 'q1', type: 'mcq', question: 'Which action cuts household food waste?', options: ['Meal planning','Buying impulsively','Ignoring dates & storage','Cooking excessive amounts'], answerIndex: 0 },
+          { id: 'q2', type: 'mcq', question: 'Which helps keep food fresh longer?', options: ['Proper storage temperature','Leaving fridge door open','Room-temp dairy','Unsealed containers'], answerIndex: 0 },
+          { id: 'q3', type: 'mcq', question: 'Unavoidable food scraps should be…', options: ['Composted','Flushed','Thrown on street','Burned indoors'], answerIndex: 0 },
+        ] }, ownerId: 'system', status: 'approved', approvedAt: new Date().toISOString() },
+        { id: 'dq-15', quiz: { title: 'Circular Economy', topic: 'Sustainability', xp: 100, questions: [
+          { id: 'q1', type: 'mcq', question: 'A circular economy aims to…', options: ['Keep materials in use longer','Use more landfills','Speed up extraction','Design for single-use'], answerIndex: 0 },
+          { id: 'q2', type: 'mcq', question: 'Product-as-a-service is…', options: ['Leasing/servitizing products','One-time disposable sales','Illegal refurbishment','Mandatory ownership'], answerIndex: 0 },
+          { id: 'q3', type: 'mcq', question: 'A key design strategy is…', options: ['Design for repair & reuse','Hard-to-open cases','Glued-in batteries only','No spare parts'], answerIndex: 0 },
+        ] }, ownerId: 'system', status: 'approved', approvedAt: new Date().toISOString() },
+        { id: 'dq-16', quiz: { title: 'Energy Efficiency', topic: 'Energy', xp: 100, questions: [
+          { id: 'q1', type: 'mcq', question: 'Which bulb is most efficient?', options: ['LED','Incandescent','Halogen','CFL (older type)'], answerIndex: 0 },
+          { id: 'q2', type: 'mcq', question: '“Phantom loads” are reduced by…', options: ['Unplugging/using power strips','Leaving everything on','Higher thermostat always','Blocking vents'], answerIndex: 0 },
+          { id: 'q3', type: 'mcq', question: 'Which label indicates efficient appliances?', options: ['ENERGY STAR/efficiency rating','No label','“High watt” only','Random sticker'], answerIndex: 0 },
+        ] }, ownerId: 'system', status: 'approved', approvedAt: new Date().toISOString() },
+        { id: 'dq-17', quiz: { title: 'Wastewater Treatment', topic: 'Water', xp: 100, questions: [
+          { id: 'q1', type: 'mcq', question: 'Primary treatment mainly…', options: ['Removes solids by settling','Adds perfume','Dyes water blue','Removes all microbes'], answerIndex: 0 },
+          { id: 'q2', type: 'mcq', question: 'You should NOT flush…', options: ['Wipes','Toilet paper','Water','Dilute soap'], answerIndex: 0 },
+          { id: 'q3', type: 'mcq', question: 'Households can reduce loads by…', options: ['Low-flow fixtures','Running taps constantly','Pouring oil in sink','Flushing paint'], answerIndex: 0 },
+        ] }, ownerId: 'system', status: 'approved', approvedAt: new Date().toISOString() },
+        { id: 'dq-18', quiz: { title: 'Urban Heat Islands', topic: 'Climate', xp: 100, questions: [
+          { id: 'q1', type: 'mcq', question: 'Which reduces urban heat islands?', options: ['Trees/green roofs','Dark roofs','More asphalt','Removing parks'], answerIndex: 0 },
+          { id: 'q2', type: 'mcq', question: '“Cool roofs” are…', options: ['High-reflectance roofs','Heaters on roofs','Mirrors indoors','Black tar roofs'], answerIndex: 0 },
+          { id: 'q3', type: 'mcq', question: 'Pavement strategy to cool cities:', options: ['Permeable/cool pavements','Hotter pavements','More car lanes only','Concrete without shade'], answerIndex: 0 },
+        ] }, ownerId: 'system', status: 'approved', approvedAt: new Date().toISOString() },
+        { id: 'dq-19', quiz: { title: 'Green Tech', topic: 'Sustainability', xp: 100, questions: [
+          { id: 'q1', type: 'mcq', question: 'Which is a renewable energy source?', options: ['Geothermal','Diesel','Coal','Peat'], answerIndex: 0 },
+          { id: 'q2', type: 'mcq', question: 'A smart grid helps by…', options: ['Balancing demand with renewables','Wasting energy at night','Ignoring outages','Blocking distributed energy'], answerIndex: 0 },
+          { id: 'q3', type: 'mcq', question: 'An example of energy storage is…', options: ['Battery systems','Open windows','More diesel tanks','Incandescent lamps'], answerIndex: 0 },
+        ] }, ownerId: 'system', status: 'approved', approvedAt: new Date().toISOString() },
+        { id: 'dq-20', quiz: { title: 'Ecosystem Services', topic: 'Ecology', xp: 100, questions: [
+          { id: 'q1', type: 'mcq', question: 'Pollination is typically considered a…', options: ['Regulating service','Provisioning service','Cultural service','No service'], answerIndex: 0 },
+          { id: 'q2', type: 'mcq', question: 'Wetlands provide which services?', options: ['Flood control & water purification','More dust storms','Noise pollution','Ozone depletion'], answerIndex: 0 },
+          { id: 'q3', type: 'mcq', question: 'A cultural ecosystem service example is…', options: ['Recreation in parks','Drinking water','Timber','Coal mining'], answerIndex: 0 },
+        ] }, ownerId: 'system', status: 'approved', approvedAt: new Date().toISOString() },
       ],
       libraryAssets: [], // global pool of community assets from submitted/approved games
 
