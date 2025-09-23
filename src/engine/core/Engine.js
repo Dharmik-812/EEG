@@ -170,6 +170,10 @@ export class Engine {
       input: engine.input,
       audio: {
         play: (assetId, opts) => engine.audio.playSFX(assetId, opts),
+        tone: (opts) => engine.audio.playTone(opts || {}),
+        click: () => engine.audio.click(),
+        success: () => engine.audio.success(),
+        error: () => engine.audio.error(),
         bgm: {
           play: (assetId, opts) => engine.audio.playBGM(assetId, opts),
           stop: () => engine.audio.stopBGM(),

@@ -124,7 +124,13 @@ function Quiz({ challenge, onClose }) {
   return (
     <div>
       <div className="mb-4">
-        <div className="text-sm text-slate-500">Question {idx + 1} of {total}</div>
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-slate-500">Question {idx + 1} of {total}</div>
+          <div className="text-xs text-slate-500">Difficulty: {challenge.difficulty || 'normal'}</div>
+        </div>
+        <div className="mt-1 h-2 rounded bg-slate-200 dark:bg-slate-800 overflow-hidden">
+          <div className="h-2 bg-emerald-500" style={{ width: `${Math.round(((idx)/total)*100)}%` }} />
+        </div>
         <div className="mt-2 text-xl font-semibold">{q.question}</div>
       </div>
 
@@ -175,7 +181,29 @@ export default function Challenges() {
     const q = arr[idx]
     return { ...q, id: `daily-${today}-${q.id}` }
   }
-  const daily = (playableCommunity && playableCommunity.length > 0) ? pickDaily(playableCommunity) : pickDaily(baseData)
+  // Daily quiz via backend (fallback to client pick)
+  const [dailyApiId, setDailyApiId] = useState(null)
+  const [dailyApiList, setDailyApiList] = useState([])
+  useEffect(() => {
+    const pool = playableCommunity.map(q => ({ id: q.id, topic: q.topic || 'Other' }))
+    const payload = { pool, count: 3 }
+    fetch('/api/daily-quiz?count=3', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    }).then(r => r.json()).then(json => {
+      if (Array.isArray(json?.ids)) {
+        setDailyApiList(json.ids)
+        if (json.ids[0]) setDailyApiId(json.ids[0])
+      }
+    }).catch(()=>{})
+  }, [approvedQuizzes.length])
+  const dailyPicks = (dailyApiList.length ? dailyApiList : [playableCommunity[0]?.id, playableCommunity[1]?.id, playableCommunity[2]?.id].filter(Boolean))
+    .map(id => playableCommunity.find(q => q.id === id))
+    .filter(Boolean)
+    .map(q => ({ ...q, id: `daily-${today}-${q.id}` }))
+
+  const daily = dailyPicks[0] || ((playableCommunity && playableCommunity.length > 0) ? pickDaily(playableCommunity) : pickDaily(baseData))
 
   // Open specific community quiz if linked via ?quiz=
   useEffect(() => {
@@ -189,20 +217,27 @@ export default function Challenges() {
     <>
       <SEO title="Challenges" description="Answer environmental quizzes and complete eco-quests to earn XP and unlock badges." />
     <section className="space-y-6">
-      {daily && (
+      {dailyPicks.length > 0 && (
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
           <Card>
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-xs uppercase tracking-wide text-emerald-600">Daily Quiz</div>
-                <div className="text-lg font-bold">{daily.title}</div>
+                <div className="text-xs uppercase tracking-wide text-emerald-600">Daily Picks</div>
                 <div className="text-xs text-slate-500">{today}</div>
               </div>
-              <div className="flex items-center gap-3">
-                <div className="hidden sm:block"><StreakFlame streak={dailyQuizStreak} /></div>
-                <div className="text-xs text-slate-500">XP: {daily.xp ?? 100}</div>
-                <button className="btn" onClick={() => setActive(daily)}>Start</button>
-              </div>
+              <div className="hidden sm:block"><StreakFlame streak={dailyQuizStreak} /></div>
+            </div>
+            <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-3">
+              {dailyPicks.map((dq, i) => (
+                <div key={i} className="p-3 rounded-lg border">
+                  <div className="font-semibold">{dq.title}</div>
+                  <div className="text-xs text-slate-500">{dq.topic || 'Quiz'} • {dq.difficulty || 'normal'}</div>
+                  <div className="mt-2 flex items-center justify-between text-xs">
+                    <div>XP: {dq.xp ?? 100}</div>
+                    <button className="btn !px-3 !py-1" onClick={() => setActive(dq)}>Start</button>
+                  </div>
+                </div>
+              ))}
             </div>
           </Card>
         </motion.div>
