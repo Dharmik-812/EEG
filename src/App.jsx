@@ -8,6 +8,7 @@ import GlobalLoadingWrapper from './components/GlobalLoadingWrapper.jsx'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
 import LoadingSpinner from './components/LoadingSpinner.jsx'
 import useTheme from './store/useTheme.js'
+ // Make sure this import exists
 import './styles/environmental-theme.css'
 
 // Lazy load pages for better performance
