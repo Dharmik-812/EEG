@@ -95,8 +95,8 @@ export default function App() {
   const [isNavigating, setIsNavigating] = useState(false)
   const reduced = useAnimationStore(s => s.reduced)
 
-  // Smooth scrolling (disabled by default to avoid glitches - enable with useLenis({ smooth: true, enabled: true }))
-  useLenis({ smooth: false, enabled: false })
+  // Smooth scrolling - enabled with conservative settings to minimize glitches
+  useLenis({ smooth: true, enabled: !reduced })
   // Experimental Barba SPA bridge: keep disabled to avoid conflicts with React Router
   useBarbaTransitions({ enabled: false })
 
@@ -115,7 +115,12 @@ export default function App() {
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen antialiased font-sans relative">
+      <motion.div 
+        className="min-h-screen antialiased font-sans relative"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.6, delay: showSplash ? 1.5 : 0 }}
+      >
         <AnimatedBackground />
         <AnimatePresence>{showSplash && <SplashScreen key="splash" />}</AnimatePresence>
         {!adminMode && <Navbar />}
@@ -154,7 +159,7 @@ export default function App() {
           </LayoutGroup>
         </div>
         {!adminMode && <Footer />}
-      </div>
+      </motion.div>
     </ErrorBoundary>
   )
 }

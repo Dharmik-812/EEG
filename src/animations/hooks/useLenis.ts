@@ -17,11 +17,13 @@ export function useLenis({ smooth = true, enabled = true } = {}) {
       if (!Lenis || !active) return
       
       const lenis = new (Lenis as any)({
-        duration: 1.2,
+        duration: 0.8, // Faster for better responsiveness
         easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
         smoothWheel: true,
         smoothTouch: false,
         infinite: false,
+        wheelMultiplier: 0.8, // Reduce sensitivity
+        touchMultiplier: 1.5,
       })
       lenisRef.current = lenis
 

@@ -80,8 +80,22 @@ export default function Navbar() {
 <NavLink to="/register" className="btn !px-3 !py-2" data-ripple>Register</NavLink>
             </>
           )}
-          <button aria-label="Toggle reduced motion" title={reduced ? 'Animations off' : 'Animations on'} onClick={toggleMotion} className="ml-2 p-2 rounded-lg hover:bg-emerald-100/50 dark:hover:bg-slate-800">
-            <Zap className={`h-5 w-5 ${reduced ? 'opacity-50' : ''}`} />
+          <button 
+            aria-label="Toggle reduced motion" 
+            title={reduced ? 'Animations OFF - Click to enable' : 'Animations ON - Click to disable'} 
+            onClick={toggleMotion} 
+            className={`ml-2 p-2 rounded-lg transition-all duration-300 ${
+              reduced 
+                ? 'bg-red-100/50 dark:bg-red-900/20 hover:bg-red-200/50 text-red-600 dark:text-red-400' 
+                : 'bg-emerald-100/50 dark:bg-emerald-900/20 hover:bg-emerald-200/50 text-emerald-600 dark:text-emerald-400'
+            }`}
+          >
+            <motion.div
+              animate={reduced ? { scale: [1, 0.8, 1], rotate: [0, -10, 0] } : { scale: 1, rotate: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Zap className="h-5 w-5" />
+            </motion.div>
           </button>
           <button aria-label="Toggle theme" onClick={toggle} className="ml-1 p-2 rounded-lg hover:bg-emerald-100/50 dark:hover:bg-slate-800">
             {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
@@ -89,8 +103,22 @@ export default function Navbar() {
         </div>
 
         <div className="md:hidden flex items-center gap-2">
-          <button aria-label="Toggle reduced motion" title={reduced ? 'Animations off' : 'Animations on'} onClick={toggleMotion} className="p-2 rounded-lg hover:bg-emerald-100/50 dark:hover:bg-slate-800">
-            <Zap className={`h-5 w-5 ${reduced ? 'opacity-50' : ''}`} />
+          <button 
+            aria-label="Toggle reduced motion" 
+            title={reduced ? 'Animations OFF - Click to enable' : 'Animations ON - Click to disable'} 
+            onClick={toggleMotion} 
+            className={`p-2 rounded-lg transition-all duration-300 ${
+              reduced 
+                ? 'bg-red-100/50 dark:bg-red-900/20 hover:bg-red-200/50 text-red-600 dark:text-red-400' 
+                : 'bg-emerald-100/50 dark:bg-emerald-900/20 hover:bg-emerald-200/50 text-emerald-600 dark:text-emerald-400'
+            }`}
+          >
+            <motion.div
+              animate={reduced ? { scale: [1, 0.8, 1], rotate: [0, -10, 0] } : { scale: 1, rotate: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Zap className="h-5 w-5" />
+            </motion.div>
           </button>
           <button aria-label="Toggle theme" onClick={toggle} className="p-2 rounded-lg hover:bg-emerald-100/50 dark:hover:bg-slate-800">
             {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}

@@ -9,9 +9,9 @@ export function registerAdvancedTransitionPresets() {
       exit: { opacity: 1, scale: 1 },
     }
     return {
-      initial: { opacity: 0, scale: 0.95 },
-      animate: { opacity: 1, scale: 1, transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] } },
-      exit: { opacity: 0, scale: 1.05, transition: { duration: 0.4 } },
+      initial: { opacity: 0, scale: 0.85 },
+      animate: { opacity: 1, scale: 1, transition: { duration: 0.8, ease: [0.22, 1, 0.36, 1] } },
+      exit: { opacity: 0, scale: 1.1, transition: { duration: 0.5 } },
     }
   })
 
@@ -22,9 +22,9 @@ export function registerAdvancedTransitionPresets() {
       exit: { opacity: 1, y: 0 },
     }
     return {
-      initial: { opacity: 0, y: 50 },
-      animate: { opacity: 1, y: 0, transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1] } },
-      exit: { opacity: 0, y: -30, transition: { duration: 0.4 } },
+      initial: { opacity: 0, y: 80 },
+      animate: { opacity: 1, y: 0, transition: { duration: 0.9, ease: [0.16, 1, 0.3, 1] } },
+      exit: { opacity: 0, y: -50, transition: { duration: 0.5 } },
     }
   })
 
