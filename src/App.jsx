@@ -1,6 +1,6 @@
 import { useEffect, useState, Suspense, lazy } from 'react'
 import { Routes, Route, useLocation, Navigate } from 'react-router-dom'
-import { AnimatePresence, motion } from 'framer-motion'
+import { AnimatePresence, motion, LayoutGroup } from 'framer-motion'
 import Navbar from './components/Navbar.jsx'
 import Footer from './components/Footer.jsx'
 import AnimatedBackground from './components/AnimatedBackground.jsx'
@@ -9,6 +9,9 @@ import ErrorBoundary from './components/ErrorBoundary.jsx'
 import LoadingSpinner from './components/LoadingSpinner.jsx'
 import useTheme from './store/useTheme.js'
 import './styles/environmental-theme.css'
+import { useLenis } from './animations/hooks/useLenis'
+import { useAnimationStore } from './store/animationStore'
+import { useFramerPreset } from './animations'
 
 // Lazy load pages for better performance
 const Landing = lazy(() => import('./pages/Landing.jsx'))
@@ -26,6 +29,7 @@ const Admin = lazy(() => import('./pages/Admin.jsx'))
 const CreateQuiz = lazy(() => import('./pages/CreateQuiz.jsx'))
 const HowItWorks = lazy(() => import('./pages/HowItWorks.jsx'))
 const Projects = lazy(() => import('./pages/Projects.jsx'))
+const AnimationPlayground = lazy(() => import('./pages/animation-playground'))
 
 // Loading fallback for Suspense
 function PageFallback() {
@@ -45,15 +49,13 @@ function PageFallback() {
 }
 
 function PageWrapper({ children }) {
+  const rt = useFramerPreset('route.transition')
   return (
     <ErrorBoundary>
       <motion.main
         id="main"
         tabIndex="-1"
-        initial={{ opacity: 0, y: 24, scale: 0.98 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        exit={{ opacity: 0, y: -24, scale: 0.98 }}
-        transition={{ duration: 0.5, ease: 'easeOut' }}
+        {...(rt || {})}
         className="relative min-h-[60vh]"
       >
         <motion.div
@@ -81,6 +83,10 @@ export default function App() {
   const adminMode = location.pathname.startsWith('/admin')
   const [showSplash, setShowSplash] = useState(true)
   const [isNavigating, setIsNavigating] = useState(false)
+  const reduced = useAnimationStore(s => s.reduced)
+
+  // Smooth scrolling (disabled for reduced motion)
+  useLenis({ smooth: !reduced })
 
   // Hide splash shortly after mount
   useEffect(() => {
@@ -112,26 +118,29 @@ export default function App() {
             />
           )}
           
-          <AnimatePresence mode="wait">
-            <Routes location={location} key={location.pathname}>
-              <Route path="/" element={<PageWrapper><Landing /></PageWrapper>} />
-              <Route path="/about" element={<PageWrapper><About /></PageWrapper>} />
-              <Route path="/dashboard" element={<PageWrapper><Dashboard /></PageWrapper>} />
-              <Route path="/challenges" element={<PageWrapper><Challenges /></PageWrapper>} />
-              <Route path="/leaderboard" element={<PageWrapper><Leaderboard /></PageWrapper>} />
-              <Route path="/badges" element={<PageWrapper><Badges /></PageWrapper>} />
-              <Route path="/community" element={<PageWrapper><Community /></PageWrapper>} />
-              <Route path="/projects" element={<PageWrapper><Projects /></PageWrapper>} />
-              <Route path="/editor" element={<PageWrapper><Editor /></PageWrapper>} />
-              <Route path="/play/:id" element={<PageWrapper><PlayGame /></PageWrapper>} />
-              <Route path="/login" element={<PageWrapper><Login /></PageWrapper>} />
-              <Route path="/register" element={<PageWrapper><Register /></PageWrapper>} />
-              <Route path="/create-quiz" element={<PageWrapper><CreateQuiz /></PageWrapper>} />
-              <Route path="/admin" element={<PageWrapper><Admin /></PageWrapper>} />
-              <Route path="/how-it-works" element={<PageWrapper><HowItWorks /></PageWrapper>} />
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </AnimatePresence>
+          <LayoutGroup>
+            <AnimatePresence mode="wait">
+              <Routes location={location} key={location.pathname}>
+                <Route path="/" element={<PageWrapper><Landing /></PageWrapper>} />
+                <Route path="/about" element={<PageWrapper><About /></PageWrapper>} />
+                <Route path="/dashboard" element={<PageWrapper><Dashboard /></PageWrapper>} />
+                <Route path="/challenges" element={<PageWrapper><Challenges /></PageWrapper>} />
+                <Route path="/leaderboard" element={<PageWrapper><Leaderboard /></PageWrapper>} />
+                <Route path="/badges" element={<PageWrapper><Badges /></PageWrapper>} />
+                <Route path="/community" element={<PageWrapper><Community /></PageWrapper>} />
+                <Route path="/projects" element={<PageWrapper><Projects /></PageWrapper>} />
+                <Route path="/editor" element={<PageWrapper><Editor /></PageWrapper>} />
+                <Route path="/play/:id" element={<PageWrapper><PlayGame /></PageWrapper>} />
+                <Route path="/login" element={<PageWrapper><Login /></PageWrapper>} />
+                <Route path="/register" element={<PageWrapper><Register /></PageWrapper>} />
+                <Route path="/create-quiz" element={<PageWrapper><CreateQuiz /></PageWrapper>} />
+                <Route path="/admin" element={<PageWrapper><Admin /></PageWrapper>} />
+                <Route path="/how-it-works" element={<PageWrapper><HowItWorks /></PageWrapper>} />
+                <Route path="/animation-playground" element={<PageWrapper><AnimationPlayground /></PageWrapper>} />
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </AnimatePresence>
+          </LayoutGroup>
         </div>
         {!adminMode && <Footer />}
       </div>

@@ -5,6 +5,10 @@ import App from './App.jsx'
 import './index.css'
 import { Toaster, toast } from 'react-hot-toast'
 import { useLogStore } from './store/logStore'
+import { registerAllPresets } from './animations/presets'
+
+// Register presets once on startup (no-op if re-imported)
+try { registerAllPresets() } catch {}
 
 // Register service worker in production
 if (import.meta.env.PROD && 'serviceWorker' in navigator) {
