@@ -1,5 +1,8 @@
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 =======
+=======
+>>>>>>> Stashed changes
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 >>>>>>> Stashed changes
@@ -54,6 +57,9 @@ export default function Admin() {
     totalRequests: 15439,
     avgResponseTime: 120
   })
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
   const { pendingGames, approveGame, rejectGame, pendingQuizzes, approveQuiz, rejectQuiz } = useSubmissionsStore(s => ({
     pendingGames: s.pendingGames,
@@ -64,8 +70,11 @@ export default function Admin() {
     rejectQuiz: s.rejectQuiz,
   }))
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
   const { currentUser } = useAuthStore(s => ({ currentUser: s.currentUser }))
 =======
+=======
+>>>>>>> Stashed changes
   const { 
     currentUser, 
     getAnalytics, 
@@ -81,6 +90,9 @@ export default function Admin() {
     updateInstitution: s.updateInstitution,
     deleteInstitution: s.deleteInstitution
   }))
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 
   if (!currentUser || currentUser.role !== 'admin') {

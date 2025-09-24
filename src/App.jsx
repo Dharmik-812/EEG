@@ -80,6 +80,15 @@ export default function App() {
   const location = useLocation()
   const adminMode = location.pathname.startsWith('/admin')
   const [isNavigating, setIsNavigating] = useState(false)
+<<<<<<< Updated upstream
+=======
+  const reduced = useAnimationStore(s => s.reduced)
+
+  // Smooth scrolling - enabled with conservative settings to minimize glitches
+  useLenis({ smooth: true, enabled: !reduced })
+  // Experimental Barba SPA bridge: keep disabled to avoid conflicts with React Router
+  useBarbaTransitions({ enabled: false })
+>>>>>>> Stashed changes
 
   // Handle navigation loading states
   useEffect(() => {
@@ -110,6 +119,7 @@ export default function App() {
             />
           )}
           
+<<<<<<< Updated upstream
           <AnimatePresence mode="wait">
             <Routes location={location} key={location.pathname}>
               <Route path="/" element={<PageWrapper><Landing /></PageWrapper>} />
@@ -133,6 +143,33 @@ export default function App() {
           </div>
           {!adminMode && <Footer />}
         </motion.div>
+=======
+          <LayoutGroup>
+            <AnimatePresence mode="wait">
+              <Routes location={location} key={location.pathname}>
+                <Route path="/" element={<PageWrapper><Landing /></PageWrapper>} />
+                <Route path="/about" element={<PageWrapper><About /></PageWrapper>} />
+                <Route path="/dashboard" element={<PageWrapper><Dashboard /></PageWrapper>} />
+                <Route path="/challenges" element={<PageWrapper><Challenges /></PageWrapper>} />
+                <Route path="/leaderboard" element={<PageWrapper><Leaderboard /></PageWrapper>} />
+                <Route path="/badges" element={<PageWrapper><Badges /></PageWrapper>} />
+                <Route path="/community" element={<PageWrapper><Community /></PageWrapper>} />
+                <Route path="/projects" element={<PageWrapper><Projects /></PageWrapper>} />
+                <Route path="/editor" element={<PageWrapper><Editor /></PageWrapper>} />
+                <Route path="/play/:id" element={<PageWrapper><PlayGame /></PageWrapper>} />
+                <Route path="/login" element={<PageWrapper><Login /></PageWrapper>} />
+                <Route path="/register" element={<PageWrapper><Register /></PageWrapper>} />
+                <Route path="/create-quiz" element={<PageWrapper><CreateQuiz /></PageWrapper>} />
+                <Route path="/admin" element={<PageWrapper><Admin /></PageWrapper>} />
+                <Route path="/how-it-works" element={<PageWrapper><HowItWorks /></PageWrapper>} />
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </AnimatePresence>
+          </LayoutGroup>
+        </div>
+        {!adminMode && <Footer />}
+      </motion.div>
+>>>>>>> Stashed changes
       </GlobalLoadingWrapper>
     </ErrorBoundary>
   )

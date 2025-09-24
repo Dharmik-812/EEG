@@ -1,6 +1,10 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { useEffect, useState, useRef, useMemo } from 'react'
+<<<<<<< Updated upstream
 import { useGSAP } from '../animations/hooks/useGSAP'
+=======
+import { useGSAP } from '../animations'
+>>>>>>> Stashed changes
 import confetti from 'canvas-confetti'
 
 const AnimatedLoadingScreen = ({ onComplete }) => {
