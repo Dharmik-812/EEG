@@ -12,6 +12,7 @@
     <!-- SEO baseline -->
     <meta name="description" content="AverSoltix is a gamified environmental education platform. Learn climate science, recycling, renewable energy, and biodiversity through challenges, badges, and leaderboards." />
     <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="/" />
 
     <!-- PWA manifest & Apple tags -->
     <link rel="manifest" href="/manifest.webmanifest" />
