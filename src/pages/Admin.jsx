@@ -43,11 +43,13 @@ export default function Admin() {
   })
 
   const users = useAuthStore(s => s.users)
-  const { pendingGames, approveGame, rejectGame, pendingQuizzes, approveQuiz, rejectQuiz } = useSubmissionsStore(s => ({
+  const { pendingGames, approvedGames, approveGame, rejectGame, pendingQuizzes, approvedQuizzes, approveQuiz, rejectQuiz } = useSubmissionsStore(s => ({
     pendingGames: s.pendingGames,
+    approvedGames: s.approvedGames,
     approveGame: s.approveGame,
     rejectGame: s.rejectGame,
     pendingQuizzes: s.pendingQuizzes,
+    approvedQuizzes: s.approvedQuizzes,
     approveQuiz: s.approveQuiz,
     rejectQuiz: s.rejectQuiz,
   }))
@@ -72,6 +74,17 @@ export default function Admin() {
   }
 
   const analytics = getAnalytics()
+  const totalGames = (approvedGames?.length || 0) + (pendingGames?.length || 0)
+  const totalQuizzes = (approvedQuizzes?.length || 0) + (pendingQuizzes?.length || 0)
+  const countsByRole = {
+    admin: analytics.roleDistribution.admin || 0,
+    visitor: analytics.roleDistribution.visitor || 0,
+    schoolStudents: analytics.roleDistribution['school-student'] || 0,
+    collegeStudents: analytics.roleDistribution['college-student'] || 0,
+    schoolTeachers: analytics.roleDistribution['school-teacher'] || 0,
+    collegeTeachers: analytics.roleDistribution['college-teacher'] || 0,
+    genericUsers: analytics.roleDistribution.user || 0,
+  }
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -105,8 +118,8 @@ export default function Admin() {
           )}
         </div>
         <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${trend === 'up' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400' :
-            trend === 'down' ? 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400' :
-              'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
+          trend === 'down' ? 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400' :
+            'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
           }`}>
           {change}
         </div>
@@ -129,6 +142,14 @@ export default function Admin() {
         <StatCard title="Active Sessions" value={systemMetrics.activeUsers.toLocaleString()} change="+8%" icon={Activity} color="from-emerald-500 to-emerald-600" trend="up" isLive={true} />
         <StatCard title="Total Requests" value={systemMetrics.totalRequests.toLocaleString()} change="+23%" icon={Globe} color="from-purple-500 to-purple-600" trend="up" isLive={true} />
         <StatCard title="Response Time" value={`${Math.round(systemMetrics.avgResponseTime)}ms`} change="-2%" icon={Zap} color="from-amber-500 to-amber-600" trend="down" isLive={true} />
+      </div>
+
+      {/* Content summary */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <StatCard title="Total Games" value={totalGames.toLocaleString()} change={`${pendingGames.length} pending`} icon={Gamepad2} color="from-emerald-500 to-teal-600" trend="up" />
+        <StatCard title="Total Quizzes" value={totalQuizzes.toLocaleString()} change={`${pendingQuizzes.length} pending`} icon={BookOpen} color="from-sky-500 to-blue-600" trend="up" />
+        <StatCard title="Students (School/College)" value={`${countsByRole.schoolStudents + countsByRole.collegeStudents}`} change={`${countsByRole.schoolStudents}/${countsByRole.collegeStudents}`} icon={GraduationCap} color="from-indigo-500 to-purple-600" trend="up" />
+        <StatCard title="Teachers (School/College)" value={`${countsByRole.schoolTeachers + countsByRole.collegeTeachers}`} change={`${countsByRole.schoolTeachers}/${countsByRole.collegeTeachers}`} icon={School} color="from-rose-500 to-orange-600" trend="up" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -157,11 +178,11 @@ export default function Admin() {
             ].map((activity, i) => (
               <motion.div key={i} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.1 }} className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
                 <div className={`w-2 h-2 rounded-full animate-pulse ${activity.type === 'user' ? 'bg-blue-500' :
-                    activity.type === 'quiz' ? 'bg-purple-500' :
-                      activity.type === 'game' ? 'bg-emerald-500' :
-                        activity.type === 'institution' ? 'bg-orange-500' :
-                          activity.type === 'badge' ? 'bg-amber-500' :
-                            'bg-slate-500'
+                  activity.type === 'quiz' ? 'bg-purple-500' :
+                    activity.type === 'game' ? 'bg-emerald-500' :
+                      activity.type === 'institution' ? 'bg-orange-500' :
+                        activity.type === 'badge' ? 'bg-amber-500' :
+                          'bg-slate-500'
                   }`} />
                 <div className="flex-1">
                   <p className="text-sm font-medium">{activity.action}</p>
@@ -355,9 +376,9 @@ export default function Admin() {
                     </td>
                     <td className="py-4 px-6">
                       <span className={`inline-flex items-center px-3 py-1 text-xs font-medium rounded-full ${user.role === 'admin' ? 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400' :
-                          user.role.includes('teacher') ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400' :
-                            user.role.includes('student') ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400' :
-                              'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400'
+                        user.role.includes('teacher') ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400' :
+                          user.role.includes('student') ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400' :
+                            'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400'
                         }`}>
                         {user.role.replace('-', ' ')}
                       </span>

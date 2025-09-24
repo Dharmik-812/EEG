@@ -40,11 +40,11 @@ export const useAuthStore = create(
         return user
       },
 
-      register: (name, email, password) => {
+      register: (name, email, password, role = 'visitor', institution) => {
         const exists = get().users.some(u => u.email === email)
         if (exists) throw new Error('Email already registered')
         const id = `u-${Date.now()}`
-        const user = { id, name, email, password, role: 'user' }
+        const user = { id, name, email, password, role, institution }
         set(state => ({ users: [...state.users, user], currentUser: user }))
         return user
       },
