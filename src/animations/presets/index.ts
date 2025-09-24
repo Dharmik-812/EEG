@@ -4,6 +4,7 @@ import { registerScrollRevealPresets } from './scrollReveal'
 import { registerRouteTransitionPresets } from './routeTransitions'
 import { registerUIMicroPresets } from './uiMicro'
 import { registerSVGDrawPresets } from './svgDraw'
+import { registerAdvancedTransitionPresets } from './advancedTransitions'
 
 export function registerAllPresets() {
   registerFadePresets()
@@ -12,4 +13,5 @@ export function registerAllPresets() {
   registerRouteTransitionPresets()
   registerUIMicroPresets()
   registerSVGDrawPresets()
+  registerAdvancedTransitionPresets()
 }

@@ -66,9 +66,8 @@ export default function Navbar() {
           {links.map(l => (
             <LinkItem key={l.to} {...l} />
           ))}
-<NavLink to="/editor" className="nav-link" data-ripple>Editor</NavLink>
-<NavLink to="/create-quiz" className="nav-link" data-ripple>Create Quiz</NavLink>
-<NavLink to="/animation-playground" className="nav-link" data-ripple>Playground</NavLink>
+          <NavLink to="/editor" className="nav-link" data-ripple>Editor</NavLink>
+          <NavLink to="/create-quiz" className="nav-link" data-ripple>Create Quiz</NavLink>
 {currentUser?.role === 'admin' && <NavLink to="/admin" className="nav-link" data-ripple>Admin</NavLink>}
           {currentUser ? (
             <>
@@ -124,9 +123,8 @@ export default function Navbar() {
                   </Link>
                 </div>
               ))}
-<Link to="/editor" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-lg hover:bg-emerald-50/60 dark:hover:bg-slate-800" data-ripple>Editor</Link>
-<Link to="/create-quiz" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-lg hover:bg-emerald-50/60 dark:hover:bg-slate-800" data-ripple>Create Quiz</Link>
-<Link to="/animation-playground" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-lg hover:bg-emerald-50/60 dark:hover:bg-slate-800" data-ripple>Playground</Link>
+              <Link to="/editor" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-lg hover:bg-emerald-50/60 dark:hover:bg-slate-800" data-ripple>Editor</Link>
+              <Link to="/create-quiz" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-lg hover:bg-emerald-50/60 dark:hover:bg-slate-800" data-ripple>Create Quiz</Link>
 {currentUser?.role === 'admin' && <Link to="/admin" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-lg hover:bg-emerald-50/60 dark:hover:bg-slate-800" data-ripple>Admin</Link>}
               {!currentUser ? (
                 <>

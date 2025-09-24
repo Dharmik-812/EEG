@@ -29,7 +29,6 @@ const Admin = lazy(() => import('./pages/Admin.jsx'))
 const CreateQuiz = lazy(() => import('./pages/CreateQuiz.jsx'))
 const HowItWorks = lazy(() => import('./pages/HowItWorks.jsx'))
 const Projects = lazy(() => import('./pages/Projects.jsx'))
-const AnimationPlayground = lazy(() => import('./pages/animation-playground'))
 
 // Loading fallback for Suspense
 function PageFallback() {
@@ -49,7 +48,18 @@ function PageFallback() {
 }
 
 function PageWrapper({ children }) {
-  const rt = useFramerPreset('route.transition')
+  const location = useLocation()
+  
+  // State-aware transitions based on route
+  const getTransitionPreset = () => {
+    if (location.pathname === '/') return 'route.zoom'
+    if (location.pathname.startsWith('/editor')) return 'route.slideLeft'
+    if (location.pathname.startsWith('/challenges')) return 'route.slideUp'
+    return 'route.transition'
+  }
+  
+  const rt = useFramerPreset(getTransitionPreset())
+  
   return (
     <ErrorBoundary>
       <motion.main
@@ -85,8 +95,8 @@ export default function App() {
   const [isNavigating, setIsNavigating] = useState(false)
   const reduced = useAnimationStore(s => s.reduced)
 
-  // Smooth scrolling (disabled for reduced motion)
-  useLenis({ smooth: !reduced })
+  // Smooth scrolling (disabled by default to avoid glitches - enable with useLenis({ smooth: true, enabled: true }))
+  useLenis({ smooth: false, enabled: false })
   // Experimental Barba SPA bridge: keep disabled to avoid conflicts with React Router
   useBarbaTransitions({ enabled: false })
 
@@ -138,7 +148,6 @@ export default function App() {
                 <Route path="/create-quiz" element={<PageWrapper><CreateQuiz /></PageWrapper>} />
                 <Route path="/admin" element={<PageWrapper><Admin /></PageWrapper>} />
                 <Route path="/how-it-works" element={<PageWrapper><HowItWorks /></PageWrapper>} />
-                <Route path="/animation-playground" element={<PageWrapper><AnimationPlayground /></PageWrapper>} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </AnimatePresence>
