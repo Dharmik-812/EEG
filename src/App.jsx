@@ -11,7 +11,7 @@ import useTheme from './store/useTheme.js'
 import './styles/environmental-theme.css'
 import { useLenis } from './animations/hooks/useLenis'
 import { useAnimationStore } from './store/animationStore'
-import { useFramerPreset } from './animations'
+import { useFramerPreset, useBarbaTransitions } from './animations'
 
 // Lazy load pages for better performance
 const Landing = lazy(() => import('./pages/Landing.jsx'))
@@ -87,6 +87,8 @@ export default function App() {
 
   // Smooth scrolling (disabled for reduced motion)
   useLenis({ smooth: !reduced })
+  // Experimental Barba SPA bridge: keep disabled to avoid conflicts with React Router
+  useBarbaTransitions({ enabled: false })
 
   // Hide splash shortly after mount
   useEffect(() => {

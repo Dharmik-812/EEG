@@ -66,10 +66,10 @@ export default function Navbar() {
           {links.map(l => (
             <LinkItem key={l.to} {...l} />
           ))}
-          <NavLink to="/editor" className="nav-link">Editor</NavLink>
-          <NavLink to="/create-quiz" className="nav-link">Create Quiz</NavLink>
-          <NavLink to="/animation-playground" className="nav-link">Playground</NavLink>
-          {currentUser?.role === 'admin' && <NavLink to="/admin" className="nav-link">Admin</NavLink>}
+<NavLink to="/editor" className="nav-link" data-ripple>Editor</NavLink>
+<NavLink to="/create-quiz" className="nav-link" data-ripple>Create Quiz</NavLink>
+<NavLink to="/animation-playground" className="nav-link" data-ripple>Playground</NavLink>
+{currentUser?.role === 'admin' && <NavLink to="/admin" className="nav-link" data-ripple>Admin</NavLink>}
           {currentUser ? (
             <>
               <span className="text-sm text-slate-500 mx-2">Hi, {currentUser.name}</span>
@@ -77,8 +77,8 @@ export default function Navbar() {
             </>
           ) : (
             <>
-              <NavLink to="/login" className="btn-outline !px-3 !py-2">Login</NavLink>
-              <NavLink to="/register" className="btn !px-3 !py-2">Register</NavLink>
+<NavLink to="/login" className="btn-outline !px-3 !py-2" data-ripple>Login</NavLink>
+<NavLink to="/register" className="btn !px-3 !py-2" data-ripple>Register</NavLink>
             </>
           )}
           <button aria-label="Toggle reduced motion" title={reduced ? 'Animations off' : 'Animations on'} onClick={toggleMotion} className="ml-2 p-2 rounded-lg hover:bg-emerald-100/50 dark:hover:bg-slate-800">
@@ -119,19 +119,19 @@ export default function Navbar() {
               </div>
               {links.map(l => (
                 <div key={l.to}>
-                  <Link to={l.to} onClick={() => setOpen(false)} className="block px-3 py-2 rounded-lg hover:bg-emerald-50/60 dark:hover:bg-slate-800">
+<Link to={l.to} onClick={() => setOpen(false)} className="block px-3 py-2 rounded-lg hover:bg-emerald-50/60 dark:hover:bg-slate-800" data-ripple>
                     {l.label}
                   </Link>
                 </div>
               ))}
-              <Link to="/editor" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-lg hover:bg-emerald-50/60 dark:hover:bg-slate-800">Editor</Link>
-              <Link to="/create-quiz" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-lg hover:bg-emerald-50/60 dark:hover:bg-slate-800">Create Quiz</Link>
-              <Link to="/animation-playground" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-lg hover:bg-emerald-50/60 dark:hover:bg-slate-800">Playground</Link>
-              {currentUser?.role === 'admin' && <Link to="/admin" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-lg hover:bg-emerald-50/60 dark:hover:bg-slate-800">Admin</Link>}
+<Link to="/editor" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-lg hover:bg-emerald-50/60 dark:hover:bg-slate-800" data-ripple>Editor</Link>
+<Link to="/create-quiz" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-lg hover:bg-emerald-50/60 dark:hover:bg-slate-800" data-ripple>Create Quiz</Link>
+<Link to="/animation-playground" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-lg hover:bg-emerald-50/60 dark:hover:bg-slate-800" data-ripple>Playground</Link>
+{currentUser?.role === 'admin' && <Link to="/admin" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-lg hover:bg-emerald-50/60 dark:hover:bg-slate-800" data-ripple>Admin</Link>}
               {!currentUser ? (
                 <>
-                  <Link to="/login" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-lg hover:bg-emerald-50/60 dark:hover:bg-slate-800">Login</Link>
-                  <Link to="/register" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-lg hover:bg-emerald-50/60 dark:hover:bg-slate-800">Register</Link>
+<Link to="/login" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-lg hover:bg-emerald-50/60 dark:hover:bg-slate-800" data-ripple>Login</Link>
+<Link to="/register" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-lg hover:bg-emerald-50/60 dark:hover:bg-slate-800" data-ripple>Register</Link>
                 </>
               ) : (
                 <button onClick={() => { setOpen(false); logout() }} className="block w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-50/60 dark:hover:bg-slate-800">Logout</button>

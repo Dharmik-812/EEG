@@ -3,14 +3,20 @@ import { motion, AnimatePresence, LayoutGroup } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { useFramerPreset, useScrollReveal } from '../animations'
 import { useSVGAnimation } from '../animations'
+import { useSplitText } from '../animations'
+import { useBarbaTransitions } from '../animations'
 
 export default function AnimationPlayground() {
   const route = useFramerPreset('route.transition') as any
+  // Experimental Barba bridge disabled by default to avoid conflicts in SPA
+  useBarbaTransitions({ enabled: false })
   const [count, setCount] = useState(3)
   const [y, setY] = useState(24)
   const [stagger, setStagger] = useState(0.08)
   const svgRef = useRef<SVGSVGElement | null>(null)
   useSVGAnimation(svgRef, { duration: 1200 })
+  const splitRef = useRef<HTMLHeadingElement | null>(null)
+  useSplitText(splitRef)
 
   useScrollReveal(['[data-reveal]'], { y, stagger })
 
@@ -21,7 +27,7 @@ export default function AnimationPlayground() {
       <LayoutGroup>
         <AnimatePresence mode="popLayout">
           <motion.div key="pg" {...route}>
-            <h1 className="text-3xl font-bold">Animation Playground</h1>
+            <h1 ref={splitRef as any} className="text-3xl font-bold">Animation Playground</h1>
             <p className="text-slate-600 dark:text-slate-300">Try presets and tweak controls below.</p>
 
             <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -37,8 +43,8 @@ export default function AnimationPlayground() {
                   ))}
                 </div>
                 <div className="mt-4 flex items-center gap-2 text-sm">
-                  <button className="btn" onClick={() => setCount((c) => c + 1)}>Add item</button>
-                  <button className="btn-outline" onClick={() => setCount((c) => Math.max(0, c - 1))}>Remove item</button>
+                  <button className="btn" data-ripple onClick={() => setCount((c) => c + 1)}>Add item</button>
+                  <button className="btn-outline" data-ripple onClick={() => setCount((c) => Math.max(0, c - 1))}>Remove item</button>
                 </div>
               </div>
 
