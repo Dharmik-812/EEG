@@ -4,7 +4,7 @@ import {
   FolderOpen, Plus, Trash2, Search, Filter, Upload, Download,
   Image, Volume2, FileText, Film, Archive, Settings, Grid,
   List, Eye, Edit, Copy, Move, Star, Clock, Tag, Palette,
-  RefreshCw, ExternalLink, Zap, Package, Layers
+  RefreshCw, ExternalLink, Zap, Package, Layers, Folder
 } from 'lucide-react'
 
 const ASSET_TYPES = {
@@ -238,10 +238,43 @@ export default function EnhancedAssetManager() {
   const [selectedAssets, setSelectedAssets] = useState([])
   const [searchTerm, setSearchTerm] = useState('')
   const [filterType, setFilterType] = useState('all')
-  const [viewMode, setViewMode] = useState('grid')
+  const [viewMode, setViewMode] = useState('list') // Start with list view like professional engines
   const [showUpload, setShowUpload] = useState(false)
   const [sortBy, setSortBy] = useState('name')
+  const [selectedFolder, setSelectedFolder] = useState('all')
   const fileInputRef = useRef(null)
+  
+  // Asset action handlers
+  const handleAssetSelect = useCallback((assetId) => {
+    setSelectedAssets(prev => 
+      prev.includes(assetId) ? prev.filter(i => i !== assetId) : [...prev, assetId]
+    )
+  }, [])
+  
+  const handleAssetPreview = useCallback((asset) => {
+    console.log('Preview asset:', asset)
+    // TODO: Implement asset preview modal
+  }, [])
+  
+  const handleAssetEdit = useCallback((asset) => {
+    console.log('Edit asset:', asset)
+    // TODO: Implement asset editing
+  }, [])
+  
+  const handleAssetDelete = useCallback((asset) => {
+    if (confirm(`Delete asset "${asset.name}"?`)) {
+      setAssets(prev => prev.filter(a => a.id !== asset.id))
+      setSelectedAssets(prev => prev.filter(id => id !== asset.id))
+    }
+  }, [])
+  
+  const folders = [
+    { id: 'all', name: 'All Assets', icon: Package },
+    { id: 'images', name: 'Images', icon: Image },
+    { id: 'audio', name: 'Audio', icon: Volume2 },
+    { id: 'scripts', name: 'Scripts', icon: FileText },
+    { id: 'materials', name: 'Materials', icon: Palette }
+  ]
 
   const filteredAssets = assets.filter(asset => {
     const matchesSearch = !searchTerm || 
@@ -297,24 +330,84 @@ export default function EnhancedAssetManager() {
     }
   }, [handleFileUpload])
 
+  const FolderItem = ({ folder, isActive, onClick }) => {
+    const Icon = folder.icon
+    return (
+      <div
+        className={`flex items-center gap-2 px-2 py-1.5 text-sm cursor-pointer rounded transition-colors ${
+          isActive 
+            ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300' 
+            : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700'
+        }`}
+        onClick={() => onClick(folder.id)}
+      >
+        <Icon className="h-4 w-4" />
+        <span className="font-medium">{folder.name}</span>
+      </div>
+    )
+  }
+
   return (
     <div 
-      className="h-full flex flex-col bg-slate-50 dark:bg-slate-900"
+      className="h-full flex bg-slate-50 dark:bg-slate-900"
       onDragOver={handleDragOver}
       onDrop={handleDrop}
     >
-      {/* Header */}
-      <div className="p-4 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="font-semibold flex items-center gap-2">
-            <Package className="h-5 w-5 text-emerald-500" />
-            Asset Manager
-          </h2>
-          
+      {/* Left Sidebar - Folders */}
+      <div className="w-48 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex flex-col">
+        {/* Header */}
+        <div className="p-3 border-b border-slate-200 dark:border-slate-700">
+          <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-2">
+            <Folder className="h-4 w-4" />
+            Project
+          </h3>
+        </div>
+        
+        {/* Folder Tree */}
+        <div className="flex-1 p-2 space-y-1">
+          {folders.map(folder => (
+            <FolderItem 
+              key={folder.id}
+              folder={folder}
+              isActive={selectedFolder === folder.id}
+              onClick={setSelectedFolder}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Right Panel - Assets */}
+      <div className="flex-1 flex flex-col">
+        {/* Toolbar */}
+        <div className="p-3 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
           <div className="flex items-center gap-2">
+            <div className="relative">
+              <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+              <input
+                type="text"
+                placeholder="Search..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-8 pr-3 py-1.5 text-sm border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-700 focus:outline-none focus:border-emerald-500 w-48"
+              />
+            </div>
+            
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="px-2 py-1.5 text-sm border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-700 focus:outline-none focus:border-emerald-500"
+            >
+              <option value="name">Name</option>
+              <option value="type">Type</option>
+              <option value="date">Date</option>
+              <option value="size">Size</option>
+            </select>
+          </div>
+          
+          <div className="flex items-center gap-1">
             <button
               onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
-              className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded"
+              className="p-1.5 hover:bg-slate-100 dark:hover:bg-slate-700 rounded transition-colors"
               title={`Switch to ${viewMode === 'grid' ? 'list' : 'grid'} view`}
             >
               {viewMode === 'grid' ? <List className="h-4 w-4" /> : <Grid className="h-4 w-4" />}
@@ -322,10 +415,10 @@ export default function EnhancedAssetManager() {
             
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="btn-eco px-3 py-2"
+              className="p-1.5 bg-emerald-500 text-white hover:bg-emerald-600 rounded transition-colors"
+              title="Import Assets"
             >
               <Upload className="h-4 w-4" />
-              <span className="hidden sm:inline ml-2">Upload</span>
             </button>
             
             <input
@@ -339,108 +432,132 @@ export default function EnhancedAssetManager() {
           </div>
         </div>
 
-        {/* Search and Filters */}
-        <div className="flex flex-col sm:flex-row gap-3">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-            <input
-              type="text"
-              placeholder="Search assets..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 focus:outline-none focus:border-emerald-500"
-            />
-          </div>
-          
-          <select
-            value={filterType}
-            onChange={(e) => setFilterType(e.target.value)}
-            className="px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 focus:outline-none focus:border-emerald-500"
-          >
-            <option value="all">All Types</option>
-            <option value="image">Images</option>
-            <option value="audio">Audio</option>
-            <option value="video">Videos</option>
-            <option value="data">Data</option>
-          </select>
-          
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value)}
-            className="px-3 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-800 focus:outline-none focus:border-emerald-500"
-          >
-            <option value="name">Sort by Name</option>
-            <option value="type">Sort by Type</option>
-            <option value="size">Sort by Size</option>
-            <option value="date">Sort by Date</option>
-          </select>
-        </div>
-      </div>
-
-      {/* Asset Grid/List */}
-      <div className="flex-1 overflow-auto p-4">
-        {filteredAssets.length === 0 ? (
-          <div className="text-center text-slate-500 py-12">
-            <Package className="h-16 w-16 mx-auto mb-4 opacity-50" />
-            <h3 className="text-lg font-medium mb-2">No Assets Found</h3>
-            <p className="text-sm">
-              {searchTerm || filterType !== 'all' 
-                ? 'Try adjusting your search or filters' 
-                : 'Upload assets to get started with your game'
-              }
-            </p>
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              className="btn-eco mt-4 inline-flex items-center gap-2"
-            >
-              <Upload className="h-4 w-4" />
-              Upload Assets
-            </button>
-          </div>
-        ) : (
-          <div className={
-            viewMode === 'grid' 
-              ? 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4'
-              : 'space-y-2'
-          }>
-            {filteredAssets.map(asset => (
-              <AssetCard
-                key={asset.id}
-                asset={asset}
-                viewMode={viewMode}
-                onSelect={(id) => setSelectedAssets(prev => 
-                  prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
-                )}
-                onPreview={(asset) => console.log('Preview:', asset)}
-                onEdit={(asset) => console.log('Edit:', asset)}
-                onDelete={(asset) => setAssets(prev => prev.filter(a => a.id !== asset.id))}
-                isSelected={selectedAssets.includes(asset.id)}
-              />
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Footer Stats */}
-      <div className="p-4 bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700">
-        <div className="flex items-center justify-between text-sm text-slate-500">
-          <div>
-            {filteredAssets.length} assets 
-            {selectedAssets.length > 0 && ` • ${selectedAssets.length} selected`}
-          </div>
-          
-          <div className="flex items-center gap-4">
-            {Object.entries(ASSET_TYPES).map(([type, config]) => {
-              const count = assets.filter(a => a.type === type).length
-              if (count === 0) return null
-              
-              return (
-                <div key={type} className="flex items-center gap-1">
-                  <config.icon className={`h-3 w-3 text-${config.color}-500`} />
-                  <span>{count}</span>
+        {/* Asset Content Area */}
+        <div className="flex-1 bg-slate-50 dark:bg-slate-900 overflow-auto">
+          {filteredAssets.length === 0 ? (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center text-slate-500">
+                <div className="w-16 h-16 mx-auto mb-4 bg-slate-200 dark:bg-slate-700 rounded-lg flex items-center justify-center">
+                  <Package className="h-8 w-8 opacity-50" />
                 </div>
-              )
-            })}
+                <h3 className="text-sm font-medium mb-2">No Assets</h3>
+                <p className="text-xs text-slate-400 mb-4">
+                  {searchTerm || selectedFolder !== 'all'
+                    ? 'No assets match your criteria'
+                    : 'Import assets to get started'
+                  }
+                </p>
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  className="text-xs px-3 py-1.5 bg-emerald-500 text-white rounded hover:bg-emerald-600 transition-colors"
+                >
+                  Import Assets
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="p-3">
+              {viewMode === 'list' ? (
+                <div className="space-y-1">
+                  {/* List Header */}
+                  <div className="flex items-center px-2 py-1 text-xs font-medium text-slate-500 bg-slate-100 dark:bg-slate-800 rounded">
+                    <div className="flex-1 min-w-0">Name</div>
+                    <div className="w-16 text-center">Type</div>
+                    <div className="w-20 text-right">Size</div>
+                  </div>
+                  
+                  {/* Asset Items */}
+                  {filteredAssets.map(asset => {
+                    const assetType = ASSET_TYPES[asset.type] || ASSET_TYPES.data
+                    const isSelected = selectedAssets.includes(asset.id)
+                    
+                    return (
+                      <div
+                        key={asset.id}
+                        className={`flex items-center px-2 py-1.5 text-sm rounded cursor-pointer transition-colors ${
+                          isSelected 
+                            ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300'
+                            : 'hover:bg-slate-100 dark:hover:bg-slate-800'
+                        }`}
+                        onClick={() => setSelectedAssets(prev => 
+                          prev.includes(asset.id) ? prev.filter(i => i !== asset.id) : [...prev, asset.id]
+                        )}
+                      >
+                        <div className="flex items-center gap-2 flex-1 min-w-0">
+                          <assetType.icon className={`h-4 w-4 text-${assetType.color}-500 flex-shrink-0`} />
+                          <span className="truncate font-medium">{asset.name}</span>
+                        </div>
+                        <div className="w-16 text-center text-xs text-slate-500 uppercase">
+                          {asset.type}
+                        </div>
+                        <div className="w-20 text-right text-xs text-slate-500">
+                          {(asset.size < 1024) ? `${asset.size}B` :
+                           (asset.size < 1048576) ? `${(asset.size/1024).toFixed(0)}KB` :
+                           `${(asset.size/1048576).toFixed(1)}MB`}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              ) : (
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-3">
+                  {filteredAssets.map(asset => {
+                    const assetType = ASSET_TYPES[asset.type] || ASSET_TYPES.data
+                    const isSelected = selectedAssets.includes(asset.id)
+                    
+                    return (
+                      <div
+                        key={asset.id}
+                        className={`group relative p-3 bg-white dark:bg-slate-800 rounded-lg border-2 transition-all cursor-pointer ${
+                          isSelected 
+                            ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20'
+                            : 'border-slate-200 dark:border-slate-700 hover:border-emerald-300 dark:hover:border-emerald-600'
+                        }`}
+                        onClick={() => setSelectedAssets(prev => 
+                          prev.includes(asset.id) ? prev.filter(i => i !== asset.id) : [...prev, asset.id]
+                        )}
+                      >
+                        <div className="aspect-square bg-slate-100 dark:bg-slate-700 rounded mb-2 flex items-center justify-center">
+                          {asset.preview ? (
+                            <img src={asset.preview} alt={asset.name} className="max-w-full max-h-full rounded" />
+                          ) : (
+                            <assetType.icon className={`h-8 w-8 text-${assetType.color}-500`} />
+                          )}
+                        </div>
+                        <div className="text-xs font-medium truncate">{asset.name}</div>
+                        <div className="text-xs text-slate-500 truncate">
+                          {asset.type.toUpperCase()}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+        
+        {/* Status Bar */}
+        <div className="p-2 bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700">
+          <div className="flex items-center justify-between text-xs text-slate-500">
+            <div>
+              {filteredAssets.length} items
+              {selectedAssets.length > 0 && ` • ${selectedAssets.length} selected`}
+            </div>
+            
+            <div className="flex items-center gap-3">
+              {Object.entries(ASSET_TYPES).map(([type, config]) => {
+                const count = assets.filter(a => a.type === type).length
+                if (count === 0) return null
+                
+                return (
+                  <div key={type} className="flex items-center gap-1">
+                    <config.icon className={`h-3 w-3 text-${config.color}-500`} />
+                    <span>{count}</span>
+                  </div>
+                )
+              })}
+            </div>
           </div>
         </div>
       </div>

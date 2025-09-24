@@ -51,10 +51,10 @@ export default function Navbar() {
       initial={{ y: -16, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.4 }}
-      className={`fixed top-0 inset-x-0 z-50 backdrop-blur bg-white/60 dark:bg-slate-900/60 border-b border-white/20 dark:border-slate-800 transition-all ${scrolled ? 'shadow-sm' : ''}`}
+      className={`fixed top-0 inset-x-0 z-50 backdrop-blur bg-white/60 dark:bg-slate-900/60 border-b border-white/20 dark:border-slate-800 transition-all safe-area-top ${scrolled ? 'shadow-sm' : ''}`}
     >
       <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-emerald-400 via-sky-400 to-emerald-400 opacity-60" />
-      <nav className={`container mx-auto px-4 ${scrolled ? 'py-2' : 'py-3'} flex items-center justify-between transition-all`}>
+      <nav className={`container-fluid mx-auto ${scrolled ? 'py-2' : 'py-3'} flex items-center justify-between transition-all`}>
         <Link to="/" className="group flex items-center gap-2 font-extrabold text-xl tracking-tight">
           <Leaf className="h-6 w-6 text-emerald-500 drop-shadow group-hover:scale-110 transition-transform" aria-hidden />
           <span className="font-display text-gold">AverSoltix</span>
@@ -100,9 +100,8 @@ export default function Navbar() {
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: -8, opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="md:hidden absolute top-full inset-x-0 bg-white/95 dark:bg-slate-900/95 border-b border-white/20 dark:border-slate-800 shadow-lg"
-          >
-            <div className="container mx-auto px-4 py-4 space-y-2">
+            className="md:hidden absolute top-full inset-x-0 bg-white/95 dark:bg-slate-900/95 border-b border-white/20 dark:border-slate-800 shadow-lg">
+            <div className="container-fluid mx-auto py-4 space-y-2">
               <div className="flex justify-end">
                 <button aria-label="Close menu" onClick={() => setOpen(false)} className="p-2 rounded-lg hover:bg-emerald-100/50 dark:hover:bg-slate-800">
                   <X className="h-6 w-6" />

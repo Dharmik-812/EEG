@@ -4,7 +4,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import Navbar from './components/Navbar.jsx'
 import Footer from './components/Footer.jsx'
 import AnimatedBackground from './components/AnimatedBackground.jsx'
-import SplashScreen from './components/SplashScreen.jsx'
+import GlobalLoadingWrapper from './components/GlobalLoadingWrapper.jsx'
 import ErrorBoundary from './components/ErrorBoundary.jsx'
 import LoadingSpinner from './components/LoadingSpinner.jsx'
 import useTheme from './store/useTheme.js'
@@ -79,14 +79,7 @@ export default function App() {
 
   const location = useLocation()
   const adminMode = location.pathname.startsWith('/admin')
-  const [showSplash, setShowSplash] = useState(true)
   const [isNavigating, setIsNavigating] = useState(false)
-
-  // Hide splash shortly after mount
-  useEffect(() => {
-    const t = setTimeout(() => setShowSplash(false), 1700)
-    return () => clearTimeout(t)
-  }, [])
 
   // Handle navigation loading states
   useEffect(() => {
@@ -97,11 +90,16 @@ export default function App() {
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen antialiased font-sans relative">
-        <AnimatedBackground />
-        <AnimatePresence>{showSplash && <SplashScreen key="splash" />}</AnimatePresence>
-        {!adminMode && <Navbar />}
-        <div className={`${adminMode ? 'pt-6' : 'pt-20'} mx-auto max-w-screen-2xl px-4 relative`}>
+      <GlobalLoadingWrapper>
+        <motion.div 
+          className="min-h-screen antialiased font-sans relative"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6 }}
+        >
+          <AnimatedBackground />
+          {!adminMode && <Navbar />}
+          <div className={`${adminMode ? 'pt-6 px-4' : 'pt-16 sm:pt-20'} mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8 xl:px-12 relative`}>
           {/* Navigation loading indicator */}
           {isNavigating && (
             <motion.div
@@ -132,9 +130,10 @@ export default function App() {
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </AnimatePresence>
-        </div>
-        {!adminMode && <Footer />}
-      </div>
+          </div>
+          {!adminMode && <Footer />}
+        </motion.div>
+      </GlobalLoadingWrapper>
     </ErrorBoundary>
   )
 }

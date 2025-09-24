@@ -4,9 +4,11 @@ import Card from '../components/Card.jsx'
 import Modal from '../components/Modal.jsx'
 import { useGameStore } from '../store/gameStore.js'
 import { useSubmissionsStore } from '../store/submissionsStore.js'
+import { useAuthStore } from '../store/authStore.js'
+import { filterChallenges, canUserAccessContent, getAvailableCategories } from '../utils/contentFilters.js'
 import { shootConfetti } from '../utils/confetti.js'
 import toast from 'react-hot-toast'
-import { BadgeCheck, Play } from 'lucide-react'
+import { BadgeCheck, Play, Lock, GraduationCap } from 'lucide-react'
 import { motion } from 'framer-motion'
 import SEO from '../components/SEO.jsx'
 import { useSearchParams } from 'react-router-dom'
@@ -162,13 +164,31 @@ function Quiz({ challenge, onClose }) {
 export default function Challenges() {
   const { completedChallenges, dailyQuizStreak } = useGameStore()
   const { approvedQuizzes } = useSubmissionsStore(s => ({ approvedQuizzes: s.approvedQuizzes }))
+  const { currentUser } = useAuthStore(s => ({ currentUser: s.currentUser }))
   const [active, setActive] = useState(null)
+  const [selectedCategory, setSelectedCategory] = useState('all')
 
   // Normalize community quizzes and filter to playable ones (must include questions)
   const playableCommunity = approvedQuizzes
     .filter(it => it && it.quiz && Array.isArray(it.quiz.questions) && it.quiz.questions.length > 0)
     .map(it => ({ ...it.quiz, id: it.quiz.id || it.id }))
-  const data = [...baseData, ...playableCommunity]
+  
+  // Apply role-based filtering to all challenges
+  const allChallenges = [...baseData, ...playableCommunity].map(ch => ({
+    ...ch,
+    level: ch.difficulty === 'advanced' ? 4 : ch.difficulty === 'intermediate' ? 3 : 2,
+    isPublic: ch.difficulty === 'beginner' || ch.isPublic !== false
+  }))
+  
+  const filteredChallenges = filterChallenges(allChallenges, currentUser)
+  
+  // Get available categories for current user
+  const availableCategories = getAvailableCategories(currentUser)
+  
+  // Filter by selected category
+  const data = selectedCategory === 'all' 
+    ? filteredChallenges
+    : filteredChallenges.filter(ch => ch.topic?.toLowerCase().includes(selectedCategory) || ch.category === selectedCategory)
 
   // Daily quiz selection (deterministic by date)
   const [searchParams] = useSearchParams()
@@ -223,6 +243,78 @@ export default function Challenges() {
     <>
       <SEO title="Challenges" description="Answer environmental quizzes and complete eco-quests to earn XP and unlock badges." />
     <section className="space-y-6">
+      {/* User Welcome & Role Information */}
+      {currentUser && (
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-gradient-to-r from-emerald-500/10 via-sky-500/10 to-emerald-500/10 rounded-2xl p-6 border border-emerald-200/20"
+        >
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-bold text-slate-800 dark:text-white">
+                Welcome back, {currentUser.name}!
+              </h2>
+              <p className="text-slate-600 dark:text-slate-300">
+                {currentUser.role.includes('teacher') ? '👩‍🏫' : currentUser.role.includes('student') ? '🎓' : '🌱'} 
+                {currentUser.role.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                {currentUser.institution && ` at ${currentUser.institution.name}`}
+              </p>
+            </div>
+            {currentUser.role.includes('teacher') && (
+              <div className="text-right">
+                <div className="text-sm text-emerald-600 dark:text-emerald-400 font-medium">
+                  Teacher Access
+                </div>
+                <div className="text-xs text-slate-500">
+                  Advanced content & resources available
+                </div>
+              </div>
+            )}
+          </div>
+        </motion.div>
+      )}
+      
+      {/* Category Filter */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+        className="flex flex-wrap gap-2"
+      >
+        <button
+          onClick={() => setSelectedCategory('all')}
+          className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+            selectedCategory === 'all'
+              ? 'bg-emerald-500 text-white shadow-lg'
+              : 'bg-white/50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/20'
+          }`}
+          data-ripple
+        >
+          All Challenges ({filteredChallenges.length})
+        </button>
+        {availableCategories.map(category => {
+          const count = filteredChallenges.filter(ch => 
+            ch.topic?.toLowerCase().includes(category) || ch.category === category
+          ).length
+          if (count === 0) return null
+          
+          return (
+            <button
+              key={category}
+              onClick={() => setSelectedCategory(category)}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-all capitalize ${
+                selectedCategory === category
+                  ? 'bg-emerald-500 text-white shadow-lg'
+                  : 'bg-white/50 dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/20'
+              }`}
+              data-ripple
+            >
+              {category.replace('-', ' ')} ({count})
+            </button>
+          )
+        })}
+      </motion.div>
       {dailyPicks.length > 0 && (
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
           <Card>
@@ -249,31 +341,112 @@ export default function Challenges() {
         </motion.div>
       )}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {data.map((ch, i) => (
-          <motion.div key={ch.id} initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-            <Card>
-              <div className="flex items-start justify-between">
-                <div>
-                  <div className="text-xs uppercase tracking-wide text-slate-500">{ch.topic}</div>
-                  <div className="text-lg font-bold">{ch.title}</div>
+        {data.map((ch, i) => {
+          const canAccess = canUserAccessContent(ch, currentUser)
+          const isCompleted = completedChallenges[ch.id] != null
+          
+          return (
+            <motion.div 
+              key={ch.id} 
+              initial={{ opacity: 0, y: 12 }} 
+              whileInView={{ opacity: 1, y: 0 }} 
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.1 }}
+            >
+              <Card className={`${!canAccess ? 'opacity-75' : ''} hover-lift transition-all duration-300`}>
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className="text-xs uppercase tracking-wide text-slate-500">{ch.topic}</div>
+                      {ch.difficulty === 'advanced' && (
+                        <div className="px-2 py-1 bg-purple-100 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 text-xs rounded-full flex items-center gap-1">
+                          <GraduationCap className="h-3 w-3" />
+                          Advanced
+                        </div>
+                      )}
+                      {!canAccess && (
+                        <div className="px-2 py-1 bg-amber-100 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 text-xs rounded-full flex items-center gap-1">
+                          <Lock className="h-3 w-3" />
+                          Restricted
+                        </div>
+                      )}
+                    </div>
+                    <div className="text-lg font-bold">{ch.title}</div>
+                  </div>
+                  {isCompleted && (
+                    <div className="text-sm text-emerald-600 dark:text-emerald-400 font-medium">
+                      ✓ {completedChallenges[ch.id]}%
+                    </div>
+                  )}
                 </div>
-                {completedChallenges[ch.id] != null && (
-                  <div className="text-sm text-emerald-600 dark:text-emerald-400">Score: {completedChallenges[ch.id]}%</div>
+                
+                <div className="mt-4 text-sm text-slate-600 dark:text-slate-300">
+                  {(ch.facts && ch.facts[0]) ? ch.facts[0] : 'Test your knowledge with this challenge.'}
+                </div>
+                
+                {ch.institutionId && currentUser?.institution?.id !== ch.institutionId && (
+                  <div className="mt-3 text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/10 p-2 rounded-lg">
+                    📚 This challenge is from a specific institution and may have restricted access.
+                  </div>
                 )}
-              </div>
-              <div className="mt-4 text-sm text-slate-600 dark:text-slate-300">
-                {(ch.facts && ch.facts[0]) ? ch.facts[0] : 'Test your knowledge with this challenge.'}
-              </div>
-              <div className="mt-4 flex items-center justify-between">
-                <div className="text-xs text-slate-500">Earn up to {ch.xp ?? 100} XP</div>
-                <button onClick={() => setActive(ch)} className="btn">
-                  <Play className="h-5 w-5" /> Start
-                </button>
-              </div>
-            </Card>
-          </motion.div>
-        ))}
+                
+                <div className="mt-4 flex items-center justify-between">
+                  <div className="flex items-center gap-4 text-xs text-slate-500">
+                    <span>Up to {ch.xp ?? 100} XP</span>
+                    {ch.difficulty && (
+                      <span className={`capitalize px-2 py-1 rounded ${
+                        ch.difficulty === 'beginner' ? 'bg-green-100 dark:bg-green-900/20 text-green-600 dark:text-green-400' :
+                        ch.difficulty === 'intermediate' ? 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-600 dark:text-yellow-400' :
+                        'bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400'
+                      }`}>
+                        {ch.difficulty}
+                      </span>
+                    )}
+                  </div>
+                  <button 
+                    onClick={() => canAccess ? setActive(ch) : toast.error('You need higher privileges to access this challenge')}
+                    className={`btn ${!canAccess ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    disabled={!canAccess}
+                    data-ripple={canAccess}
+                  >
+                    {!canAccess ? (
+                      <><Lock className="h-4 w-4" /> Locked</>
+                    ) : (
+                      <><Play className="h-4 w-4" /> {isCompleted ? 'Retry' : 'Start'}</>
+                    )}
+                  </button>
+                </div>
+              </Card>
+            </motion.div>
+          )
+        })}
       </div>
+      
+      {data.length === 0 && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-center py-12"
+        >
+          <div className="text-6xl mb-4">🔍</div>
+          <h3 className="text-xl font-semibold mb-2">No challenges found</h3>
+          <p className="text-slate-600 dark:text-slate-300 mb-4">
+            {selectedCategory === 'all' 
+              ? 'No challenges are available for your current access level.' 
+              : `No challenges found in the "${selectedCategory.replace('-', ' ')}" category.`
+            }
+          </p>
+          {selectedCategory !== 'all' && (
+            <button 
+              onClick={() => setSelectedCategory('all')}
+              className="btn-outline"
+              data-ripple
+            >
+              View All Challenges
+            </button>
+          )}
+        </motion.div>
+      )}
 
       <Modal open={!!active} onClose={() => setActive(null)} title={active?.title}>
         {active && <Quiz challenge={active} onClose={() => setActive(null)} />}

@@ -1,13 +1,20 @@
 import { useState } from 'react'
 import Card from '../components/Card'
 import { useSubmissionsStore } from '../store/submissionsStore'
+import { useAuthStore } from '../store/authStore'
+import { filterQuizzes, canUserAccessContent } from '../utils/contentFilters'
 import { Link } from 'react-router-dom'
 import SEO from '../components/SEO.jsx'
 import Modal from '../components/Modal.jsx'
 import { useGameStore } from '../store/gameStore'
 import { shootConfetti } from '../utils/confetti'
 import toast from 'react-hot-toast'
-import { BadgeCheck } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { 
+  BadgeCheck, Users, Play, Lock, Plus, Search, Filter, 
+  Star, Gamepad2, BookOpen, Trophy, Globe, Clock,
+  ChevronDown, Grid3X3, List, SortDesc
+} from 'lucide-react'
 
 function CommunityQuizModal({ challenge, onClose }) {
   const { addXP, awardBadge, markChallengeComplete, touchDailyStreak, streak } = useGameStore()
@@ -124,6 +131,7 @@ function CommunityQuizModal({ challenge, onClose }) {
 
 export default function Community() {
   const { approvedGames, approvedQuizzes, seedDemos } = useSubmissionsStore(s => ({ approvedGames: s.approvedGames, approvedQuizzes: s.approvedQuizzes, seedDemos: s.seedDemos }))
+  const { currentUser } = useAuthStore(s => ({ currentUser: s.currentUser }))
   const [activeQuiz, setActiveQuiz] = useState(null)
   const [showPlayableOnly, setShowPlayableOnly] = useState(false)
   const [query, setQuery] = useState('')
@@ -132,6 +140,19 @@ export default function Community() {
   const [sortBy, setSortBy] = useState('recent') // recent|xpDesc|xpAsc|difficultyAsc|difficultyDesc
   const { completedChallenges } = useGameStore(s => ({ completedChallenges: s.completedChallenges }))
 
+  // Apply role-based filtering to quizzes
+  const quizzesWithAccess = approvedQuizzes.map(q => ({
+    ...q,
+    canAccess: canUserAccessContent(q.quiz || {}, currentUser),
+    quiz: {
+      ...q.quiz,
+      difficulty: q.quiz?.difficulty || 'medium',
+      isPublic: q.quiz?.difficulty === 'easy' || q.quiz?.isPublic !== false
+    }
+  }))
+  
+  const filteredQuizzes = filterQuizzes(quizzesWithAccess.map(q => q.quiz), currentUser)
+  
   const allTopics = Array.from(new Set(approvedQuizzes.map(q => (q.quiz?.topic || 'Other')))).sort()
   const toggleTopic = (t) => setSelectedTopics(prev => prev.includes(t) ? prev.filter(x=>x!==t) : [...prev, t])
   const toggleDifficulty = (d) => setSelectedDifficulties(prev => prev.includes(d) ? prev.filter(x=>x!==d) : [...prev, d])
@@ -139,113 +160,537 @@ export default function Community() {
   return (
     <section className="space-y-6">
       <SEO title="Community" description="Explore approved community games and quizzes, or submit your own eco creations." />
-      <Card>
-        <div className="flex items-center justify-between mb-3">
-          <div className="font-semibold">Community Games</div>
-          <div className="flex gap-2">
-            <button className="btn-outline !px-3 !py-1" onClick={seedDemos}>Load Demo Games</button>
-            <Link to="/editor" className="btn-outline !px-3 !py-1">Create Game</Link>
-          </div>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {approvedGames.length === 0 && <div className="text-sm text-slate-500">No games yet. Demo games will auto-appear here.</div>}
-          {approvedGames.map(g => {
-            const firstImage = g.project?.assets?.find(a=>a.type==='image')?.src
-            return (
-              <div key={g.id} className="p-4 rounded-lg border overflow-hidden">
-                {firstImage && <img src={firstImage} alt="thumb" className="w-full h-32 object-cover rounded mb-2" />}
-                <div className="font-medium">{g.title}</div>
-                <div className="text-sm text-slate-500">{g.description}</div>
-                <Link to={`/play/${g.id}`} className="btn mt-3 !px-3 !py-2">Play</Link>
+      
+      {/* Welcome Section */}
+      {currentUser && (
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="relative bg-gradient-to-br from-emerald-500/10 via-sky-500/10 to-purple-500/10 rounded-3xl p-8 border border-emerald-200/20 dark:border-emerald-800/20 overflow-hidden"
+        >
+          <div className="absolute inset-0 bg-white/5 dark:bg-black/5 backdrop-blur-3xl" />
+          <div className="relative z-10">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+              <div className="space-y-4">
+                <motion.div 
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.2 }}
+                  className="flex items-center gap-3"
+                >
+                  <div className="p-3 bg-gradient-to-br from-emerald-500 to-sky-500 rounded-xl">
+                    <Users className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <h1 className="text-3xl font-black bg-gradient-to-r from-emerald-600 to-sky-600 bg-clip-text text-transparent">
+                      Community Hub
+                    </h1>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Globe className="h-4 w-4 text-emerald-500" />
+                      <span className="text-slate-600 dark:text-slate-300 font-medium">
+                        Global Learning Network
+                      </span>
+                    </div>
+                  </div>
+                </motion.div>
+                
+                <motion.p 
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="text-slate-600 dark:text-slate-300 max-w-2xl leading-relaxed"
+                >
+                  Discover educational content from educators and students worldwide.
+                  {currentUser.institution && (
+                    <span className="block mt-1 font-medium text-emerald-600 dark:text-emerald-400">
+                      🏫 {currentUser.institution.name}
+                    </span>
+                  )}
+                </motion.p>
               </div>
-            )
-          })}
-        </div>
-      </Card>
-
-      <Card>
-        <div className="flex items-center justify-between mb-3">
-          <div className="font-semibold">Community Quizzes</div>
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 w-full sm:w-auto sm:justify-end">
-            <div className="flex items-center gap-2">
-              <input className="rounded border bg-transparent px-2 py-1 text-sm" placeholder="Search…" value={query} onChange={e=>setQuery(e.target.value)} />
-              <label className="text-xs flex items-center gap-1">
-                <input type="checkbox" className="rounded" checked={showPlayableOnly} onChange={e=>setShowPlayableOnly(e.target.checked)} />
-                Playable only
-              </label>
-              <Link to="/create-quiz" className="btn-outline !px-3 !py-1">Create Quiz</Link>
+              
+              {(currentUser.role.includes('teacher') || currentUser.role === 'admin') && (
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.4 }}
+                  className="flex flex-col items-center lg:items-end gap-3"
+                >
+                  <div className="px-4 py-2 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-full border border-purple-200/30 dark:border-purple-800/30">
+                    <div className="flex items-center gap-2">
+                      <Star className="h-4 w-4 text-purple-500" />
+                      <span className="text-sm font-semibold text-purple-700 dark:text-purple-300">
+                        Content Creator
+                      </span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-slate-500 text-center lg:text-right max-w-xs">
+                    Share your educational content and inspire learners globally
+                  </p>
+                </motion.div>
+              )}
             </div>
-            <div className="flex flex-wrap gap-1">
-              {allTopics.map(t => (
-                <button key={t} className={selectedTopics.includes(t)?'chip-selected':'chip'} onClick={()=>toggleTopic(t)}>{t}</button>
-              ))}
-            </div>
-            <div className="flex flex-wrap gap-1">
-              {['easy','medium','hard'].map(d => (
-                <button key={d} className={(selectedDifficulties.includes(d)?'chip-selected':'chip')+ ' capitalize'} onClick={()=>toggleDifficulty(d)}>{d}</button>
-              ))}
-            </div>
-            <select className="rounded border bg-transparent px-2 py-1 text-sm" value={sortBy} onChange={e=>setSortBy(e.target.value)}>
-              <option value="recent">Recent</option>
-              <option value="xpDesc">XP: High to Low</option>
-              <option value="xpAsc">XP: Low to High</option>
-              <option value="difficultyAsc">Difficulty: Easy→Hard</option>
-              <option value="difficultyDesc">Difficulty: Hard→Easy</option>
-            </select>
           </div>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {approvedQuizzes.length === 0 && <div className="text-sm text-slate-500">No quizzes yet.</div>}
-          {approvedQuizzes
-            .filter(q => {
-              if (showPlayableOnly && !(q?.quiz && Array.isArray(q.quiz.questions) && q.quiz.questions.length > 0)) return false
-              if (query && !(q.quiz.title.toLowerCase().includes(query.toLowerCase()) || (q.quiz.topic||'').toLowerCase().includes(query.toLowerCase()))) return false
-              if (selectedTopics.length && !selectedTopics.includes((q.quiz.topic||'Other'))) return false
-              if (selectedDifficulties.length && !selectedDifficulties.includes((q.quiz.difficulty||'').toLowerCase())) return false
-              return true
-            })
-            .sort((a,b) => {
-              const da = (a.approvedAt || a.updatedAt || a.createdAt || '')
-              const db = (b.approvedAt || b.updatedAt || b.createdAt || '')
-              const xa = a.quiz?.xp ?? 100
-              const xb = b.quiz?.xp ?? 100
-              const ord = { easy: 1, medium: 2, hard: 3 }
-              const oa = ord[(a.quiz?.difficulty||'easy').toLowerCase()] || 2
-              const ob = ord[(b.quiz?.difficulty||'easy').toLowerCase()] || 2
-              switch (sortBy) {
-                case 'xpDesc': return xb - xa
-                case 'xpAsc': return xa - xb
-                case 'difficultyAsc': return oa - ob
-                case 'difficultyDesc': return ob - oa
-                case 'recent':
-                default: return (new Date(db) - new Date(da))
-              }
-            })
-            .map(q => {
-              const playable = q?.quiz && Array.isArray(q.quiz.questions) && q.quiz.questions.length > 0
-              const quizObj = playable ? { id: q.quiz.id || q.id, title: q.quiz.title, xp: q.quiz.xp ?? 100, questions: q.quiz.questions, difficulty: q.quiz.difficulty, topic: q.quiz.topic } : null
-              const key = quizObj ? `community-${quizObj.id}` : null
-              const lastScore = key ? completedChallenges[key] : undefined
-              return (
-                <div key={q.id} className="p-4 rounded-xl border bg-white/60 dark:bg-slate-900/50 backdrop-blur hover-lift transition-all">
-                  <div className="font-medium">{q.quiz.title}</div>
-                  <div className="text-sm text-slate-500">{q.quiz.topic} • {q.quiz.difficulty || 'normal'}</div>
-                  {typeof lastScore === 'number' && (
-                    <div className="mt-1 text-xs text-emerald-600">Last score: {lastScore}%</div>
-                  )}
-                  {playable ? (
-                    <button className="btn mt-3 !px-3 !py-2" onClick={() => setActiveQuiz(quizObj)}>Take</button>
-                  ) : (
-                    <div className="mt-3 text-xs text-slate-500">Not playable: no questions provided.</div>
-                  )}
+          
+          {/* Floating decorative elements */}
+          <motion.div 
+            className="absolute top-4 right-4 w-20 h-20 bg-gradient-to-br from-emerald-400/10 to-sky-400/10 rounded-full"
+            animate={{ y: [-5, 5, -5], rotate: [0, 5, -5, 0] }}
+            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <motion.div 
+            className="absolute bottom-4 left-8 w-12 h-12 bg-gradient-to-br from-purple-400/10 to-pink-400/10 rounded-full"
+            animate={{ y: [5, -5, 5], rotate: [0, -5, 5, 0] }}
+            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+          />
+        </motion.div>
+      )}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+      >
+        <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-3xl border border-slate-200/50 dark:border-slate-700/50 p-8 shadow-xl">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-8">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              <div className="flex items-center gap-4 mb-3">
+                <div className="p-3 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl">
+                  <Gamepad2 className="h-6 w-6 text-white" />
                 </div>
-              )
-            })}
+                <div>
+                  <h2 className="text-2xl font-black text-slate-800 dark:text-white">
+                    Community Games
+                  </h2>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Play className="h-4 w-4 text-purple-500" />
+                    <span className="text-slate-600 dark:text-slate-300 font-medium">
+                      Interactive Learning Experiences
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <p className="text-slate-600 dark:text-slate-300 leading-relaxed max-w-lg">
+                Explore educational games created by teachers and students from around the world
+              </p>
+            </motion.div>
+            
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.3 }}
+              className="flex flex-wrap gap-3"
+            >
+              <button 
+                className="btn-outline px-4 py-2 flex items-center gap-2 hover:scale-105 transition-transform" 
+                onClick={seedDemos}
+                data-ripple
+              >
+                <Plus className="h-4 w-4" /> 
+                <span>Demo Games</span>
+              </button>
+              <Link 
+                to="/editor" 
+                className="btn-primary px-4 py-2 flex items-center gap-2 hover:scale-105 transition-transform" 
+                data-ripple
+              >
+                <Plus className="h-4 w-4" /> 
+                <span>Create Game</span>
+              </Link>
+            </motion.div>
+          </div>
+          
+          {approvedGames.length === 0 ? (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-center py-12"
+            >
+              <div className="text-6xl mb-4">🎮</div>
+              <h4 className="text-lg font-semibold mb-2">No games yet</h4>
+              <p className="text-slate-500 mb-4">Demo games will auto-appear here, or create your own!</p>
+              <button onClick={seedDemos} className="btn-primary" data-ripple>
+                Load Demo Games
+              </button>
+            </motion.div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {approvedGames.map((game, index) => {
+                const firstImage = game.project?.assets?.find(a=>a.type==='image')?.src
+                const canAccess = canUserAccessContent(game, currentUser)
+                
+                return (
+                  <motion.div
+                    key={game.id}
+                    initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    transition={{ delay: index * 0.1 }}
+                    whileHover={{ y: -4, scale: 1.02 }}
+                    className={`group rounded-xl border overflow-hidden bg-white/50 dark:bg-slate-800/50 backdrop-blur hover:shadow-lg transition-all duration-300 ${!canAccess ? 'opacity-75' : ''}`}
+                  >
+                    <div className="relative">
+                      {firstImage && (
+                        <div className="aspect-video overflow-hidden">
+                          <img 
+                            src={firstImage} 
+                            alt={`${game.title} thumbnail`} 
+                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" 
+                          />
+                        </div>
+                      )}
+                      {!canAccess && (
+                        <div className="absolute top-2 right-2 px-2 py-1 bg-amber-100 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 text-xs rounded-full flex items-center gap-1">
+                          <Lock className="h-3 w-3" />
+                          Restricted
+                        </div>
+                      )}
+                    </div>
+                    
+                    <div className="p-4">
+                      <h4 className="font-semibold text-lg mb-2 group-hover:text-purple-600 transition-colors">
+                        {game.title}
+                      </h4>
+                      <p className="text-sm text-slate-600 dark:text-slate-400 mb-4 line-clamp-2">
+                        {game.description}
+                      </p>
+                      
+                      <div className="flex items-center justify-between">
+                        <div className="text-xs text-slate-500">
+                          👤 By {game.ownerId || 'Anonymous'}
+                        </div>
+                        {canAccess ? (
+                          <Link 
+                            to={`/play/${game.id}`} 
+                            className="btn !px-4 !py-2 text-sm flex items-center gap-1"
+                            data-ripple
+                          >
+                            <Play className="h-4 w-4" /> Play
+                          </Link>
+                        ) : (
+                          <button 
+                            className="btn opacity-50 cursor-not-allowed !px-4 !py-2 text-sm flex items-center gap-1"
+                            disabled
+                            onClick={() => toast.error('You need higher privileges to access this game')}
+                          >
+                            <Lock className="h-4 w-4" /> Locked
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  </motion.div>
+                )
+              })}
+            </div>
+          )}
         </div>
-        <Modal open={!!activeQuiz} onClose={() => setActiveQuiz(null)} title={activeQuiz?.title}>
-          {activeQuiz && <CommunityQuizModal challenge={activeQuiz} onClose={() => setActiveQuiz(null)} />}
-        </Modal>
-      </Card>
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+      >
+        <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-3xl border border-slate-200/50 dark:border-slate-700/50 p-8 shadow-xl">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-8">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2 }}
+            >
+              <div className="flex items-center gap-4 mb-3">
+                <div className="p-3 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl">
+                  <BookOpen className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-black text-slate-800 dark:text-white">
+                    Community Quizzes
+                  </h2>
+                  <div className="flex items-center gap-2 mt-1">
+                    <Trophy className="h-4 w-4 text-emerald-500" />
+                    <span className="text-slate-600 dark:text-slate-300 font-medium">
+                      Test Your Knowledge
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <p className="text-slate-600 dark:text-slate-300 leading-relaxed max-w-lg">
+                Challenge yourself with quizzes created by educators worldwide
+              </p>
+            </motion.div>
+            
+            <Link 
+              to="/create-quiz" 
+              className="btn-primary px-6 py-3 flex items-center gap-2 hover:scale-105 transition-transform" 
+              data-ripple
+            >
+              <Plus className="h-5 w-5" /> 
+              <span>Create Quiz</span>
+            </Link>
+          </div>
+          
+          {/* Enhanced Filters */}
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="bg-slate-50/50 dark:bg-slate-900/50 rounded-2xl p-6 mb-8 border border-slate-200/30 dark:border-slate-700/30"
+          >
+            <div className="flex items-center gap-2 mb-4">
+              <Filter className="h-5 w-5 text-slate-500" />
+              <h3 className="font-semibold text-slate-700 dark:text-slate-300">Filters & Search</h3>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Search */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <input 
+                  className="w-full pl-10 pr-4 py-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all" 
+                  placeholder="Search quizzes..." 
+                  value={query} 
+                  onChange={e=>setQuery(e.target.value)} 
+                />
+              </div>
+              
+              {/* Playable Filter */}
+              <label className="flex items-center gap-3 p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+                <input 
+                  type="checkbox" 
+                  className="w-4 h-4 text-emerald-600 border-slate-300 rounded focus:ring-emerald-500" 
+                  checked={showPlayableOnly} 
+                  onChange={e=>setShowPlayableOnly(e.target.checked)} 
+                />
+                <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Playable Only</span>
+              </label>
+              
+              {/* Sort */}
+              <div className="relative">
+                <SortDesc className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <select 
+                  className="w-full pl-10 pr-8 py-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all appearance-none" 
+                  value={sortBy} 
+                  onChange={e=>setSortBy(e.target.value)}
+                >
+                  <option value="recent">Most Recent</option>
+                  <option value="xpDesc">Highest XP</option>
+                  <option value="xpAsc">Lowest XP</option>
+                  <option value="difficultyAsc">Easy → Hard</option>
+                  <option value="difficultyDesc">Hard → Easy</option>
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
+              </div>
+              
+              {/* Clear Filters */}
+              <button 
+                onClick={() => {
+                  setSelectedTopics([])
+                  setSelectedDifficulties([])
+                  setQuery('')
+                  setShowPlayableOnly(false)
+                  setSortBy('recent')
+                }}
+                className="px-4 py-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 rounded-xl border border-slate-200 dark:border-slate-600 transition-colors"
+              >
+                Clear All
+              </button>
+            </div>
+            
+            {/* Topic Tags */}
+            <div className="mt-4">
+              <h4 className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-3">Topics</h4>
+              <div className="flex flex-wrap gap-2">
+                {allTopics.map(t => (
+                  <motion.button 
+                    key={t} 
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                      selectedTopics.includes(t)
+                        ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/25'
+                        : 'bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600 hover:border-emerald-300 hover:text-emerald-600'
+                    }`}
+                    onClick={()=>toggleTopic(t)}
+                  >
+                    {t}
+                  </motion.button>
+                ))}
+              </div>
+            </div>
+            
+            {/* Difficulty Tags */}
+            <div className="mt-4">
+              <h4 className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-3">Difficulty</h4>
+              <div className="flex flex-wrap gap-2">
+                {['easy','medium','hard'].map(d => {
+                  const colors = {
+                    easy: 'text-green-600 bg-green-50 border-green-200 hover:bg-green-100',
+                    medium: 'text-yellow-600 bg-yellow-50 border-yellow-200 hover:bg-yellow-100', 
+                    hard: 'text-red-600 bg-red-50 border-red-200 hover:bg-red-100'
+                  }
+                  const selectedColors = {
+                    easy: 'bg-green-500 text-white shadow-lg shadow-green-500/25',
+                    medium: 'bg-yellow-500 text-white shadow-lg shadow-yellow-500/25',
+                    hard: 'bg-red-500 text-white shadow-lg shadow-red-500/25'
+                  }
+                  
+                  return (
+                    <motion.button 
+                      key={d}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className={`px-3 py-2 rounded-lg text-sm font-medium capitalize transition-all ${
+                        selectedDifficulties.includes(d)
+                          ? selectedColors[d]
+                          : `${colors[d]} border`
+                      }`}
+                      onClick={()=>toggleDifficulty(d)}
+                    >
+                      {d}
+                    </motion.button>
+                  )
+                })}
+              </div>
+            </div>
+          </motion.div>
+          {/* Quiz Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <AnimatePresence mode="popLayout">
+              {approvedQuizzes.length === 0 && (
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="col-span-full text-center py-12"
+                >
+                  <div className="text-6xl mb-4">📚</div>
+                  <h4 className="text-lg font-semibold mb-2 text-slate-700 dark:text-slate-300">No quizzes yet</h4>
+                  <p className="text-slate-500">Be the first to create and share a quiz with the community!</p>
+                </motion.div>
+              )}
+              
+              {approvedQuizzes
+                .filter(q => {
+                  if (showPlayableOnly && !(q?.quiz && Array.isArray(q.quiz.questions) && q.quiz.questions.length > 0)) return false
+                  if (query && !(q.quiz.title.toLowerCase().includes(query.toLowerCase()) || (q.quiz.topic||'').toLowerCase().includes(query.toLowerCase()))) return false
+                  if (selectedTopics.length && !selectedTopics.includes((q.quiz.topic||'Other'))) return false
+                  if (selectedDifficulties.length && !selectedDifficulties.includes((q.quiz.difficulty||'').toLowerCase())) return false
+                  return true
+                })
+                .sort((a,b) => {
+                  const da = (a.approvedAt || a.updatedAt || a.createdAt || '')
+                  const db = (b.approvedAt || b.updatedAt || b.createdAt || '')
+                  const xa = a.quiz?.xp ?? 100
+                  const xb = b.quiz?.xp ?? 100
+                  const ord = { easy: 1, medium: 2, hard: 3 }
+                  const oa = ord[(a.quiz?.difficulty||'easy').toLowerCase()] || 2
+                  const ob = ord[(b.quiz?.difficulty||'easy').toLowerCase()] || 2
+                  switch (sortBy) {
+                    case 'xpDesc': return xb - xa
+                    case 'xpAsc': return xa - xb
+                    case 'difficultyAsc': return oa - ob
+                    case 'difficultyDesc': return ob - oa
+                    case 'recent':
+                    default: return (new Date(db) - new Date(da))
+                  }
+                })
+                .map((q, index) => {
+                  const playable = q?.quiz && Array.isArray(q.quiz.questions) && q.quiz.questions.length > 0
+                  const quizObj = playable ? { id: q.quiz.id || q.id, title: q.quiz.title, xp: q.quiz.xp ?? 100, questions: q.quiz.questions, difficulty: q.quiz.difficulty, topic: q.quiz.topic } : null
+                  const key = quizObj ? `community-${quizObj.id}` : null
+                  const lastScore = key ? completedChallenges[key] : undefined
+                  
+                  const difficultyColors = {
+                    easy: 'from-green-500 to-emerald-500',
+                    medium: 'from-yellow-500 to-orange-500',
+                    hard: 'from-red-500 to-pink-500'
+                  }
+                  
+                  const difficulty = (q.quiz.difficulty || 'medium').toLowerCase()
+                  
+                  return (
+                    <motion.div 
+                      key={q.id}
+                      layout
+                      initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -20, scale: 0.9 }}
+                      transition={{ delay: index * 0.1, duration: 0.5 }}
+                      whileHover={{ y: -8, scale: 1.02 }}
+                      className="group bg-white/90 dark:bg-slate-800/90 backdrop-blur-xl rounded-2xl border border-slate-200/50 dark:border-slate-700/50 overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500"
+                    >
+                      <div className={`h-2 bg-gradient-to-r ${difficultyColors[difficulty] || difficultyColors.medium}`} />
+                      
+                      <div className="p-6">
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex-1">
+                            <h3 className="font-bold text-lg text-slate-800 dark:text-white mb-2 group-hover:text-emerald-600 transition-colors line-clamp-2">
+                              {q.quiz.title}
+                            </h3>
+                            <div className="flex items-center gap-3 text-sm">
+                              <span className="px-2 py-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 rounded-lg font-medium">
+                                {q.quiz.topic || 'General'}
+                              </span>
+                              <span className={`px-2 py-1 rounded-lg font-medium capitalize ${
+                                difficulty === 'easy' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' :
+                                difficulty === 'hard' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300' :
+                                'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300'
+                              }`}>
+                                {difficulty}
+                              </span>
+                            </div>
+                          </div>
+                          
+                          <div className="text-right">
+                            <div className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+                              <Trophy className="h-4 w-4" />
+                              <span className="font-bold">{q.quiz.xp || 100}</span>
+                              <span className="text-xs">XP</span>
+                            </div>
+                            {typeof lastScore === 'number' && (
+                              <div className="mt-1 text-xs text-slate-500">
+                                Best: {lastScore}%
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2 text-xs text-slate-500">
+                            <Clock className="h-3 w-3" />
+                            <span>{q.quiz.questions?.length || 0} questions</span>
+                          </div>
+                          
+                          {playable ? (
+                            <motion.button 
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                              className="btn-primary px-4 py-2 flex items-center gap-2 shadow-lg hover:shadow-xl transition-all"
+                              onClick={() => setActiveQuiz(quizObj)}
+                            >
+                              <Play className="h-4 w-4" />
+                              <span>Start Quiz</span>
+                            </motion.button>
+                          ) : (
+                            <div className="px-4 py-2 bg-slate-100 dark:bg-slate-700 text-slate-500 rounded-lg text-sm">
+                              <Lock className="h-4 w-4 inline mr-1" />
+                              Not Ready
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </motion.div>
+                  )
+                })}
+            </AnimatePresence>
+          </div>
+          
+          <Modal open={!!activeQuiz} onClose={() => setActiveQuiz(null)} title={activeQuiz?.title}>
+            {activeQuiz && <CommunityQuizModal challenge={activeQuiz} onClose={() => setActiveQuiz(null)} />}
+          </Modal>
+        </div>
+      </motion.div>
     </section>
   )
 }

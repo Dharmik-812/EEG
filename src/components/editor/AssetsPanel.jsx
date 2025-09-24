@@ -24,12 +24,33 @@ export default function AssetsPanel() {
   }
 
   function assignToSelected(asset) {
-    if (!selectedEntityId) return
-    if (asset.type === 'image') updateSelected(['sprite','assetId'], asset.id)
-    if (asset.type === 'audio') {
-      const ent = currentScene().entities.find(e => e.id === selectedEntityId)
-      if (ent && !ent.components.audioSource) addComponent('audioSource')
-      updateSelected(['audioSource','assetId'], asset.id)
+    try {
+      if (!selectedEntityId) {
+        console.warn('No entity selected to assign asset to')
+        return
+      }
+      if (!asset || !asset.id || !asset.type) {
+        console.error('Invalid asset provided:', asset)
+        return
+      }
+      
+      const scene = currentScene()
+      if (!scene) {
+        console.error('No current scene found')
+        return
+      }
+      
+      if (asset.type === 'image') {
+        updateSelected(['sprite','assetId'], asset.id)
+      }
+      if (asset.type === 'audio') {
+        const ent = scene.entities.find(e => e.id === selectedEntityId)
+        if (ent && !ent.components.audioSource) addComponent('audioSource')
+        updateSelected(['audioSource','assetId'], asset.id)
+      }
+    } catch (error) {
+      console.error('Error assigning asset to selected entity:', error)
+    }
     }
   }
 
@@ -110,7 +131,7 @@ export default function AssetsPanel() {
               <img src={a.src} alt={a.name} className="w-full h-16 object-cover" draggable onDragStart={e => { e.dataTransfer.setData('asset/id', a.id); }} />
               <div className="p-1 grid grid-cols-2 gap-1">
                 <button className="btn-outline !px-0 !py-1 text-xs" onClick={() => addLibraryToProject(a)}>Add</button>
-                <button className="btn-outline !px-0 !py-1 text-xs" onClick={() => { addLibraryToProject(a); assignToSelected(a.id) }}>Use</button>
+                <button className="btn-outline !px-0 !py-1 text-xs" onClick={() => { addLibraryToProject(a); assignToSelected(a) }}>Use</button>
               </div>
             </div>
           ))}

@@ -2,7 +2,7 @@
 <html lang="en" class="scroll-smooth">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover" />
     <title>AverSoltix — Learn. Play. Save the Planet.</title>
 
     <!-- Icons & theme-color -->
@@ -54,20 +54,65 @@
       }
     </script>
 
-    <!-- Inline CSS to prevent initial flash and hide skip link until focus -->
+    <!-- Inline CSS to prevent initial flash and improve responsiveness -->
     <style>
+      /* CSS Custom Properties for safe areas */
+      :root {
+        --safe-area-inset-top: env(safe-area-inset-top);
+        --safe-area-inset-right: env(safe-area-inset-right);
+        --safe-area-inset-bottom: env(safe-area-inset-bottom);
+        --safe-area-inset-left: env(safe-area-inset-left);
+      }
+
       /* Prevent white flash before app CSS loads */
-      body { background-color: #ecfdf5; }
+      html { font-size: 16px; }
+      body { 
+        background-color: #ecfdf5; 
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        overflow-x: hidden;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+      }
       @media (prefers-color-scheme: dark) { body { background-color: #0b1220; } }
+
+      /* Base responsive improvements */
+      * {
+        box-sizing: border-box;
+      }
+      
+      /* Touch improvements for mobile */
+      button, [role="button"], input, textarea, select {
+        touch-action: manipulation;
+      }
+      
+      /* Prevent zoom on input focus on iOS */
+      input, textarea, select {
+        font-size: 16px;
+      }
+      
+      @media screen and (max-width: 768px) {
+        input, textarea, select {
+          font-size: 16px; /* Prevent zoom on iOS */
+        }
+      }
 
       /* Hide skip link until focused */
       .skip-link {
         position: absolute; left: -999px; top: auto; width: 1px; height: 1px; overflow: hidden;
       }
       .skip-link:focus {
-        position: fixed; left: 1rem; top: 1rem; width: auto; height: auto;
+        position: fixed; left: 1rem; top: calc(1rem + var(--safe-area-inset-top)); width: auto; height: auto;
         padding: 0.5rem 0.75rem; background: #065f46; color: #ecfeff;
         border-radius: 0.5rem; z-index: 9999; box-shadow: 0 10px 30px rgba(16,185,129,.28);
+      }
+      
+      /* Loading screen optimization */
+      #root {
+        min-height: 100vh;
+        min-height: 100dvh; /* Dynamic viewport height for mobile */
       }
     </style>
   </head>
