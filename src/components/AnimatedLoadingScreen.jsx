@@ -1,10 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { useEffect, useState, useRef, useMemo } from 'react'
-<<<<<<< Updated upstream
 import { useGSAP } from '../animations/hooks/useGSAP'
-=======
-import { useGSAP } from '../animations'
->>>>>>> Stashed changes
 import confetti from 'canvas-confetti'
 
 const AnimatedLoadingScreen = ({ onComplete }) => {
@@ -15,7 +11,7 @@ const AnimatedLoadingScreen = ({ onComplete }) => {
   const particleCanvasRef = useRef(null)
 
   // Generate particle positions
-  const particles = useMemo(() => 
+  const particles = useMemo(() =>
     Array.from({ length: 50 }, (_, i) => ({
       id: i,
       x: Math.random() * 100,
@@ -24,7 +20,7 @@ const AnimatedLoadingScreen = ({ onComplete }) => {
       speed: Math.random() * 2 + 1,
       color: Math.random() > 0.5 ? '#10b981' : '#0ea5e9'
     }))
-  , [])
+    , [])
 
   // GSAP animations for complex effects
   useGSAP((gsap) => {
@@ -32,44 +28,44 @@ const AnimatedLoadingScreen = ({ onComplete }) => {
 
     try {
       const tl = gsap.timeline()
-      
+
       // Phase 1: Logo formation (0-1s)
-      tl.fromTo('.logo-part', 
+      tl.fromTo('.logo-part',
         { scale: 0, rotation: 180, opacity: 0 },
-        { 
-          scale: 1, 
-          rotation: 0, 
-          opacity: 1, 
+        {
+          scale: 1,
+          rotation: 0,
+          opacity: 1,
           duration: 0.8,
           stagger: 0.1,
           ease: "back.out(1.7)"
         }
       )
-    
-    // Phase 2: Environmental elements (1-2s)
-    .fromTo('.env-element',
-      { y: 100, opacity: 0, scale: 0 },
-      {
-        y: 0,
-        opacity: 1,
-        scale: 1,
-        duration: 0.6,
-        stagger: 0.15,
-        ease: "elastic.out(1, 0.3)"
-      }, "-=0.4"
-    )
 
-    // Phase 3: Final explosion effect (2-3s)
-    .to('.center-logo', {
-      scale: 1.2,
-      duration: 0.3,
-      ease: "power2.inOut"
-    }, "2")
-    .to('.center-logo', {
-      scale: 1,
-      duration: 0.4,
-      ease: "bounce.out"
-    }, "-=0.1")
+        // Phase 2: Environmental elements (1-2s)
+        .fromTo('.env-element',
+          { y: 100, opacity: 0, scale: 0 },
+          {
+            y: 0,
+            opacity: 1,
+            scale: 1,
+            duration: 0.6,
+            stagger: 0.15,
+            ease: "elastic.out(1, 0.3)"
+          }, "-=0.4"
+        )
+
+        // Phase 3: Final explosion effect (2-3s)
+        .to('.center-logo', {
+          scale: 1.2,
+          duration: 0.3,
+          ease: "power2.inOut"
+        }, "2")
+        .to('.center-logo', {
+          scale: 1,
+          duration: 0.4,
+          ease: "bounce.out"
+        }, "-=0.1")
 
       // Trigger phase changes
       tl.call(() => setCurrentPhase(1), [], "1")
@@ -79,7 +75,7 @@ const AnimatedLoadingScreen = ({ onComplete }) => {
         triggerConfetti()
       }, [], "2.5")
       tl.call(() => setIsComplete(true), [], "3")
-      
+
     } catch (error) {
       console.warn('GSAP animation error:', error)
       // Fallback to simple timing without GSAP
@@ -97,30 +93,30 @@ const AnimatedLoadingScreen = ({ onComplete }) => {
   // Canvas particle animation
   useEffect(() => {
     if (!particleCanvasRef.current) return
-    
+
     const canvas = particleCanvasRef.current
     const ctx = canvas.getContext('2d')
     const resizeCanvas = () => {
       canvas.width = window.innerWidth
       canvas.height = window.innerHeight
     }
-    
+
     resizeCanvas()
     window.addEventListener('resize', resizeCanvas)
-    
+
     let animationId
     const animate = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height)
-      
+
       particles.forEach(particle => {
         const x = (particle.x + Math.sin(Date.now() * 0.001 * particle.speed) * 20) / 100 * canvas.width
         const y = (particle.y + Math.cos(Date.now() * 0.0015 * particle.speed) * 15) / 100 * canvas.height
-        
+
         ctx.beginPath()
         ctx.arc(x, y, particle.size, 0, Math.PI * 2)
         ctx.fillStyle = particle.color + '66'
         ctx.fill()
-        
+
         // Add glow effect
         ctx.shadowColor = particle.color
         ctx.shadowBlur = 10
@@ -130,12 +126,12 @@ const AnimatedLoadingScreen = ({ onComplete }) => {
         ctx.fill()
         ctx.shadowBlur = 0
       })
-      
+
       animationId = requestAnimationFrame(animate)
     }
-    
+
     animate()
-    
+
     return () => {
       cancelAnimationFrame(animationId)
       window.removeEventListener('resize', resizeCanvas)
@@ -146,7 +142,7 @@ const AnimatedLoadingScreen = ({ onComplete }) => {
     try {
       // Multi-burst confetti effect
       const colors = ['#10b981', '#0ea5e9', '#22c55e', '#06b6d4', '#84cc16']
-      
+
       // Center burst
       confetti({
         particleCount: 100,
@@ -154,7 +150,7 @@ const AnimatedLoadingScreen = ({ onComplete }) => {
         origin: { y: 0.6 },
         colors
       })
-      
+
       // Side bursts
       setTimeout(() => {
         confetti({
@@ -204,12 +200,12 @@ const AnimatedLoadingScreen = ({ onComplete }) => {
             backgroundSize: '400% 400%'
           }}
           initial={{ opacity: 1 }}
-          exit={{ 
+          exit={{
             opacity: 0,
             scale: 0.8,
             filter: 'blur(10px)'
           }}
-          transition={{ 
+          transition={{
             duration: 0.8,
             ease: "easeInOut"
           }}
@@ -226,7 +222,7 @@ const AnimatedLoadingScreen = ({ onComplete }) => {
 
           {/* Main content container */}
           <div className="relative z-10 flex flex-col items-center justify-center w-full h-full px-4">
-            
+
             {/* Central logo area */}
             <div className="relative flex items-center justify-center mb-8 sm:mb-12">
               {/* Rotating rings */}
@@ -237,7 +233,7 @@ const AnimatedLoadingScreen = ({ onComplete }) => {
               >
                 <div className="w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 lg:w-56 lg:h-56 border-2 border-emerald-400/30 rounded-full" />
               </motion.div>
-              
+
               <motion.div
                 className="absolute inset-0"
                 animate={{ rotate: -360 }}
@@ -249,7 +245,7 @@ const AnimatedLoadingScreen = ({ onComplete }) => {
               {/* Center logo */}
               <motion.div className="center-logo relative z-10">
                 <div className="flex items-center justify-center w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 lg:w-36 lg:h-36 rounded-full bg-gradient-to-br from-emerald-400 via-teal-500 to-sky-500 shadow-2xl">
-                  
+
                   {/* Logo parts that animate in */}
                   <div className="relative">
                     <motion.div
@@ -258,14 +254,14 @@ const AnimatedLoadingScreen = ({ onComplete }) => {
                     >
                       🌍
                     </motion.div>
-                    
+
                     <motion.div
                       className="logo-part absolute -top-2 -right-2 text-2xl"
-                      animate={{ 
+                      animate={{
                         y: [-2, 2, -2],
                         rotate: [0, 5, -5, 0]
                       }}
-                      transition={{ 
+                      transition={{
                         duration: 2,
                         repeat: Infinity,
                         ease: "easeInOut"
@@ -273,14 +269,14 @@ const AnimatedLoadingScreen = ({ onComplete }) => {
                     >
                       ✨
                     </motion.div>
-                    
+
                     <motion.div
                       className="logo-part absolute -bottom-1 -left-2 text-xl"
-                      animate={{ 
+                      animate={{
                         scale: [1, 1.1, 1],
                         rotate: [0, -5, 5, 0]
                       }}
-                      transition={{ 
+                      transition={{
                         duration: 1.5,
                         repeat: Infinity,
                         ease: "easeInOut",
@@ -304,7 +300,7 @@ const AnimatedLoadingScreen = ({ onComplete }) => {
               <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-emerald-400 via-teal-300 to-sky-400 bg-clip-text text-transparent tracking-wide">
                 AverSoltix
               </h1>
-              <motion.p 
+              <motion.p
                 className="text-emerald-200/80 text-sm sm:text-base mt-2 font-medium tracking-wider"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -319,11 +315,11 @@ const AnimatedLoadingScreen = ({ onComplete }) => {
               {/* Floating environmental icons */}
               <motion.div
                 className="env-element absolute top-[20%] left-[15%] text-2xl sm:text-3xl md:text-4xl"
-                animate={{ 
+                animate={{
                   y: [-10, 10, -10],
                   rotate: [0, 5, -5, 0]
                 }}
-                transition={{ 
+                transition={{
                   duration: 3,
                   repeat: Infinity,
                   ease: "easeInOut"
@@ -331,14 +327,14 @@ const AnimatedLoadingScreen = ({ onComplete }) => {
               >
                 🌳
               </motion.div>
-              
+
               <motion.div
                 className="env-element absolute top-[30%] right-[20%] text-2xl sm:text-3xl md:text-4xl"
-                animate={{ 
+                animate={{
                   y: [10, -10, 10],
                   rotate: [0, -5, 5, 0]
                 }}
-                transition={{ 
+                transition={{
                   duration: 2.5,
                   repeat: Infinity,
                   ease: "easeInOut",
@@ -347,14 +343,14 @@ const AnimatedLoadingScreen = ({ onComplete }) => {
               >
                 💧
               </motion.div>
-              
+
               <motion.div
                 className="env-element absolute bottom-[30%] left-[25%] text-2xl sm:text-3xl md:text-4xl"
-                animate={{ 
+                animate={{
                   scale: [1, 1.1, 1],
                   rotate: [0, 10, -10, 0]
                 }}
-                transition={{ 
+                transition={{
                   duration: 2,
                   repeat: Infinity,
                   ease: "easeInOut",
@@ -363,14 +359,14 @@ const AnimatedLoadingScreen = ({ onComplete }) => {
               >
                 ♻️
               </motion.div>
-              
+
               <motion.div
                 className="env-element absolute bottom-[20%] right-[15%] text-2xl sm:text-3xl md:text-4xl"
-                animate={{ 
+                animate={{
                   y: [-5, 5, -5],
                   x: [-5, 5, -5]
                 }}
-                transition={{ 
+                transition={{
                   duration: 4,
                   repeat: Infinity,
                   ease: "easeInOut",
@@ -382,11 +378,11 @@ const AnimatedLoadingScreen = ({ onComplete }) => {
 
               <motion.div
                 className="env-element absolute top-[50%] left-[10%] text-xl sm:text-2xl md:text-3xl"
-                animate={{ 
+                animate={{
                   rotate: [0, 360],
                   scale: [1, 1.2, 1]
                 }}
-                transition={{ 
+                transition={{
                   duration: 5,
                   repeat: Infinity,
                   ease: "linear"
@@ -394,14 +390,14 @@ const AnimatedLoadingScreen = ({ onComplete }) => {
               >
                 🍃
               </motion.div>
-              
+
               <motion.div
                 className="env-element absolute top-[60%] right-[10%] text-xl sm:text-2xl md:text-3xl"
-                animate={{ 
+                animate={{
                   y: [-8, 8, -8],
                   opacity: [0.7, 1, 0.7]
                 }}
-                transition={{ 
+                transition={{
                   duration: 2.8,
                   repeat: Infinity,
                   ease: "easeInOut",
@@ -436,12 +432,12 @@ const AnimatedLoadingScreen = ({ onComplete }) => {
                   animate={{ width: "100%" }}
                   transition={{ duration: 3, ease: "easeInOut" }}
                 />
-                
+
                 {/* Shimmer effect */}
                 <motion.div
                   className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
                   animate={{ x: ["-200%", "200%"] }}
-                  transition={{ 
+                  transition={{
                     duration: 1.5,
                     repeat: Infinity,
                     ease: "linear"
@@ -455,7 +451,7 @@ const AnimatedLoadingScreen = ({ onComplete }) => {
                   <motion.div
                     key={i}
                     className="w-2 h-2 bg-emerald-400 rounded-full"
-                    animate={{ 
+                    animate={{
                       scale: [1, 1.3, 1],
                       opacity: [0.5, 1, 0.5]
                     }}
@@ -484,7 +480,7 @@ const AnimatedLoadingScreen = ({ onComplete }) => {
                     className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center"
                     initial={{ scale: 0, y: 20 }}
                     animate={{ scale: 1, y: 0 }}
-                    transition={{ 
+                    transition={{
                       type: "spring",
                       stiffness: 200,
                       damping: 10

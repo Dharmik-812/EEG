@@ -22,7 +22,7 @@ export const useAuthStore = create(
           isActive: true
         },
         {
-          id: '2', 
+          id: '2',
           name: 'Environmental Studies College',
           type: 'college',
           address: '456 Learning Blvd, Eco City, WA 98765',
@@ -52,8 +52,6 @@ export const useAuthStore = create(
       logout: () => set({ currentUser: null }),
 
       isAdmin: () => get().currentUser?.role === 'admin',
-<<<<<<< Updated upstream
-=======
       isTeacher: () => {
         const role = get().currentUser?.role
         return role === 'school-teacher' || role === 'college-teacher'
@@ -62,32 +60,7 @@ export const useAuthStore = create(
         const role = get().currentUser?.role
         return role === 'school-student' || role === 'college-student'
       },
-      
-      // Institution management
-      createInstitution: (institutionData) => {
-        const user = get().currentUser
-        if (!user || !get().isTeacher()) throw new Error('Only teachers can create institutions')
-        
-        const institution = {
-          ...institutionData,
-          id: `inst-${Date.now()}`,
-          createdBy: user.id,
-          createdAt: new Date().toISOString(),
-          studentCount: 0,
-          activeQuizzes: 0
-        }
-        
-        // Update current user with institution
-        const updatedUser = { ...user, institution }
-        set(state => ({
-          currentUser: updatedUser,
-          users: state.users.map(u => u.id === user.id ? updatedUser : u)
-        }))
-        
-        return institution
-      },
-      
-      // Analytics for admin
+
       // Institution management methods
       createInstitution: (institutionData) => {
         const newInstitution = {
@@ -97,31 +70,31 @@ export const useAuthStore = create(
           userCount: 0,
           isActive: true
         }
-        set(state => ({ 
-          institutions: [...(state.institutions || []), newInstitution] 
+        set(state => ({
+          institutions: [...(state.institutions || []), newInstitution]
         }))
         return newInstitution
       },
-      
+
       updateInstitution: (id, updates) => {
         set(state => ({
-          institutions: (state.institutions || []).map(inst => 
+          institutions: (state.institutions || []).map(inst =>
             inst.id === id ? { ...inst, ...updates } : inst
           )
         }))
       },
-      
+
       deleteInstitution: (id) => {
         set(state => ({
           institutions: (state.institutions || []).filter(inst => inst.id !== id)
         }))
       },
-      
+
       getInstitutions: () => {
         const state = get()
         const institutions = state.institutions || []
         const users = state.users || []
-        
+
         return institutions.map(inst => ({
           ...inst,
           userCount: users.filter(u => u.institution?.id === inst.id).length,
@@ -129,7 +102,7 @@ export const useAuthStore = create(
           students: users.filter(u => u.institution?.id === inst.id && u.role.includes('student')).length
         }))
       },
-      
+
       getAnalytics: () => {
         const users = get().users
         const total = users.length
@@ -137,12 +110,12 @@ export const useAuthStore = create(
         users.forEach(u => {
           roles[u.role] = (roles[u.role] || 0) + 1
         })
-        
+
         const institutions = users
           .filter(u => u.institution)
           .map(u => u.institution.name)
           .filter((name, index, arr) => arr.indexOf(name) === index)
-        
+
         return {
           totalUsers: total,
           roleDistribution: roles,
@@ -153,7 +126,6 @@ export const useAuthStore = create(
           totalQuizzes: users.reduce((sum, u) => sum + (u.stats?.completedQuizzes || 0), 0)
         }
       },
->>>>>>> Stashed changes
     }),
     { name: 'aversoltix_auth' }
   )

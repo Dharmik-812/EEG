@@ -35,10 +35,10 @@ function PageFallback() {
       animate={{ opacity: 1 }}
       className="min-h-[60vh] flex items-center justify-center"
     >
-      <LoadingSpinner 
-        size="lg" 
-        message="Preparing your eco-adventure..." 
-        variant="leaf" 
+      <LoadingSpinner
+        size="lg"
+        message="Preparing your eco-adventure..."
+        variant="leaf"
       />
     </motion.div>
   )
@@ -80,15 +80,7 @@ export default function App() {
   const location = useLocation()
   const adminMode = location.pathname.startsWith('/admin')
   const [isNavigating, setIsNavigating] = useState(false)
-<<<<<<< Updated upstream
-=======
-  const reduced = useAnimationStore(s => s.reduced)
 
-  // Smooth scrolling - enabled with conservative settings to minimize glitches
-  useLenis({ smooth: true, enabled: !reduced })
-  // Experimental Barba SPA bridge: keep disabled to avoid conflicts with React Router
-  useBarbaTransitions({ enabled: false })
->>>>>>> Stashed changes
 
   // Handle navigation loading states
   useEffect(() => {
@@ -100,7 +92,7 @@ export default function App() {
   return (
     <ErrorBoundary>
       <GlobalLoadingWrapper>
-        <motion.div 
+        <motion.div
           className="min-h-screen antialiased font-sans relative"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -109,42 +101,16 @@ export default function App() {
           <AnimatedBackground />
           {!adminMode && <Navbar />}
           <div className={`${adminMode ? 'pt-6 px-4' : 'pt-16 sm:pt-20'} mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8 xl:px-12 relative`}>
-          {/* Navigation loading indicator */}
-          {isNavigating && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-400 to-sky-400 z-10"
-            />
-          )}
-          
-<<<<<<< Updated upstream
-          <AnimatePresence mode="wait">
-            <Routes location={location} key={location.pathname}>
-              <Route path="/" element={<PageWrapper><Landing /></PageWrapper>} />
-              <Route path="/about" element={<PageWrapper><About /></PageWrapper>} />
-              <Route path="/dashboard" element={<PageWrapper><Dashboard /></PageWrapper>} />
-              <Route path="/challenges" element={<PageWrapper><Challenges /></PageWrapper>} />
-              <Route path="/leaderboard" element={<PageWrapper><Leaderboard /></PageWrapper>} />
-              <Route path="/badges" element={<PageWrapper><Badges /></PageWrapper>} />
-              <Route path="/community" element={<PageWrapper><Community /></PageWrapper>} />
-              <Route path="/projects" element={<PageWrapper><Projects /></PageWrapper>} />
-              <Route path="/editor" element={<PageWrapper><Editor /></PageWrapper>} />
-              <Route path="/play/:id" element={<PageWrapper><PlayGame /></PageWrapper>} />
-              <Route path="/login" element={<PageWrapper><Login /></PageWrapper>} />
-              <Route path="/register" element={<PageWrapper><Register /></PageWrapper>} />
-              <Route path="/create-quiz" element={<PageWrapper><CreateQuiz /></PageWrapper>} />
-              <Route path="/admin" element={<PageWrapper><Admin /></PageWrapper>} />
-              <Route path="/how-it-works" element={<PageWrapper><HowItWorks /></PageWrapper>} />
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </AnimatePresence>
-          </div>
-          {!adminMode && <Footer />}
-        </motion.div>
-=======
-          <LayoutGroup>
+            {/* Navigation loading indicator */}
+            {isNavigating && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-400 to-sky-400 z-10"
+              />
+            )}
+
             <AnimatePresence mode="wait">
               <Routes location={location} key={location.pathname}>
                 <Route path="/" element={<PageWrapper><Landing /></PageWrapper>} />
@@ -165,11 +131,9 @@ export default function App() {
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </AnimatePresence>
-          </LayoutGroup>
-        </div>
-        {!adminMode && <Footer />}
-      </motion.div>
->>>>>>> Stashed changes
+          </div>
+          {!adminMode && <Footer />}
+        </motion.div>
       </GlobalLoadingWrapper>
     </ErrorBoundary>
   )
