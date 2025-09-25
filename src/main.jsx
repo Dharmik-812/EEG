@@ -5,6 +5,11 @@ import App from './App.jsx'
 import './index.css'
 import { Toaster, toast } from 'react-hot-toast'
 import { useLogStore } from './store/logStore'
+import { registerAllPresets } from './animations/presets'
+import { useRipple } from './animations'
+
+// Register presets once on startup (no-op if re-imported)
+try { registerAllPresets() } catch {}
 
 // Register service worker in production
 if (import.meta.env.PROD && 'serviceWorker' in navigator) {
@@ -23,11 +28,19 @@ window.addEventListener('unhandledrejection', (e) => {
   try { toast.error(`Unhandled: ${e.reason?.message || e.reason}`) } catch {}
 })
 
-ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
+function Root() {
+  // Globally enable ripple on elements with [data-ripple]
+  useRipple()
+  return (
     <BrowserRouter>
       <App />
       <Toaster position="top-right" toastOptions={{ style: { background: '#0f172a', color: '#e2e8f0' } }} />
     </BrowserRouter>
+  )
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(
+  <React.StrictMode>
+    <Root />
   </React.StrictMode>
 )

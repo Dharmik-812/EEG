@@ -2,8 +2,61 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
 const seedUsers = [
-  { id: 'admin-1', name: 'Administrator', email: 'admin@aversoltix.com', password: 'admin123', role: 'admin' },
-  { id: 'user-1', name: 'Eco Learner', email: 'student@aversoltix.com', password: 'student123', role: 'user' },
+  { 
+    id: 'admin-1', 
+    name: 'Administrator', 
+    email: 'admin@aversoltix.com', 
+    password: 'admin123', 
+    role: 'admin',
+    createdAt: '2024-01-01T00:00:00Z',
+    stats: {
+      xp: 0,
+      badges: [],
+      streak: 0,
+      completedQuizzes: 0
+    }
+  },
+  { 
+    id: 'school-teacher-1', 
+    name: 'Sarah Johnson', 
+    email: 'sarah@greenvalleyschool.edu', 
+    password: 'teacher123', 
+    role: 'school-teacher',
+    institution: {
+      name: 'Green Valley Elementary',
+      type: 'school',
+      code: 'GVE2024',
+      location: 'California, USA'
+    },
+    createdAt: '2024-01-15T10:30:00Z',
+    stats: {
+      xp: 0,
+      badges: [],
+      streak: 0,
+      completedQuizzes: 0,
+      createdContent: 0
+    }
+  },
+  { 
+    id: 'college-student-1', 
+    name: 'Alex Chen', 
+    email: 'alex@stanford.edu', 
+    password: 'student123', 
+    role: 'college-student',
+    institution: {
+      name: 'Stanford University',
+      type: 'college',
+      code: 'STAN2024',
+      location: 'California, USA'
+    },
+    createdAt: '2024-02-10T14:15:00Z',
+    stats: {
+      xp: 0,
+      badges: [],
+      streak: 0,
+      completedQuizzes: 0
+    }
+  },
 ]
 
 export const useAuthStore = create(
@@ -19,7 +72,10 @@ export const useAuthStore = create(
           email: 'admin@greenvalley.edu',
           phone: '+1 (555) 123-4567',
           createdAt: '2024-01-15T10:30:00Z',
-          isActive: true
+          isActive: true,
+          userCount: 0,
+          teachers: 0,
+          students: 0
         },
         {
           id: '2',
@@ -29,7 +85,10 @@ export const useAuthStore = create(
           email: 'info@envirocolege.edu',
           phone: '+1 (555) 987-6543',
           createdAt: '2024-02-10T14:15:00Z',
-          isActive: true
+          isActive: true,
+          userCount: 0,
+          teachers: 0,
+          students: 0
         }
       ],
       currentUser: null,
@@ -40,11 +99,28 @@ export const useAuthStore = create(
         return user
       },
 
-      register: (name, email, password, role = 'visitor', institution) => {
+      register: (userData) => {
+        const { name, email, password, role = 'visitor', institution } = userData
         const exists = get().users.some(u => u.email === email)
         if (exists) throw new Error('Email already registered')
+        
         const id = `u-${Date.now()}`
-        const user = { id, name, email, password, role, institution }
+        const user = { 
+          id, 
+          name, 
+          email, 
+          password, 
+          role,
+          institution,
+          createdAt: new Date().toISOString(),
+          stats: {
+            xp: 0,
+            badges: [],
+            streak: 0,
+            completedQuizzes: 0,
+            createdContent: role.includes('teacher') ? 0 : undefined
+          }
+        }
         set(state => ({ users: [...state.users, user], currentUser: user }))
         return user
       },
@@ -63,16 +139,32 @@ export const useAuthStore = create(
 
       // Institution management methods
       createInstitution: (institutionData) => {
+        const user = get().currentUser
+        const isTeacher = get().isTeacher()
+        
+        if (!user || !isTeacher) throw new Error('Only teachers can create institutions')
+        
         const newInstitution = {
-          id: Date.now().toString(),
+          id: `inst-${Date.now()}`,
           ...institutionData,
+          createdBy: user.id,
           createdAt: new Date().toISOString(),
           userCount: 0,
-          isActive: true
+          teachers: 0,
+          students: 0,
+          isActive: true,
+          activeQuizzes: 0
         }
+        
+        // Update current user with institution if they don't have one
+        const updatedUser = user.institution ? user : { ...user, institution: newInstitution }
+        
         set(state => ({
-          institutions: [...(state.institutions || []), newInstitution]
+          institutions: [...(state.institutions || []), newInstitution],
+          currentUser: updatedUser,
+          users: state.users.map(u => u.id === user.id ? updatedUser : u)
         }))
+        
         return newInstitution
       },
 
@@ -106,11 +198,11 @@ export const useAuthStore = create(
       getAnalytics: () => {
         const users = get().users
         const total = users.length
-        const roles = {}
-        users.forEach(u => {
-          roles[u.role] = (roles[u.role] || 0) + 1
-        })
-
+        const roles = users.reduce((acc, user) => {
+          acc[user.role] = (acc[user.role] || 0) + 1
+          return acc
+        }, {})
+        
         const institutions = users
           .filter(u => u.institution)
           .map(u => u.institution.name)
@@ -130,4 +222,3 @@ export const useAuthStore = create(
     { name: 'aversoltix_auth' }
   )
 )
-

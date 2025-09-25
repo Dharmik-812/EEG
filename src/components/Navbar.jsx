@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Link, NavLink } from 'react-router-dom'
-import { Leaf, Menu, X, Sun, Moon } from 'lucide-react'
+import { Leaf, Menu, X, Sun, Moon, Zap } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import useTheme from '../store/useTheme.js'
 import { useAuthStore } from '../store/authStore'
+import { useAnimationStore } from '../store/animationStore'
 
 const links = [
   { to: '/', label: 'Home' },
@@ -21,6 +22,7 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const { theme, setTheme } = useTheme()
   const toggle = () => setTheme(theme === 'dark' ? 'light' : 'dark')
+  const { reduced, toggle: toggleMotion } = useAnimationStore(s => ({ reduced: s.reduced, toggle: s.toggle }))
   
   const { currentUser, logout } = useAuthStore(s => ({ currentUser: s.currentUser, logout: s.logout }))
 
@@ -64,9 +66,9 @@ export default function Navbar() {
           {links.map(l => (
             <LinkItem key={l.to} {...l} />
           ))}
-          <NavLink to="/editor" className="nav-link">Editor</NavLink>
-          <NavLink to="/create-quiz" className="nav-link">Create Quiz</NavLink>
-          {currentUser?.role === 'admin' && <NavLink to="/admin" className="nav-link">Admin</NavLink>}
+          <NavLink to="/editor" className="nav-link" data-ripple>Editor</NavLink>
+          <NavLink to="/create-quiz" className="nav-link" data-ripple>Create Quiz</NavLink>
+{currentUser?.role === 'admin' && <NavLink to="/admin" className="nav-link" data-ripple>Admin</NavLink>}
           {currentUser ? (
             <>
               <span className="text-sm text-slate-500 mx-2">Hi, {currentUser.name}</span>
@@ -74,16 +76,50 @@ export default function Navbar() {
             </>
           ) : (
             <>
-              <NavLink to="/login" className="btn-outline !px-3 !py-2">Login</NavLink>
-              <NavLink to="/register" className="btn !px-3 !py-2">Register</NavLink>
+<NavLink to="/login" className="btn-outline !px-3 !py-2" data-ripple>Login</NavLink>
+<NavLink to="/register" className="btn !px-3 !py-2" data-ripple>Register</NavLink>
             </>
           )}
-          <button aria-label="Toggle theme" onClick={toggle} className="ml-2 p-2 rounded-lg hover:bg-emerald-100/50 dark:hover:bg-slate-800">
+          <button 
+            aria-label="Toggle reduced motion" 
+            title={reduced ? 'Animations OFF - Click to enable' : 'Animations ON - Click to disable'} 
+            onClick={toggleMotion} 
+            className={`ml-2 p-2 rounded-lg transition-all duration-300 ${
+              reduced 
+                ? 'bg-red-100/50 dark:bg-red-900/20 hover:bg-red-200/50 text-red-600 dark:text-red-400' 
+                : 'bg-emerald-100/50 dark:bg-emerald-900/20 hover:bg-emerald-200/50 text-emerald-600 dark:text-emerald-400'
+            }`}
+          >
+            <motion.div
+              animate={reduced ? { scale: [1, 0.8, 1], rotate: [0, -10, 0] } : { scale: 1, rotate: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Zap className="h-5 w-5" />
+            </motion.div>
+          </button>
+          <button aria-label="Toggle theme" onClick={toggle} className="ml-1 p-2 rounded-lg hover:bg-emerald-100/50 dark:hover:bg-slate-800">
             {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
           </button>
         </div>
 
         <div className="md:hidden flex items-center gap-2">
+          <button 
+            aria-label="Toggle reduced motion" 
+            title={reduced ? 'Animations OFF - Click to enable' : 'Animations ON - Click to disable'} 
+            onClick={toggleMotion} 
+            className={`p-2 rounded-lg transition-all duration-300 ${
+              reduced 
+                ? 'bg-red-100/50 dark:bg-red-900/20 hover:bg-red-200/50 text-red-600 dark:text-red-400' 
+                : 'bg-emerald-100/50 dark:bg-emerald-900/20 hover:bg-emerald-200/50 text-emerald-600 dark:text-emerald-400'
+            }`}
+          >
+            <motion.div
+              animate={reduced ? { scale: [1, 0.8, 1], rotate: [0, -10, 0] } : { scale: 1, rotate: 0 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Zap className="h-5 w-5" />
+            </motion.div>
+          </button>
           <button aria-label="Toggle theme" onClick={toggle} className="p-2 rounded-lg hover:bg-emerald-100/50 dark:hover:bg-slate-800">
             {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
           </button>
@@ -109,18 +145,18 @@ export default function Navbar() {
               </div>
               {links.map(l => (
                 <div key={l.to}>
-                  <Link to={l.to} onClick={() => setOpen(false)} className="block px-3 py-2 rounded-lg hover:bg-emerald-50/60 dark:hover:bg-slate-800">
+<Link to={l.to} onClick={() => setOpen(false)} className="block px-3 py-2 rounded-lg hover:bg-emerald-50/60 dark:hover:bg-slate-800" data-ripple>
                     {l.label}
                   </Link>
                 </div>
               ))}
-              <Link to="/editor" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-lg hover:bg-emerald-50/60 dark:hover:bg-slate-800">Editor</Link>
-              <Link to="/create-quiz" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-lg hover:bg-emerald-50/60 dark:hover:bg-slate-800">Create Quiz</Link>
-              {currentUser?.role === 'admin' && <Link to="/admin" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-lg hover:bg-emerald-50/60 dark:hover:bg-slate-800">Admin</Link>}
+              <Link to="/editor" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-lg hover:bg-emerald-50/60 dark:hover:bg-slate-800" data-ripple>Editor</Link>
+              <Link to="/create-quiz" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-lg hover:bg-emerald-50/60 dark:hover:bg-slate-800" data-ripple>Create Quiz</Link>
+{currentUser?.role === 'admin' && <Link to="/admin" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-lg hover:bg-emerald-50/60 dark:hover:bg-slate-800" data-ripple>Admin</Link>}
               {!currentUser ? (
                 <>
-                  <Link to="/login" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-lg hover:bg-emerald-50/60 dark:hover:bg-slate-800">Login</Link>
-                  <Link to="/register" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-lg hover:bg-emerald-50/60 dark:hover:bg-slate-800">Register</Link>
+<Link to="/login" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-lg hover:bg-emerald-50/60 dark:hover:bg-slate-800" data-ripple>Login</Link>
+<Link to="/register" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-lg hover:bg-emerald-50/60 dark:hover:bg-slate-800" data-ripple>Register</Link>
                 </>
               ) : (
                 <button onClick={() => { setOpen(false); logout() }} className="block w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-50/60 dark:hover:bg-slate-800">Logout</button>

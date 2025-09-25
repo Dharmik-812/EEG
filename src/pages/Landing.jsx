@@ -1,26 +1,25 @@
 import { Link } from 'react-router-dom'
-// eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion'
 import { ArrowRight } from 'lucide-react'
 import { useRef } from 'react'
 import SEO from '../components/SEO.jsx'
-import { useScrollReveal, useGSAP } from '../animations'
+import { useScrollReveal, useSplitText, useGSAP } from '../animations'
 
 export default function Landing() {
   const heroRef = useRef(null)
   const titleRef = useRef(null)
   const parallaxRef = useRef(null)
-
-  // Split text animation for hero title - disabled to preserve layout
-  // useSplitText(titleRef)
-
+  
+  // Split text animation for hero title
+  useSplitText(titleRef)
+  
   // Scroll reveal for cards below
   useScrollReveal(['.hero-card'], { y: 60, stagger: 0.15, duration: 1.2 })
-
+  
   // GSAP parallax background
-  useGSAP((gsap) => {
+  useGSAP((gsap, ScrollTrigger) => {
     if (parallaxRef.current) {
-      gsap.fromTo(parallaxRef.current,
+      gsap.fromTo(parallaxRef.current, 
         { y: 0 },
         {
           y: -100,
@@ -34,19 +33,20 @@ export default function Landing() {
       )
     }
   }, [])
+
   return (
     <>
       <SEO
         title="Home"
         description="AverSoltix is a gamified environmental education platform for schools and colleges. Earn XP, collect badges, and climb the leaderboard while learning about climate change, recycling, renewable energy, and biodiversity."
       />
-
+      
       {/* Parallax Background */}
-      <div
+      <div 
         ref={parallaxRef}
         className="fixed inset-0 -z-20 bg-gradient-to-br from-emerald-50 via-sky-50 to-emerald-100 dark:from-slate-900 dark:via-slate-800 dark:to-emerald-950"
       />
-
+      
       <section ref={heroRef} className="relative min-h-screen flex items-center safe-area-top">
         <div className="container-fluid mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 lg:gap-12 items-center">
@@ -56,7 +56,7 @@ export default function Landing() {
               transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
               className="lg:col-span-7 text-center lg:text-left"
             >
-              <motion.h1
+              <motion.h1 
                 ref={titleRef}
                 className="font-display text-responsive-xl font-black leading-[1.05] mb-6 sm:mb-8 lg:mb-10 text-center lg:text-left"
                 initial={{ opacity: 0, y: 50 }}
@@ -80,8 +80,8 @@ export default function Landing() {
                   Save the Planet.
                 </motion.span>
               </motion.h1>
-
-              <motion.p
+              
+              <motion.p 
                 className="text-responsive-md text-slate-600 dark:text-slate-300 mb-8 sm:mb-10 lg:mb-12 max-w-2xl mx-auto lg:mx-0 leading-relaxed"
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -89,15 +89,15 @@ export default function Landing() {
               >
                 A gamified environmental education platform. Earn XP, collect badges, and climb the leaderboard while learning about climate science.
               </motion.p>
-
-              <motion.div
+              
+              <motion.div 
                 className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 sm:gap-4"
                 initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.9, duration: 0.8 }}
               >
-                <Link
-                  to="/challenges"
+                <Link 
+                  to="/challenges" 
                   className="btn-gold group px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-semibold relative overflow-hidden w-full sm:w-auto text-center"
                   data-ripple
                 >
@@ -110,8 +110,8 @@ export default function Landing() {
                     <ArrowRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
                   </motion.span>
                 </Link>
-                <Link
-                  to="/about"
+                <Link 
+                  to="/about" 
                   className="btn-outline px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-semibold w-full sm:w-auto text-center"
                   data-ripple
                 >
@@ -126,7 +126,7 @@ export default function Landing() {
               transition={{ delay: 0.4, duration: 1.5, ease: [0.16, 1, 0.3, 1] }}
               className="lg:col-span-5 relative"
             >
-              <motion.div
+              <motion.div 
                 className="relative aspect-square max-w-sm sm:max-w-md lg:max-w-lg mx-auto"
                 whileHover={{ scale: 1.05, rotateY: 5 }}
                 transition={{ type: "spring", stiffness: 200 }}
@@ -142,7 +142,7 @@ export default function Landing() {
                     loading="lazy"
                   />
                 </div>
-
+                
                 {/* Floating elements */}
                 <motion.div
                   className="absolute -top-2 sm:-top-4 -right-2 sm:-right-4 w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-full flex items-center justify-center text-lg sm:text-xl lg:text-2xl"
@@ -151,7 +151,7 @@ export default function Landing() {
                 >
                   🌍
                 </motion.div>
-
+                
                 <motion.div
                   className="absolute -bottom-1 sm:-bottom-2 -left-3 sm:-left-6 w-10 h-10 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-gradient-to-br from-sky-400 to-sky-600 rounded-full flex items-center justify-center text-base sm:text-lg lg:text-xl"
                   animate={{ y: [10, -10, 10], rotate: [0, -5, 5, 0] }}
@@ -182,41 +182,41 @@ export default function Landing() {
               Discover a world of interactive learning designed to make environmental education engaging and rewarding.
             </p>
           </motion.div>
-
+          
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {[
-              {
-                title: 'Quests & Challenges',
-                desc: 'Interactive missions that teach climate science through engaging gameplay mechanics.',
+              { 
+                title: 'Quests & Challenges', 
+                desc: 'Interactive missions that teach climate science through engaging gameplay mechanics.', 
                 emoji: '🧩',
                 gradient: 'from-emerald-500 to-teal-600'
               },
-              {
-                title: 'Daily Streaks',
-                desc: 'Build consistent learning habits with streak tracking and daily rewards.',
+              { 
+                title: 'Daily Streaks', 
+                desc: 'Build consistent learning habits with streak tracking and daily rewards.', 
                 emoji: '🔥',
                 gradient: 'from-orange-500 to-red-600'
               },
-              {
-                title: 'Badges & Leaderboards',
-                desc: 'Compete with peers and unlock achievements as you master environmental topics.',
+              { 
+                title: 'Badges & Leaderboards', 
+                desc: 'Compete with peers and unlock achievements as you master environmental topics.', 
                 emoji: '🏆',
                 gradient: 'from-yellow-500 to-amber-600'
               },
             ].map((feature, i) => (
-              <motion.div
+              <motion.div 
                 key={i}
                 className="hero-card group cursor-pointer"
                 initial={{ opacity: 0, y: 60, scale: 0.9 }}
                 whileInView={{ opacity: 1, y: 0, scale: 1 }}
                 viewport={{ once: true, margin: "-100px" }}
-                transition={{
-                  duration: 0.8,
-                  delay: i * 0.2,
-                  ease: [0.16, 1, 0.3, 1]
+                transition={{ 
+                  duration: 0.8, 
+                  delay: i * 0.2, 
+                  ease: [0.16, 1, 0.3, 1] 
                 }}
-                whileHover={{
-                  y: -10,
+                whileHover={{ 
+                  y: -10, 
                   scale: 1.03,
                   transition: { type: "spring", stiffness: 300, damping: 20 }
                 }}
@@ -225,16 +225,16 @@ export default function Landing() {
                 <div className="relative p-6 sm:p-8 h-full bg-white/10 backdrop-blur-xl rounded-2xl sm:rounded-3xl border border-white/20 shadow-2xl overflow-hidden">
                   {/* Gradient background */}
                   <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-500`} />
-
+                  
                   {/* Icon */}
-                  <motion.div
+                  <motion.div 
                     className="text-3xl sm:text-4xl lg:text-5xl mb-4 sm:mb-6 relative z-10"
                     whileHover={{ scale: 1.2, rotate: 5 }}
                     transition={{ type: "spring", stiffness: 400 }}
                   >
                     {feature.emoji}
                   </motion.div>
-
+                  
                   {/* Content */}
                   <div className="relative z-10">
                     <h3 className="text-lg sm:text-xl lg:text-2xl font-bold mb-3 sm:mb-4 group-hover:text-emerald-500 transition-colors">
@@ -244,32 +244,164 @@ export default function Landing() {
                       {feature.desc}
                     </p>
                   </div>
-
+                  
                   {/* Floating particles */}
                   <motion.div
                     className="absolute top-4 right-4 w-2 h-2 bg-emerald-400 rounded-full"
-                    animate={{
+                    animate={{ 
                       y: [-5, 5, -5],
                       opacity: [0.7, 1, 0.7]
                     }}
-                    transition={{
-                      duration: 2,
-                      repeat: Infinity,
-                      delay: i * 0.3
+                    transition={{ 
+                      duration: 2, 
+                      repeat: Infinity, 
+                      delay: i * 0.3 
                     }}
                   />
                   <motion.div
                     className="absolute bottom-4 left-4 w-1.5 h-1.5 bg-sky-400 rounded-full"
-                    animate={{
+                    animate={{ 
                       x: [-3, 3, -3],
                       opacity: [1, 0.5, 1]
                     }}
-                    transition={{
-                      duration: 1.5,
-                      repeat: Infinity,
-                      delay: i * 0.2
+                    transition={{ 
+                      duration: 1.5, 
+                      repeat: Infinity, 
+                      delay: i * 0.2 
                     }}
                   />
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Additional Content Section */}
+          <motion.div
+            className="mt-20 text-center"
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8, delay: 0.3 }}
+          >
+            <h3 className="text-responsive-md font-bold mb-6">
+              Join Thousands of Students and Educators
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: 0.1 }}
+                className="text-center"
+              >
+                <div className="text-4xl font-bold text-emerald-600 mb-2">50K+</div>
+                <div className="text-slate-600">Active Learners</div>
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: 0.2 }}
+                className="text-center"
+              >
+                <div className="text-4xl font-bold text-emerald-600 mb-2">200+</div>
+                <div className="text-slate-600">Schools & Colleges</div>
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: 0.3 }}
+                className="text-center"
+              >
+                <div className="text-4xl font-bold text-emerald-600 mb-2">10K+</div>
+                <div className="text-slate-600">Eco-Games Created</div>
+              </motion.div>
+            </div>
+          </motion.div>
+
+          {/* CTA Section */}
+          <motion.div
+            className="mt-20 text-center"
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+          >
+            <div className="bg-gradient-to-r from-emerald-500 to-sky-600 rounded-3xl p-8 sm:p-12 text-white">
+              <h3 className="text-2xl sm:text-3xl font-bold mb-4">
+                Ready to Make a Difference?
+              </h3>
+              <p className="text-emerald-100 mb-6 max-w-2xl mx-auto">
+                Join our community of environmental champions and start your journey today.
+              </p>
+              <Link
+                to="/register"
+                className="btn-gold inline-flex items-center gap-2 px-8 py-3 text-lg font-semibold"
+                data-ripple
+              >
+                Get Started Free
+                <ArrowRight className="h-5 w-5" />
+              </Link>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Testimonials Section */}
+      <section className="py-16 sm:py-24 lg:py-32 bg-slate-50 dark:bg-slate-900">
+        <div className="container-fluid mx-auto">
+          <motion.div
+            className="text-center mb-12 sm:mb-16 lg:mb-20"
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+          >
+            <h2 className="text-responsive-lg font-bold mb-4 sm:mb-6">
+              What Our Community Says
+            </h2>
+          </motion.div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {[
+              {
+                name: "Sarah Johnson",
+                role: "Science Teacher",
+                school: "Green Valley High",
+                content: "My students are more engaged than ever. The gamified approach makes complex environmental concepts accessible and fun!",
+                avatar: "👩‍🏫"
+              },
+              {
+                name: "Alex Chen",
+                role: "College Student",
+                school: "Stanford University",
+                content: "I've learned more about climate science in 2 weeks on AverSoltix than in my entire semester. The badges keep me motivated!",
+                avatar: "🎓"
+              },
+              {
+                name: "Dr. Maria Rodriguez",
+                role: "Environmental Professor",
+                school: "MIT",
+                content: "This platform bridges the gap between academic research and practical environmental education. Brilliant work!",
+                avatar: "👩‍🔬"
+              }
+            ].map((testimonial, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, y: 60 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: i * 0.2 }}
+                className="bg-white dark:bg-slate-800 rounded-2xl p-6 shadow-lg"
+              >
+                <div className="text-4xl mb-4">{testimonial.avatar}</div>
+                <p className="text-slate-600 dark:text-slate-300 mb-4 italic">
+                  "{testimonial.content}"
+                </p>
+                <div>
+                  <div className="font-semibold">{testimonial.name}</div>
+                  <div className="text-sm text-slate-500">{testimonial.role} • {testimonial.school}</div>
                 </div>
               </motion.div>
             ))}
@@ -279,4 +411,3 @@ export default function Landing() {
     </>
   )
 }
-
