@@ -11,7 +11,6 @@ const links = [
   { to: '/', label: 'Home', category: 'overview' },
   { to: '/about', label: 'About', category: 'overview' },
   { to: '/how-it-works', label: 'Guide', category: 'learn' },
-  { to: '/challenges', label: 'Challenges', category: 'engage' },
   { to: '/community', label: 'Community', category: 'engage' },
   { to: '/dashboard', label: 'Dashboard', category: 'track', hideForAdmin: true },
   { to: '/leaderboard', label: 'Leaderboard', category: 'track' },
@@ -24,7 +23,7 @@ export default function Navbar() {
   const { theme, setTheme } = useTheme()
   const toggle = () => setTheme(theme === 'dark' ? 'light' : 'dark')
   const { reduced, toggle: toggleMotion } = useAnimationStore(s => ({ reduced: s.reduced, toggle: s.toggle }))
-  
+
   const { currentUser, logout } = useAuthStore(s => ({ currentUser: s.currentUser, logout: s.logout }))
 
   useEffect(() => {
@@ -69,13 +68,13 @@ export default function Navbar() {
             <LinkItem key={l.to} {...l} />
           ))}
           <div className="w-px h-5 bg-slate-300 dark:bg-slate-600 mx-2 opacity-50" />
-          
+
           {/* Learn Section */}
           {links.filter(l => l.category === 'learn' && !(l.hideForAdmin && currentUser?.role === 'admin')).map(l => (
             <LinkItem key={l.to} {...l} />
           ))}
           <div className="w-px h-5 bg-slate-300 dark:bg-slate-600 mx-2 opacity-50" />
-          
+
           {/* Engage Section */}
           {links.filter(l => l.category === 'engage' && !(l.hideForAdmin && currentUser?.role === 'admin')).map(l => (
             <LinkItem key={l.to} {...l} />
@@ -83,12 +82,12 @@ export default function Navbar() {
           <NavLink to="/editor" className="nav-link" data-ripple>Editor</NavLink>
           <NavLink to="/create-quiz" className="nav-link" data-ripple>Create Quiz</NavLink>
           <div className="w-px h-5 bg-slate-300 dark:bg-slate-600 mx-2 opacity-50" />
-          
+
           {/* Track Section */}
           {links.filter(l => l.category === 'track' && !(l.hideForAdmin && currentUser?.role === 'admin')).map(l => (
             <LinkItem key={l.to} {...l} />
           ))}
-{currentUser?.role === 'admin' && <NavLink to="/admin" className="nav-link" data-ripple>Admin</NavLink>}
+          {currentUser?.role === 'admin' && <NavLink to="/admin" className="nav-link" data-ripple>Admin</NavLink>}
           {currentUser ? (
             <>
               <span className="text-sm text-slate-500 mx-2">Hi, {currentUser.name}</span>
@@ -96,19 +95,18 @@ export default function Navbar() {
             </>
           ) : (
             <>
-<NavLink to="/login" className="btn-outline !px-3 !py-2" data-ripple>Login</NavLink>
-<NavLink to="/register" className="btn !px-3 !py-2" data-ripple>Register</NavLink>
+              <NavLink to="/login" className="btn-outline !px-3 !py-2" data-ripple>Login</NavLink>
+              <NavLink to="/register" className="btn !px-3 !py-2" data-ripple>Register</NavLink>
             </>
           )}
-          <button 
-            aria-label="Toggle reduced motion" 
-            title={reduced ? 'Animations OFF - Click to enable' : 'Animations ON - Click to disable'} 
-            onClick={toggleMotion} 
-            className={`ml-2 p-2 rounded-lg transition-all duration-300 ${
-              reduced 
-                ? 'bg-red-100/50 dark:bg-red-900/20 hover:bg-red-200/50 text-red-600 dark:text-red-400' 
+          <button
+            aria-label="Toggle reduced motion"
+            title={reduced ? 'Animations OFF - Click to enable' : 'Animations ON - Click to disable'}
+            onClick={toggleMotion}
+            className={`ml-2 p-2 rounded-lg transition-all duration-300 ${reduced
+                ? 'bg-red-100/50 dark:bg-red-900/20 hover:bg-red-200/50 text-red-600 dark:text-red-400'
                 : 'bg-emerald-100/50 dark:bg-emerald-900/20 hover:bg-emerald-200/50 text-emerald-600 dark:text-emerald-400'
-            }`}
+              }`}
           >
             <motion.div
               animate={reduced ? { scale: [1, 0.8, 1], rotate: [0, -10, 0] } : { scale: 1, rotate: 0 }}
@@ -149,15 +147,14 @@ export default function Navbar() {
         </div>
 
         <div className="md:hidden flex items-center gap-2">
-          <button 
-            aria-label="Toggle reduced motion" 
-            title={reduced ? 'Animations OFF - Click to enable' : 'Animations ON - Click to disable'} 
-            onClick={toggleMotion} 
-            className={`p-2 rounded-lg transition-all duration-300 ${
-              reduced 
-                ? 'bg-red-100/50 dark:bg-red-900/20 hover:bg-red-200/50 text-red-600 dark:text-red-400' 
+          <button
+            aria-label="Toggle reduced motion"
+            title={reduced ? 'Animations OFF - Click to enable' : 'Animations ON - Click to disable'}
+            onClick={toggleMotion}
+            className={`p-2 rounded-lg transition-all duration-300 ${reduced
+                ? 'bg-red-100/50 dark:bg-red-900/20 hover:bg-red-200/50 text-red-600 dark:text-red-400'
                 : 'bg-emerald-100/50 dark:bg-emerald-900/20 hover:bg-emerald-200/50 text-emerald-600 dark:text-emerald-400'
-            }`}
+              }`}
           >
             <motion.div
               animate={reduced ? { scale: [1, 0.8, 1], rotate: [0, -10, 0] } : { scale: 1, rotate: 0 }}
@@ -191,18 +188,18 @@ export default function Navbar() {
               </div>
               {links.filter(l => !(l.hideForAdmin && currentUser?.role === 'admin')).map(l => (
                 <div key={l.to}>
-<Link to={l.to} onClick={() => setOpen(false)} className="block px-3 py-2 rounded-lg hover:bg-emerald-50/60 dark:hover:bg-slate-800" data-ripple>
+                  <Link to={l.to} onClick={() => setOpen(false)} className="block px-3 py-2 rounded-lg hover:bg-emerald-50/60 dark:hover:bg-slate-800" data-ripple>
                     {l.label}
                   </Link>
                 </div>
               ))}
               <Link to="/editor" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-lg hover:bg-emerald-50/60 dark:hover:bg-slate-800" data-ripple>Editor</Link>
               <Link to="/create-quiz" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-lg hover:bg-emerald-50/60 dark:hover:bg-slate-800" data-ripple>Create Quiz</Link>
-{currentUser?.role === 'admin' && <Link to="/admin" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-lg hover:bg-emerald-50/60 dark:hover:bg-slate-800" data-ripple>Admin</Link>}
+              {currentUser?.role === 'admin' && <Link to="/admin" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-lg hover:bg-emerald-50/60 dark:hover:bg-slate-800" data-ripple>Admin</Link>}
               {!currentUser ? (
                 <>
-<Link to="/login" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-lg hover:bg-emerald-50/60 dark:hover:bg-slate-800" data-ripple>Login</Link>
-<Link to="/register" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-lg hover:bg-emerald-50/60 dark:hover:bg-slate-800" data-ripple>Register</Link>
+                  <Link to="/login" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-lg hover:bg-emerald-50/60 dark:hover:bg-slate-800" data-ripple>Login</Link>
+                  <Link to="/register" onClick={() => setOpen(false)} className="block px-3 py-2 rounded-lg hover:bg-emerald-50/60 dark:hover:bg-slate-800" data-ripple>Register</Link>
                 </>
               ) : (
                 <button onClick={() => { setOpen(false); logout() }} className="block w-full text-left px-3 py-2 rounded-lg hover:bg-emerald-50/60 dark:hover:bg-slate-800">Logout</button>

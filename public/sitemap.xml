@@ -2,7 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://aversoltix.example/</loc></url>
   <url><loc>https://aversoltix.example/about</loc></url>
-  <url><loc>https://aversoltix.example/challenges</loc></url>
+  <!-- Challenges route removed -->
   <url><loc>https://aversoltix.example/dashboard</loc></url>
   <url><loc>https://aversoltix.example/community</loc></url>
   <url><loc>https://aversoltix.example/leaderboard</loc></url>

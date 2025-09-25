@@ -1,5 +1,6 @@
 import { useEffect, useState, Suspense, lazy } from 'react'
 import { Routes, Route, useLocation, Navigate } from 'react-router-dom'
+// eslint-disable-next-line no-unused-vars
 import { AnimatePresence, motion, LayoutGroup } from 'framer-motion'
 import Navbar from './components/Navbar.jsx'
 import Footer from './components/Footer.jsx'
@@ -19,7 +20,6 @@ import { useFramerPreset, useBarbaTransitions } from './animations'
 const Landing = lazy(() => import('./pages/Landing.jsx'))
 const About = lazy(() => import('./pages/About.jsx'))
 const Dashboard = lazy(() => import('./pages/Dashboard.jsx'))
-const Challenges = lazy(() => import('./pages/Challenges.jsx'))
 const Leaderboard = lazy(() => import('./pages/Leaderboard.jsx'))
 const Badges = lazy(() => import('./pages/Badges.jsx'))
 const Community = lazy(() => import('./pages/Community.jsx'))
@@ -98,7 +98,7 @@ function PageWrapper({ children }) {
   const getTransitionPreset = () => {
     if (location.pathname === '/') return 'route.zoom'
     if (location.pathname.startsWith('/editor')) return 'route.slideLeft'
-    if (location.pathname.startsWith('/challenges')) return 'route.slideUp'
+    // Challenges route removed
     return 'route.transition'
   }
 
@@ -151,14 +151,21 @@ export default function App() {
 
   // Ensure proper initialization for new tabs
   useEffect(() => {
+    // Initialize user interaction timestamp for new tabs
+    if (!window.lastUserInteraction) {
+      window.lastUserInteraction = Date.now()
+    }
+
     // Force a small delay to ensure all stores are initialized
     const initTimer = setTimeout(() => {
       // This helps with new tab navigation by ensuring stores are ready
       if (typeof window !== 'undefined') {
         window.dispatchEvent(new Event('storage'))
+        // Trigger a small user interaction to prevent false stuck detection
+        window.lastUserInteraction = Date.now()
       }
       setIsAppReady(true)
-    }, 100)
+    }, 200) // Slightly longer delay for new tabs
     return () => clearTimeout(initTimer)
   }, [])
 
@@ -212,6 +219,7 @@ export default function App() {
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-sm text-slate-600 dark:text-slate-400">Initializing AverSoltix...</p>
+          <p className="text-xs text-slate-500 mt-2">Loading your eco-adventure...</p>
         </div>
       </div>
     )
@@ -252,7 +260,7 @@ export default function App() {
                   <Route path="/" element={<PageWrapper><Landing /></PageWrapper>} />
                   <Route path="/about" element={<PageWrapper><About /></PageWrapper>} />
                   <Route path="/dashboard" element={<PageWrapper><Dashboard /></PageWrapper>} />
-                  <Route path="/challenges" element={<PageWrapper><Challenges /></PageWrapper>} />
+                  {/* challenges route removed */}
                   <Route path="/leaderboard" element={<PageWrapper><Leaderboard /></PageWrapper>} />
                   <Route path="/badges" element={<PageWrapper><Badges /></PageWrapper>} />
                   <Route path="/community" element={<PageWrapper><Community /></PageWrapper>} />

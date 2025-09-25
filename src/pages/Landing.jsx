@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+// eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useRef, useState, useEffect } from 'react'
@@ -14,6 +15,14 @@ const testimonialsData = [
     content: "AverSoltix transformed how I understand climate change. The interactive games make complex topics so much clearer!",
     avatar: "🌱"
   },
+
+  {
+    name: "Shreya",
+    role: "Biology Teacher",
+    school: "Nature Academy",
+    content: "My classroom has never been more interactive. Students are asking deeper questions about biodiversity.",
+    avatar: "🦋"
+  },
   {
     name: "Riya",
     role: "Sustainability Coordinator",
@@ -22,11 +31,11 @@ const testimonialsData = [
     avatar: "🌿"
   },
   {
-    name: "Shreya",
-    role: "Biology Teacher",
-    school: "Nature Academy",
-    content: "My classroom has never been more interactive. Students are asking deeper questions about biodiversity.",
-    avatar: "🦋"
+    name: "Sneha",
+    role: "Environmental Club President",
+    school: "Eco Warriors College",
+    content: "We use AverSoltix for our club activities. It's amazing how it connects classroom learning with real action.",
+    avatar: "🌍"
   },
   {
     name: "Prit",
@@ -49,13 +58,7 @@ const testimonialsData = [
     content: "The platform beautifully explains carbon cycles and chemical processes. My students love the visual approach.",
     avatar: "🧪"
   },
-  {
-    name: "Sneha",
-    role: "Environmental Club President",
-    school: "Eco Warriors College",
-    content: "We use AverSoltix for our club activities. It's amazing how it connects classroom learning with real action.",
-    avatar: "🌍"
-  },
+
   {
     name: "Hir",
     role: "Marine Biology Student",
@@ -128,7 +131,7 @@ function TestimonialSlider() {
   const [visibleCount, setVisibleCount] = useState(3)
   const [displayedText, setDisplayedText] = useState('')
   const [isTyping, setIsTyping] = useState(false)
-  const timerRef = useRef(null)
+  // const timerRef = useRef(null)
   const typingRef = useRef(null)
 
   // Set visible count to always show 1 testimonial
@@ -410,7 +413,7 @@ export default function Landing() {
   useScrollReveal(['.hero-card'], { y: 60, stagger: 0.15, duration: 1.2 })
 
   // GSAP parallax background
-  useGSAP((gsap, ScrollTrigger) => {
+  useGSAP((gsap) => {
     if (parallaxRef.current) {
       gsap.fromTo(parallaxRef.current,
         { y: 0 },
@@ -503,7 +506,7 @@ export default function Landing() {
                 transition={{ delay: 0.9, duration: 0.8 }}
               >
                 <Link
-                  to="/challenges"
+                  to="/community"
                   className="btn-gold group px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-semibold relative overflow-hidden w-full sm:w-auto text-center"
                   data-ripple
                 >

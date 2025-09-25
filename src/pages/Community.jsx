@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Card from '../components/Card'
 import { useSubmissionsStore } from '../store/submissionsStore'
 import { useAuthStore } from '../store/authStore'
@@ -10,11 +10,12 @@ import { useGameStore } from '../store/gameStore'
 import { shootConfetti } from '../utils/confetti'
 import toast from 'react-hot-toast'
 import { motion, AnimatePresence } from 'framer-motion'
-import { 
-  BadgeCheck, Users, Play, Lock, Plus, Search, Filter, 
+import {
+  BadgeCheck, Users, Play, Lock, Plus, Search, Filter,
   Star, Gamepad2, BookOpen, Trophy, Globe, Clock,
-  ChevronDown, Grid3X3, List, SortDesc
+  ChevronDown, Grid3X3, List, SortDesc, Flame
 } from 'lucide-react'
+import StreakFlame from '../components/StreakFlame.jsx'
 
 function CommunityQuizModal({ challenge, onClose }) {
   const { addXP, awardBadge, markChallengeComplete, touchDailyStreak, streak } = useGameStore()
@@ -63,7 +64,7 @@ function CommunityQuizModal({ challenge, onClose }) {
             const picked = answers[qi]; const correct = qq.answerIndex
             return (
               <div key={qq.id || qi} className="p-3 rounded-xl border bg-white/50 dark:bg-slate-900/40">
-                <div className="font-medium">Q{qi+1}. {qq.question}</div>
+                <div className="font-medium">Q{qi + 1}. {qq.question}</div>
                 <ul className="mt-2 space-y-2">
                   {qq.options.map((opt, oi) => {
                     const isPicked = picked === oi
@@ -101,7 +102,7 @@ function CommunityQuizModal({ challenge, onClose }) {
           <div className="text-xs text-slate-500">Difficulty: {challenge.difficulty || 'normal'}</div>
         </div>
         <div className="mt-1 h-2 rounded bg-slate-200 dark:bg-slate-800 overflow-hidden">
-          <div className="h-2 bg-emerald-500" style={{ width: `${Math.round(((idx)/total)*100)}%` }} />
+          <div className="h-2 bg-emerald-500" style={{ width: `${Math.round(((idx) / total) * 100)}%` }} />
         </div>
         <div className="mt-2 text-xl font-semibold">{q.question}</div>
       </div>
@@ -138,7 +139,49 @@ export default function Community() {
   const [selectedTopics, setSelectedTopics] = useState([]) // multi-select
   const [selectedDifficulties, setSelectedDifficulties] = useState([]) // multi-select
   const [sortBy, setSortBy] = useState('recent') // recent|xpDesc|xpAsc|difficultyAsc|difficultyDesc
-  const { completedChallenges } = useGameStore(s => ({ completedChallenges: s.completedChallenges }))
+  const { completedChallenges, dailyQuizStreak } = useGameStore(s => ({ completedChallenges: s.completedChallenges, dailyQuizStreak: s.dailyQuizStreak }))
+
+  // Build daily picks from approved quizzes (playable only), or gracefully fallback
+  const today = new Date().toISOString().slice(0, 10)
+  const playableCommunity = approvedQuizzes
+    .filter(it => it && it.quiz && Array.isArray(it.quiz.questions) && it.quiz.questions.length > 0)
+    .map(it => ({ ...it.quiz, id: it.quiz.id || it.id }))
+
+  function pickDaily(arr) {
+    if (!arr || arr.length === 0) return null
+    const seed = today
+    let sum = 0; for (let i = 0; i < seed.length; i++) sum = (sum + seed.charCodeAt(i))
+    const idx = sum % arr.length
+    const q = arr[idx]
+    return { ...q, id: `daily-${today}-${q.id}` }
+  }
+
+  // Try backend-provided daily list; fallback client-side
+  const [dailyApiList, setDailyApiList] = useState([])
+  const [dailyApiId, setDailyApiId] = useState(null)
+  useEffect(() => {
+    const pool = playableCommunity.map(q => ({ id: q.id, topic: q.topic || 'Other' }))
+    const payload = { pool, count: 3 }
+    fetch('/api/daily-quiz?count=3', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    }).then(r => r.json()).then(json => {
+      if (Array.isArray(json?.ids)) {
+        setDailyApiList(json.ids)
+        if (json.ids[0]) setDailyApiId(json.ids[0])
+      }
+    }).catch(() => { })
+  }, [approvedQuizzes.length])
+
+  let dailyPicks = (dailyApiList.length ? dailyApiList : [playableCommunity[0]?.id, playableCommunity[1]?.id, playableCommunity[2]?.id].filter(Boolean))
+    .map(id => playableCommunity.find(q => q.id === id))
+    .filter(Boolean)
+    .map(q => ({ ...q, id: `daily-${today}-${q.id}` }))
+  if (dailyPicks.length === 0) {
+    const fallbackOne = (playableCommunity && playableCommunity.length > 0) ? pickDaily(playableCommunity) : null
+    if (fallbackOne) dailyPicks = [fallbackOne]
+  }
 
   // Apply role-based filtering to quizzes
   const quizzesWithAccess = approvedQuizzes.map(q => ({
@@ -150,17 +193,17 @@ export default function Community() {
       isPublic: q.quiz?.difficulty === 'easy' || q.quiz?.isPublic !== false
     }
   }))
-  
+
   const filteredQuizzes = filterQuizzes(quizzesWithAccess.map(q => q.quiz), currentUser)
-  
+
   const allTopics = Array.from(new Set(approvedQuizzes.map(q => (q.quiz?.topic || 'Other')))).sort()
-  const toggleTopic = (t) => setSelectedTopics(prev => prev.includes(t) ? prev.filter(x=>x!==t) : [...prev, t])
-  const toggleDifficulty = (d) => setSelectedDifficulties(prev => prev.includes(d) ? prev.filter(x=>x!==d) : [...prev, d])
+  const toggleTopic = (t) => setSelectedTopics(prev => prev.includes(t) ? prev.filter(x => x !== t) : [...prev, t])
+  const toggleDifficulty = (d) => setSelectedDifficulties(prev => prev.includes(d) ? prev.filter(x => x !== d) : [...prev, d])
 
   return (
     <section className="space-y-6">
       <SEO title="Community" description="Explore approved community games and quizzes, or submit your own eco creations." />
-      
+
       {/* Welcome Section */}
       {currentUser && (
         <motion.div
@@ -173,7 +216,7 @@ export default function Community() {
           <div className="relative z-10">
             <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
               <div className="space-y-4">
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.2 }}
@@ -194,8 +237,8 @@ export default function Community() {
                     </div>
                   </div>
                 </motion.div>
-                
-                <motion.p 
+
+                <motion.p
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.3 }}
@@ -209,9 +252,9 @@ export default function Community() {
                   )}
                 </motion.p>
               </div>
-              
+
               {(currentUser.role.includes('teacher') || currentUser.role === 'admin') && (
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: 0.4 }}
@@ -232,29 +275,29 @@ export default function Community() {
               )}
             </div>
           </div>
-          
+
           {/* Enhanced floating decorative elements */}
-          <motion.div 
+          <motion.div
             className="absolute top-4 right-4 w-20 h-20 bg-gradient-to-br from-emerald-400/15 to-sky-400/15 rounded-full"
             animate={{ y: [-5, 5, -5], rotate: [0, 5, -5, 0], scale: [1, 1.1, 1] }}
             transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
           />
-          <motion.div 
+          <motion.div
             className="absolute top-8 right-12 w-6 h-6 bg-gradient-to-br from-yellow-400/20 to-orange-400/20 rounded-full"
             animate={{ y: [-3, 3, -3], x: [-1, 1, -1], opacity: [0.7, 1, 0.7] }}
             transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
           />
-          <motion.div 
+          <motion.div
             className="absolute bottom-4 left-8 w-12 h-12 bg-gradient-to-br from-purple-400/15 to-pink-400/15 rounded-full"
             animate={{ y: [5, -5, 5], rotate: [0, -5, 5, 0], scale: [0.9, 1.1, 0.9] }}
             transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 1 }}
           />
-          <motion.div 
+          <motion.div
             className="absolute bottom-8 left-16 w-4 h-4 bg-gradient-to-br from-cyan-400/25 to-blue-400/25 rounded-full"
             animate={{ y: [2, -2, 2], rotate: [0, 10, -10, 0] }}
             transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 2 }}
           />
-          <motion.div 
+          <motion.div
             className="absolute top-1/2 right-8 w-8 h-8 bg-gradient-to-br from-green-400/10 to-teal-400/10 rounded-full"
             animate={{ x: [-4, 4, -4], y: [-2, 2, -2] }}
             transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
@@ -293,32 +336,32 @@ export default function Community() {
                 Explore educational games created by teachers and students from around the world
               </p>
             </motion.div>
-            
-            <motion.div 
+
+            <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.3 }}
               className="flex flex-wrap gap-3"
             >
-              <button 
-                className="btn-outline px-4 py-2 flex items-center gap-2 hover:scale-105 transition-transform" 
+              <button
+                className="btn-outline px-4 py-2 flex items-center gap-2 hover:scale-105 transition-transform"
                 onClick={seedDemos}
                 data-ripple
               >
-                <Plus className="h-4 w-4" /> 
+                <Plus className="h-4 w-4" />
                 <span>Demo Games</span>
               </button>
-              <Link 
-                to="/editor" 
-                className="btn-primary px-4 py-2 flex items-center gap-2 hover:scale-105 transition-transform" 
+              <Link
+                to="/editor"
+                className="btn-primary px-4 py-2 flex items-center gap-2 hover:scale-105 transition-transform"
                 data-ripple
               >
-                <Plus className="h-4 w-4" /> 
+                <Plus className="h-4 w-4" />
                 <span>Create Game</span>
               </Link>
             </motion.div>
           </div>
-          
+
           {approvedGames.length === 0 ? (
             <motion.div
               initial={{ opacity: 0 }}
@@ -335,24 +378,24 @@ export default function Community() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {approvedGames.map((game, index) => {
-                const firstImage = game.project?.assets?.find(a=>a.type==='image')?.src
+                const firstImage = game.project?.assets?.find(a => a.type === 'image')?.src
                 const canAccess = canUserAccessContent(game, currentUser)
-                
+
                 return (
                   <motion.div
                     key={game.id}
                     initial={{ opacity: 0, y: 30, scale: 0.9, rotateX: -15 }}
                     animate={{ opacity: 1, y: 0, scale: 1, rotateX: 0 }}
-                    transition={{ 
-                      delay: index * 0.1, 
+                    transition={{
+                      delay: index * 0.1,
                       duration: 0.6,
                       type: "spring",
                       stiffness: 100,
                       damping: 15
                     }}
-                    whileHover={{ 
-                      y: -8, 
-                      scale: 1.03, 
+                    whileHover={{
+                      y: -8,
+                      scale: 1.03,
                       rotateY: 2,
                       transition: { type: "spring", stiffness: 400, damping: 25 }
                     }}
@@ -361,41 +404,41 @@ export default function Community() {
                     style={{ transformStyle: 'preserve-3d' }}
                   >
                     {/* Animated floating particles */}
-                    <motion.div 
+                    <motion.div
                       className="absolute top-2 right-2 w-2 h-2 bg-emerald-400 rounded-full opacity-60"
-                      animate={{ 
+                      animate={{
                         y: [-3, 3, -3],
                         x: [-1, 1, -1],
                         scale: [1, 1.2, 1]
                       }}
-                      transition={{ 
-                        duration: 4, 
-                        repeat: Infinity, 
+                      transition={{
+                        duration: 4,
+                        repeat: Infinity,
                         ease: "easeInOut",
                         delay: index * 0.2
                       }}
                     />
-                    <motion.div 
+                    <motion.div
                       className="absolute bottom-2 left-2 w-1.5 h-1.5 bg-purple-400 rounded-full opacity-50"
-                      animate={{ 
+                      animate={{
                         y: [2, -2, 2],
                         opacity: [0.5, 0.8, 0.5]
                       }}
-                      transition={{ 
-                        duration: 3, 
-                        repeat: Infinity, 
+                      transition={{
+                        duration: 3,
+                        repeat: Infinity,
                         ease: "easeInOut",
                         delay: index * 0.3 + 1
                       }}
                     />
-                    
+
                     <div className="relative">
                       {firstImage && (
                         <div className="aspect-video overflow-hidden rounded-t-2xl">
-                          <motion.img 
-                            src={firstImage} 
-                            alt={`${game.title} thumbnail`} 
-                            className="w-full h-full object-cover" 
+                          <motion.img
+                            src={firstImage}
+                            alt={`${game.title} thumbnail`}
+                            className="w-full h-full object-cover"
                             whileHover={{ scale: 1.08 }}
                             transition={{ duration: 0.4, ease: "easeOut" }}
                           />
@@ -403,7 +446,7 @@ export default function Community() {
                         </div>
                       )}
                       {!canAccess && (
-                        <motion.div 
+                        <motion.div
                           initial={{ scale: 0, rotate: -10 }}
                           animate={{ scale: 1, rotate: 0 }}
                           className="absolute top-2 right-2 px-2 py-1 bg-amber-100/90 dark:bg-amber-900/40 backdrop-blur-sm text-amber-600 dark:text-amber-400 text-xs rounded-full flex items-center gap-1 border border-amber-200 dark:border-amber-800"
@@ -413,12 +456,12 @@ export default function Community() {
                         </motion.div>
                       )}
                     </div>
-                    
+
                     <div className="p-4 relative">
                       {/* Interactive glow effect */}
                       <div className="absolute inset-0 bg-gradient-to-r from-purple-500/0 via-purple-500/5 to-purple-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-b-2xl" />
-                      
-                      <motion.h4 
+
+                      <motion.h4
                         className="font-semibold text-lg mb-2 group-hover:text-purple-600 transition-colors relative z-10"
                         whileHover={{ scale: 1.02 }}
                         transition={{ type: "spring", stiffness: 400 }}
@@ -428,7 +471,7 @@ export default function Community() {
                       <p className="text-sm text-slate-600 dark:text-slate-400 mb-4 line-clamp-2">
                         {game.description}
                       </p>
-                      
+
                       <div className="flex items-center justify-between">
                         <div className="text-xs text-slate-500">
                           👤 By {game.ownerId || 'Anonymous'}
@@ -438,8 +481,8 @@ export default function Community() {
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                           >
-                            <Link 
-                              to={`/play/${game.id}`} 
+                            <Link
+                              to={`/play/${game.id}`}
                               className="btn !px-4 !py-2 text-sm flex items-center gap-1 shadow-lg hover:shadow-xl transition-shadow"
                               data-ripple
                             >
@@ -453,7 +496,7 @@ export default function Community() {
                             </Link>
                           </motion.div>
                         ) : (
-                          <button 
+                          <button
                             className="btn opacity-50 cursor-not-allowed !px-4 !py-2 text-sm flex items-center gap-1"
                             disabled
                             onClick={() => toast.error('You need higher privileges to access this game')}
@@ -471,6 +514,38 @@ export default function Community() {
         </div>
       </motion.div>
 
+      {/* Daily Challenges (moved from Challenges) */}
+      {dailyPicks.length > 0 && (
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}>
+          <div className="bg-white/85 dark:bg-slate-900/60 backdrop-blur-xl rounded-3xl border border-emerald-200/30 dark:border-emerald-800/30 p-6 shadow-xl">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-gradient-to-br from-emerald-500 to-sky-500 text-white">
+                  <Flame className="h-5 w-5" />
+                </div>
+                <div>
+                  <div className="text-xs uppercase tracking-wide text-emerald-600">Daily Challenges</div>
+                  <div className="text-xs text-slate-500">{today}</div>
+                </div>
+              </div>
+              <div className="hidden sm:block"><StreakFlame streak={dailyQuizStreak} /></div>
+            </div>
+            <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+              {dailyPicks.map((dq, i) => (
+                <div key={i} className="p-4 rounded-2xl border bg-white/70 dark:bg-slate-900/50 backdrop-blur hover-lift transition-all">
+                  <div className="font-semibold">{dq.title}</div>
+                  <div className="text-xs text-slate-500">{dq.topic || 'Quiz'} • {(dq.difficulty || 'normal')}</div>
+                  <div className="mt-3 flex items-center justify-between text-xs">
+                    <div>XP: {dq.xp ?? 100}</div>
+                    <button className="btn !px-3 !py-1" onClick={() => setActiveQuiz(dq)}>Start</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </motion.div>
+      )}
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -484,7 +559,7 @@ export default function Community() {
               transition={{ delay: 0.2 }}
             >
               <div className="flex items-center gap-4 mb-3">
-                <motion.div 
+                <motion.div
                   className="p-3 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl relative overflow-hidden"
                   whileHover={{ scale: 1.1, rotate: 5 }}
                   transition={{ type: "spring", stiffness: 400 }}
@@ -512,19 +587,19 @@ export default function Community() {
                 Challenge yourself with quizzes created by educators worldwide
               </p>
             </motion.div>
-            
-            <Link 
-              to="/create-quiz" 
-              className="btn-primary px-6 py-3 flex items-center gap-2 hover:scale-105 transition-transform" 
+
+            <Link
+              to="/create-quiz"
+              className="btn-primary px-6 py-3 flex items-center gap-2 hover:scale-105 transition-transform"
               data-ripple
             >
-              <Plus className="h-5 w-5" /> 
+              <Plus className="h-5 w-5" />
               <span>Create Quiz</span>
             </Link>
           </div>
-          
+
           {/* Enhanced Filters */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
@@ -534,37 +609,37 @@ export default function Community() {
               <Filter className="h-5 w-5 text-slate-500" />
               <h3 className="font-semibold text-slate-700 dark:text-slate-300">Filters & Search</h3>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {/* Search */}
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                <input 
-                  className="w-full pl-10 pr-4 py-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all" 
-                  placeholder="Search quizzes..." 
-                  value={query} 
-                  onChange={e=>setQuery(e.target.value)} 
+                <input
+                  className="w-full pl-10 pr-4 py-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+                  placeholder="Search quizzes..."
+                  value={query}
+                  onChange={e => setQuery(e.target.value)}
                 />
               </div>
-              
+
               {/* Playable Filter */}
               <label className="flex items-center gap-3 p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
-                <input 
-                  type="checkbox" 
-                  className="w-4 h-4 text-emerald-600 border-slate-300 rounded focus:ring-emerald-500" 
-                  checked={showPlayableOnly} 
-                  onChange={e=>setShowPlayableOnly(e.target.checked)} 
+                <input
+                  type="checkbox"
+                  className="w-4 h-4 text-emerald-600 border-slate-300 rounded focus:ring-emerald-500"
+                  checked={showPlayableOnly}
+                  onChange={e => setShowPlayableOnly(e.target.checked)}
                 />
                 <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Playable Only</span>
               </label>
-              
+
               {/* Sort */}
               <div className="relative">
                 <SortDesc className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                <select 
-                  className="w-full pl-10 pr-8 py-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all appearance-none" 
-                  value={sortBy} 
-                  onChange={e=>setSortBy(e.target.value)}
+                <select
+                  className="w-full pl-10 pr-8 py-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all appearance-none"
+                  value={sortBy}
+                  onChange={e => setSortBy(e.target.value)}
                 >
                   <option value="recent">Most Recent</option>
                   <option value="xpDesc">Highest XP</option>
@@ -574,9 +649,9 @@ export default function Community() {
                 </select>
                 <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 pointer-events-none" />
               </div>
-              
+
               {/* Clear Filters */}
-              <button 
+              <button
                 onClick={() => {
                   setSelectedTopics([])
                   setSelectedDifficulties([])
@@ -589,37 +664,36 @@ export default function Community() {
                 Clear All
               </button>
             </div>
-            
+
             {/* Topic Tags */}
             <div className="mt-4">
               <h4 className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-3">Topics</h4>
               <div className="flex flex-wrap gap-2">
                 {allTopics.map(t => (
-                  <motion.button 
-                    key={t} 
+                  <motion.button
+                    key={t}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
-                      selectedTopics.includes(t)
-                        ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/25'
-                        : 'bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600 hover:border-emerald-300 hover:text-emerald-600'
-                    }`}
-                    onClick={()=>toggleTopic(t)}
+                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${selectedTopics.includes(t)
+                      ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/25'
+                      : 'bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-600 hover:border-emerald-300 hover:text-emerald-600'
+                      }`}
+                    onClick={() => toggleTopic(t)}
                   >
                     {t}
                   </motion.button>
                 ))}
               </div>
             </div>
-            
+
             {/* Difficulty Tags */}
             <div className="mt-4">
               <h4 className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-3">Difficulty</h4>
               <div className="flex flex-wrap gap-2">
-                {['easy','medium','hard'].map(d => {
+                {['easy', 'medium', 'hard'].map(d => {
                   const colors = {
                     easy: 'text-green-600 bg-green-50 border-green-200 hover:bg-green-100',
-                    medium: 'text-yellow-600 bg-yellow-50 border-yellow-200 hover:bg-yellow-100', 
+                    medium: 'text-yellow-600 bg-yellow-50 border-yellow-200 hover:bg-yellow-100',
                     hard: 'text-red-600 bg-red-50 border-red-200 hover:bg-red-100'
                   }
                   const selectedColors = {
@@ -627,18 +701,17 @@ export default function Community() {
                     medium: 'bg-yellow-500 text-white shadow-lg shadow-yellow-500/25',
                     hard: 'bg-red-500 text-white shadow-lg shadow-red-500/25'
                   }
-                  
+
                   return (
-                    <motion.button 
+                    <motion.button
                       key={d}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
-                      className={`px-3 py-2 rounded-lg text-sm font-medium capitalize transition-all ${
-                        selectedDifficulties.includes(d)
-                          ? selectedColors[d]
-                          : `${colors[d]} border`
-                      }`}
-                      onClick={()=>toggleDifficulty(d)}
+                      className={`px-3 py-2 rounded-lg text-sm font-medium capitalize transition-all ${selectedDifficulties.includes(d)
+                        ? selectedColors[d]
+                        : `${colors[d]} border`
+                        }`}
+                      onClick={() => toggleDifficulty(d)}
                     >
                       {d}
                     </motion.button>
@@ -651,7 +724,7 @@ export default function Community() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <AnimatePresence mode="popLayout">
               {approvedQuizzes.length === 0 && (
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   className="col-span-full text-center py-12"
@@ -661,23 +734,23 @@ export default function Community() {
                   <p className="text-slate-500">Be the first to create and share a quiz with the community!</p>
                 </motion.div>
               )}
-              
+
               {approvedQuizzes
                 .filter(q => {
                   if (showPlayableOnly && !(q?.quiz && Array.isArray(q.quiz.questions) && q.quiz.questions.length > 0)) return false
-                  if (query && !(q.quiz.title.toLowerCase().includes(query.toLowerCase()) || (q.quiz.topic||'').toLowerCase().includes(query.toLowerCase()))) return false
-                  if (selectedTopics.length && !selectedTopics.includes((q.quiz.topic||'Other'))) return false
-                  if (selectedDifficulties.length && !selectedDifficulties.includes((q.quiz.difficulty||'').toLowerCase())) return false
+                  if (query && !(q.quiz.title.toLowerCase().includes(query.toLowerCase()) || (q.quiz.topic || '').toLowerCase().includes(query.toLowerCase()))) return false
+                  if (selectedTopics.length && !selectedTopics.includes((q.quiz.topic || 'Other'))) return false
+                  if (selectedDifficulties.length && !selectedDifficulties.includes((q.quiz.difficulty || '').toLowerCase())) return false
                   return true
                 })
-                .sort((a,b) => {
+                .sort((a, b) => {
                   const da = (a.approvedAt || a.updatedAt || a.createdAt || '')
                   const db = (b.approvedAt || b.updatedAt || b.createdAt || '')
                   const xa = a.quiz?.xp ?? 100
                   const xb = b.quiz?.xp ?? 100
                   const ord = { easy: 1, medium: 2, hard: 3 }
-                  const oa = ord[(a.quiz?.difficulty||'easy').toLowerCase()] || 2
-                  const ob = ord[(b.quiz?.difficulty||'easy').toLowerCase()] || 2
+                  const oa = ord[(a.quiz?.difficulty || 'easy').toLowerCase()] || 2
+                  const ob = ord[(b.quiz?.difficulty || 'easy').toLowerCase()] || 2
                   switch (sortBy) {
                     case 'xpDesc': return xb - xa
                     case 'xpAsc': return xa - xb
@@ -692,32 +765,32 @@ export default function Community() {
                   const quizObj = playable ? { id: q.quiz.id || q.id, title: q.quiz.title, xp: q.quiz.xp ?? 100, questions: q.quiz.questions, difficulty: q.quiz.difficulty, topic: q.quiz.topic } : null
                   const key = quizObj ? `community-${quizObj.id}` : null
                   const lastScore = key ? completedChallenges[key] : undefined
-                  
+
                   const difficultyColors = {
                     easy: 'from-green-500 to-emerald-500',
                     medium: 'from-yellow-500 to-orange-500',
                     hard: 'from-red-500 to-pink-500'
                   }
-                  
+
                   const difficulty = (q.quiz.difficulty || 'medium').toLowerCase()
-                  
+
                   return (
-                    <motion.div 
+                    <motion.div
                       key={q.id}
                       layout
                       initial={{ opacity: 0, y: 30, scale: 0.8, rotateY: -10 }}
                       animate={{ opacity: 1, y: 0, scale: 1, rotateY: 0 }}
                       exit={{ opacity: 0, y: -20, scale: 0.8, rotateX: 10 }}
-                      transition={{ 
-                        delay: index * 0.08, 
+                      transition={{
+                        delay: index * 0.08,
                         duration: 0.7,
                         type: "spring",
                         stiffness: 120,
                         damping: 18
                       }}
-                      whileHover={{ 
-                        y: -10, 
-                        scale: 1.03, 
+                      whileHover={{
+                        y: -10,
+                        scale: 1.03,
                         rotateY: 3,
                         transition: { type: "spring", stiffness: 400, damping: 20 }
                       }}
@@ -726,49 +799,49 @@ export default function Community() {
                       style={{ transformStyle: 'preserve-3d' }}
                     >
                       {/* Floating decorative particles */}
-                      <motion.div 
+                      <motion.div
                         className="absolute top-4 right-4 w-3 h-3 bg-emerald-400/60 rounded-full"
-                        animate={{ 
+                        animate={{
                           y: [-4, 4, -4],
                           opacity: [0.6, 1, 0.6],
                           scale: [1, 1.3, 1]
                         }}
-                        transition={{ 
-                          duration: 5, 
-                          repeat: Infinity, 
+                        transition={{
+                          duration: 5,
+                          repeat: Infinity,
                           ease: "easeInOut",
                           delay: index * 0.15
                         }}
                       />
-                      <motion.div 
+                      <motion.div
                         className="absolute bottom-4 left-4 w-2 h-2 bg-sky-400/50 rounded-full"
-                        animate={{ 
+                        animate={{
                           x: [-2, 2, -2],
                           y: [1, -1, 1],
                           opacity: [0.5, 0.9, 0.5]
                         }}
-                        transition={{ 
-                          duration: 4, 
-                          repeat: Infinity, 
+                        transition={{
+                          duration: 4,
+                          repeat: Infinity,
                           ease: "easeInOut",
                           delay: index * 0.2 + 0.5
                         }}
                       />
-                      
+
                       {/* Gradient border animation */}
                       <div className={`h-2 bg-gradient-to-r ${difficultyColors[difficulty] || difficultyColors.medium} relative overflow-hidden`}>
-                        <motion.div 
+                        <motion.div
                           className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
                           animate={{ x: ['-100%', '100%'] }}
-                          transition={{ 
-                            duration: 2, 
-                            repeat: Infinity, 
+                          transition={{
+                            duration: 2,
+                            repeat: Infinity,
                             ease: "easeInOut",
                             delay: index * 0.3
                           }}
                         />
                       </div>
-                      
+
                       <div className="p-6">
                         <div className="flex items-start justify-between mb-4">
                           <div className="flex-1">
@@ -779,16 +852,15 @@ export default function Community() {
                               <span className="px-2 py-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 rounded-lg font-medium">
                                 {q.quiz.topic || 'General'}
                               </span>
-                              <span className={`px-2 py-1 rounded-lg font-medium capitalize ${
-                                difficulty === 'easy' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' :
+                              <span className={`px-2 py-1 rounded-lg font-medium capitalize ${difficulty === 'easy' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' :
                                 difficulty === 'hard' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300' :
-                                'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300'
-                              }`}>
+                                  'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300'
+                                }`}>
                                 {difficulty}
                               </span>
                             </div>
                           </div>
-                          
+
                           <div className="text-right">
                             <div className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
                               <Trophy className="h-4 w-4" />
@@ -802,15 +874,15 @@ export default function Community() {
                             )}
                           </div>
                         </div>
-                        
+
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2 text-xs text-slate-500">
                             <Clock className="h-3 w-3" />
                             <span>{q.quiz.questions?.length || 0} questions</span>
                           </div>
-                          
+
                           {playable ? (
-                            <motion.button 
+                            <motion.button
                               whileHover={{ scale: 1.05 }}
                               whileTap={{ scale: 0.95 }}
                               className="btn-primary px-4 py-2 flex items-center gap-2 shadow-lg hover:shadow-xl transition-all"
@@ -832,7 +904,7 @@ export default function Community() {
                 })}
             </AnimatePresence>
           </div>
-          
+
           <Modal open={!!activeQuiz} onClose={() => setActiveQuiz(null)} title={activeQuiz?.title}>
             {activeQuiz && <CommunityQuizModal challenge={activeQuiz} onClose={() => setActiveQuiz(null)} />}
           </Modal>

@@ -10,6 +10,7 @@ export default function RouteGuard({ children }) {
   const [isStuck, setIsStuck] = useState(false)
   const [retryCount, setRetryCount] = useState(0)
   const [isScrolling, setIsScrolling] = useState(false)
+  const [pageLoadTime] = useState(Date.now())
 
   // Track scrolling activity
   useEffect(() => {
@@ -35,33 +36,52 @@ export default function RouteGuard({ children }) {
     setIsStuck(false)
     setRetryCount(0)
 
-    // Only set stuck timer for actual navigation, not scrolling
-    // Check if this is a real route change by comparing with previous pathname
-    const currentPath = location.pathname
-    const isRouteChange = currentPath !== window.location.pathname
+    // For new tabs, be more lenient and only check after a longer delay
+    const isNewTab = !window.lastUserInteraction || (Date.now() - window.lastUserInteraction) > 30000
 
-    if (isRouteChange) {
-      // Set a timer to detect if the route is stuck loading only for actual navigation
+    if (isNewTab) {
+      // For new tabs, wait longer and be more lenient
       const stuckTimer = setTimeout(() => {
-        // Only trigger if we're still on the same route AND it's been a while since last interaction
         const timeSinceLastInteraction = Date.now() - (window.lastUserInteraction || 0)
+        const timeSincePageLoad = Date.now() - pageLoadTime
         const isPageInteractive = document.readyState === 'complete'
         const hasContent = document.body && document.body.children.length > 0
 
-        // Only show stuck error if:
-        // 1. We're on the same route
-        // 2. No user interaction for 10+ seconds
-        // 3. Page is not interactive OR has no content
+        // Only show stuck error for new tabs if:
+        // 1. Page has been loading for at least 5 seconds
+        // 2. No user interaction for 15+ seconds (longer for new tabs)
+        // 3. Page is not interactive AND has no content
         // 4. User is not currently scrolling
-        if (location.pathname === window.location.pathname &&
-          timeSinceLastInteraction > 10000 &&
-          (!isPageInteractive || !hasContent) &&
+        if (timeSincePageLoad > 5000 &&
+          timeSinceLastInteraction > 15000 &&
+          !isPageInteractive && !hasContent &&
           !isScrolling) {
           setIsStuck(true)
         }
-      }, 10000) // Increased to 10 seconds for actual route changes
+      }, 15000) // 15 seconds for new tabs
 
       return () => clearTimeout(stuckTimer)
+    } else {
+      // For existing tabs with navigation, use the original logic
+      const currentPath = location.pathname
+      const isRouteChange = currentPath !== window.location.pathname
+
+      if (isRouteChange) {
+        const stuckTimer = setTimeout(() => {
+          const timeSinceLastInteraction = Date.now() - (window.lastUserInteraction || 0)
+          const isPageInteractive = document.readyState === 'complete'
+          const hasContent = document.body && document.body.children.length > 0
+
+          if (location.pathname === window.location.pathname &&
+            timeSinceLastInteraction > 10000 &&
+            (!isPageInteractive || !hasContent) &&
+            !isScrolling) {
+            setIsStuck(true)
+          }
+        }, 10000)
+
+        return () => clearTimeout(stuckTimer)
+      }
     }
   }, [location.pathname, isScrolling])
 
