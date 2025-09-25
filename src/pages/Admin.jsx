@@ -12,9 +12,9 @@ import {
   Eye, CheckCircle, XCircle, Activity, Plus, Edit, Trash2,
   Building, MapPin, Calendar, Search, Filter, Download,
   Server, Cpu, HardDrive, Wifi, Globe, RefreshCw, MoreHorizontal,
-  Database, Award, UserPlus, UserMinus, MessageSquare, 
-  FileText, Image, Volume2, Video, Package, Clock, Star, 
-  ThumbsUp, ThumbsDown, Flag, ChevronDown, ChevronRight, 
+  Database, Award, UserPlus, UserMinus, MessageSquare,
+  FileText, Image, Volume2, Video, Package, Clock, Star,
+  ThumbsUp, ThumbsDown, Flag, ChevronDown, ChevronRight,
   Layers, Bell, AlertTriangle, Shield, Lock, Upload
 } from 'lucide-react'
 
@@ -35,11 +35,11 @@ export default function Admin() {
   const [activeTab, setActiveTab] = useState('overview')
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedUsers, setSelectedUsers] = useState([])
-  const [newInstitution, setNewInstitution] = useState({ 
-    name: '', 
-    type: 'school', 
-    address: '', 
-    email: '', 
+  const [newInstitution, setNewInstitution] = useState({
+    name: '',
+    type: 'school',
+    address: '',
+    email: '',
     phone: '',
     website: '',
     contactPerson: '',
@@ -71,15 +71,15 @@ export default function Admin() {
   ])
 
   const users = useAuthStore(s => s.users)
-  const { 
-    pendingGames, 
-    approvedGames, 
-    approveGame, 
-    rejectGame, 
-    pendingQuizzes, 
-    approvedQuizzes, 
-    approveQuiz, 
-    rejectQuiz 
+  const {
+    pendingGames,
+    approvedGames,
+    approveGame,
+    rejectGame,
+    pendingQuizzes,
+    approvedQuizzes,
+    approveQuiz,
+    rejectQuiz
   } = useSubmissionsStore(s => ({
     pendingGames: s.pendingGames,
     approvedGames: s.approvedGames,
@@ -90,7 +90,7 @@ export default function Admin() {
     approveQuiz: s.approveQuiz,
     rejectQuiz: s.rejectQuiz,
   }))
-  
+
   const {
     currentUser,
     getAnalytics,
@@ -153,37 +153,37 @@ export default function Admin() {
 
   // Filter and sort users
   const filteredUsers = (users || []).filter(user => {
-    const matchesSearch = !searchTerm || 
+    const matchesSearch = !searchTerm ||
       user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.role.toLowerCase().includes(searchTerm.toLowerCase())
-    
-    const matchesFilter = userFilter === 'all' || 
+
+    const matchesFilter = userFilter === 'all' ||
       (userFilter === 'students' && user.role.includes('student')) ||
       (userFilter === 'teachers' && user.role.includes('teacher')) ||
       (userFilter === 'admins' && user.role === 'admin') ||
       (userFilter === 'recent' && user.createdAt && new Date(user.createdAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
-    
+
     return matchesSearch && matchesFilter
   }).sort((a, b) => {
     let aValue = a[sortBy] || ''
     let bValue = b[sortBy] || ''
-    
+
     if (sortBy === 'createdAt') {
       aValue = new Date(aValue || 0)
       bValue = new Date(bValue || 0)
     }
-    
+
     if (sortBy === 'xp') {
       aValue = a.stats?.xp || 0
       bValue = b.stats?.xp || 0
     }
-    
+
     if (typeof aValue === 'string') {
       aValue = aValue.toLowerCase()
       bValue = bValue.toLowerCase()
     }
-    
+
     if (sortOrder === 'asc') {
       return aValue < bValue ? -1 : aValue > bValue ? 1 : 0
     } else {
@@ -198,7 +198,7 @@ export default function Admin() {
 
   const StatCard = ({ title, value, change, icon: Icon, color, trend, isLive, onClick }) => (
     <motion.div
-      initial={{ opacity: 0, scale: 0.9 }}
+      initial={false}
       animate={{ opacity: 1, scale: 1 }}
       whileHover={{ scale: 1.02, y: -2 }}
       className={`relative p-6 bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-lg overflow-hidden group ${onClick ? 'cursor-pointer' : ''}`}
@@ -212,10 +212,9 @@ export default function Admin() {
             <div className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-400 rounded-full animate-pulse" />
           )}
         </div>
-        <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
-          trend === 'up' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400' :
-          trend === 'down' ? 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400' :
-            'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
+        <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${trend === 'up' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400' :
+            trend === 'down' ? 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400' :
+              'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
           }`}>
           {change}
         </div>
@@ -229,15 +228,14 @@ export default function Admin() {
 
   const NotificationCard = ({ notification, onDismiss }) => (
     <motion.div
-      initial={{ opacity: 0, x: -20 }}
+      initial={false}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: 20 }}
-      className={`p-4 rounded-lg border-l-4 ${
-        notification.type === 'warning' ? 'bg-amber-50 border-amber-500 text-amber-800' :
-        notification.type === 'error' ? 'bg-red-50 border-red-500 text-red-800' :
-        notification.type === 'success' ? 'bg-green-50 border-green-500 text-green-800' :
-        'bg-blue-50 border-blue-500 text-blue-800'
-      } dark:bg-opacity-10`}
+      className={`p-4 rounded-lg border-l-4 ${notification.type === 'warning' ? 'bg-amber-50 border-amber-500 text-amber-800' :
+          notification.type === 'error' ? 'bg-red-50 border-red-500 text-red-800' :
+            notification.type === 'success' ? 'bg-green-50 border-green-500 text-green-800' :
+              'bg-blue-50 border-blue-500 text-blue-800'
+        } dark:bg-opacity-10`}
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -268,7 +266,7 @@ export default function Admin() {
     >
       {/* Welcome Admin Header */}
       <div className="bg-gradient-to-br from-emerald-50 via-blue-50 to-purple-50 dark:from-slate-800 dark:via-slate-900 dark:to-slate-800 -mx-6 -mt-6 px-6 pt-6 pb-8 mb-10 border-b border-slate-200 dark:border-slate-700">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
@@ -282,19 +280,19 @@ export default function Admin() {
                 </span>!
                 <span className="inline-block ml-2 text-3xl">⚡</span>
               </h1>
-              
+
               <div className="flex flex-wrap items-center gap-3">
                 <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold bg-gradient-to-r from-red-500 to-pink-600 text-white shadow-lg">
                   Platform Administrator
                 </span>
-                
+
                 <div className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 rounded-full shadow-md border border-slate-200 dark:border-slate-700">
                   <Calendar className="h-4 w-4 text-slate-600 dark:text-slate-400" />
                   <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
                     {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
                   </span>
                 </div>
-                
+
                 <div className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 rounded-full shadow-md border border-slate-200 dark:border-slate-700">
                   <Clock className="h-4 w-4 text-slate-600 dark:text-slate-400" />
                   <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
@@ -303,7 +301,7 @@ export default function Admin() {
                 </div>
               </div>
             </div>
-            
+
             {/* Admin Avatar */}
             <div className="flex-shrink-0">
               <div className="w-20 h-20 bg-gradient-to-br from-red-400 to-pink-500 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-xl">
@@ -332,7 +330,7 @@ export default function Admin() {
             Essential admin tools and management features
           </p>
         </motion.div>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
           {[
             { id: 'users', label: 'Manage Users', icon: Users, color: 'blue', count: analytics.totalUsers },
@@ -348,7 +346,7 @@ export default function Admin() {
               orange: { bg: 'bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/10 dark:to-orange-800/20', icon: 'bg-orange-500', hover: 'hover:shadow-orange-500/20' },
             }
             const colors = colorClasses[action.color]
-            
+
             return (
               <motion.button
                 key={action.id}
@@ -363,20 +361,20 @@ export default function Admin() {
                 <div className="absolute top-0 right-0 w-20 h-20 opacity-5 transform rotate-12 translate-x-6 -translate-y-6">
                   <Icon className="w-full h-full" />
                 </div>
-                
+
                 <div className="relative z-10">
                   <div className={`inline-flex p-3 rounded-xl ${colors.icon} text-white mb-4 group-hover:scale-110 transition-transform duration-200`}>
                     <Icon className="h-6 w-6" />
                   </div>
-                  
+
                   <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-2">
                     {action.label}
                   </h3>
-                  
+
                   <div className="text-2xl font-extrabold text-slate-700 dark:text-slate-200 mb-2">
                     {action.count !== undefined ? action.count.toLocaleString() : action.status}
                   </div>
-                  
+
                   <div className="flex items-center text-sm text-slate-600 dark:text-slate-400">
                     <span className="font-medium">Manage</span>
                     <ChevronRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform duration-200" />
@@ -404,7 +402,7 @@ export default function Admin() {
             </button>
           </div>
           <div className="space-y-3">
-            <AnimatePresence>
+            <AnimatePresence initial={false}>
               {notifications.map(notification => (
                 <NotificationCard
                   key={notification.id}
@@ -419,79 +417,79 @@ export default function Admin() {
 
       {/* Main Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard 
-          title="Total Users" 
-          value={analytics.totalUsers.toLocaleString()} 
-          change="+12%" 
-          icon={Users} 
-          color="from-blue-500 to-blue-600" 
-          trend="up" 
+        <StatCard
+          title="Total Users"
+          value={analytics.totalUsers.toLocaleString()}
+          change="+12%"
+          icon={Users}
+          color="from-blue-500 to-blue-600"
+          trend="up"
           onClick={() => setActiveTab('users')}
         />
-        <StatCard 
-          title="Active Sessions" 
-          value={systemMetrics.activeUsers.toLocaleString()} 
-          change="+8%" 
-          icon={Activity} 
-          color="from-emerald-500 to-emerald-600" 
-          trend="up" 
-          isLive={true} 
+        <StatCard
+          title="Active Sessions"
+          value={systemMetrics.activeUsers.toLocaleString()}
+          change="+8%"
+          icon={Activity}
+          color="from-emerald-500 to-emerald-600"
+          trend="up"
+          isLive={true}
         />
-        <StatCard 
-          title="Total Requests" 
-          value={systemMetrics.totalRequests.toLocaleString()} 
-          change="+23%" 
-          icon={Globe} 
-          color="from-purple-500 to-purple-600" 
-          trend="up" 
-          isLive={true} 
+        <StatCard
+          title="Total Requests"
+          value={systemMetrics.totalRequests.toLocaleString()}
+          change="+23%"
+          icon={Globe}
+          color="from-purple-500 to-purple-600"
+          trend="up"
+          isLive={true}
         />
-        <StatCard 
-          title="Response Time" 
-          value={`${Math.round(systemMetrics.avgResponseTime)}ms`} 
-          change="-2%" 
-          icon={Zap} 
-          color="from-amber-500 to-amber-600" 
-          trend="down" 
-          isLive={true} 
+        <StatCard
+          title="Response Time"
+          value={`${Math.round(systemMetrics.avgResponseTime)}ms`}
+          change="-2%"
+          icon={Zap}
+          color="from-amber-500 to-amber-600"
+          trend="down"
+          isLive={true}
         />
       </div>
 
       {/* Secondary Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard 
-          title="Total Games" 
-          value={totalGames.toLocaleString()} 
-          change={`${pendingGames.length} pending`} 
-          icon={Gamepad2} 
-          color="from-emerald-500 to-teal-600" 
-          trend="up" 
+        <StatCard
+          title="Total Games"
+          value={totalGames.toLocaleString()}
+          change={`${pendingGames.length} pending`}
+          icon={Gamepad2}
+          color="from-emerald-500 to-teal-600"
+          trend="up"
           onClick={() => setActiveTab('content')}
         />
-        <StatCard 
-          title="Total Quizzes" 
-          value={totalQuizzes.toLocaleString()} 
-          change={`${pendingQuizzes.length} pending`} 
-          icon={BookOpen} 
-          color="from-sky-500 to-blue-600" 
-          trend="up" 
+        <StatCard
+          title="Total Quizzes"
+          value={totalQuizzes.toLocaleString()}
+          change={`${pendingQuizzes.length} pending`}
+          icon={BookOpen}
+          color="from-sky-500 to-blue-600"
+          trend="up"
           onClick={() => setActiveTab('content')}
         />
-        <StatCard 
-          title="Students (School/College)" 
-          value={`${countsByRole.schoolStudents + countsByRole.collegeStudents}`} 
-          change={`${countsByRole.schoolStudents}/${countsByRole.collegeStudents}`} 
-          icon={GraduationCap} 
-          color="from-indigo-500 to-purple-600" 
-          trend="up" 
+        <StatCard
+          title="Students (School/College)"
+          value={`${countsByRole.schoolStudents + countsByRole.collegeStudents}`}
+          change={`${countsByRole.schoolStudents}/${countsByRole.collegeStudents}`}
+          icon={GraduationCap}
+          color="from-indigo-500 to-purple-600"
+          trend="up"
         />
-        <StatCard 
-          title="Teachers (School/College)" 
-          value={`${countsByRole.schoolTeachers + countsByRole.collegeTeachers}`} 
-          change={`${countsByRole.schoolTeachers}/${countsByRole.collegeTeachers}`} 
-          icon={School} 
-          color="from-rose-500 to-orange-600" 
-          trend="up" 
+        <StatCard
+          title="Teachers (School/College)"
+          value={`${countsByRole.schoolTeachers + countsByRole.collegeTeachers}`}
+          change={`${countsByRole.schoolTeachers}/${countsByRole.collegeTeachers}`}
+          icon={School}
+          color="from-rose-500 to-orange-600"
+          trend="up"
         />
       </div>
 
@@ -522,22 +520,21 @@ export default function Admin() {
               { action: 'System backup completed', user: 'System', time: Math.floor(Math.random() * 60), type: 'system' },
               { action: 'Security scan passed', user: 'Security Bot', time: Math.floor(Math.random() * 60), type: 'security' }
             ].map((activity, i) => (
-              <motion.div 
-                key={i} 
-                initial={{ opacity: 0, x: -20 }} 
-                animate={{ opacity: 1, x: 0 }} 
-                transition={{ delay: i * 0.1 }} 
+              <motion.div
+                key={i}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.1 }}
                 className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
               >
-                <div className={`w-2 h-2 rounded-full animate-pulse ${
-                  activity.type === 'user' ? 'bg-blue-500' :
-                  activity.type === 'quiz' ? 'bg-purple-500' :
-                    activity.type === 'game' ? 'bg-emerald-500' :
-                      activity.type === 'institution' ? 'bg-orange-500' :
-                        activity.type === 'badge' ? 'bg-amber-500' :
-                          activity.type === 'system' ? 'bg-red-500' :
-                            activity.type === 'security' ? 'bg-indigo-500' :
-                              'bg-slate-500'
+                <div className={`w-2 h-2 rounded-full animate-pulse ${activity.type === 'user' ? 'bg-blue-500' :
+                    activity.type === 'quiz' ? 'bg-purple-500' :
+                      activity.type === 'game' ? 'bg-emerald-500' :
+                        activity.type === 'institution' ? 'bg-orange-500' :
+                          activity.type === 'badge' ? 'bg-amber-500' :
+                            activity.type === 'system' ? 'bg-red-500' :
+                              activity.type === 'security' ? 'bg-indigo-500' :
+                                'bg-slate-500'
                   }`} />
                 <div className="flex-1">
                   <p className="text-sm font-medium">{activity.action}</p>
@@ -561,32 +558,30 @@ export default function Admin() {
                 storage: { label: 'Storage', icon: Database, color: value > 75 ? 'red' : value > 50 ? 'yellow' : 'green' },
                 bandwidth: { label: 'Bandwidth', icon: Wifi, color: value > 95 ? 'red' : value > 80 ? 'yellow' : 'green' }
               }[key]
-              
+
               return (
-                <motion.div 
-                  key={key} 
-                  initial={{ opacity: 0, scale: 0.9 }} 
-                  animate={{ opacity: 1, scale: 1 }} 
+                <motion.div
+                  key={key}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
                   className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg"
                 >
                   <config.icon className="h-5 w-5 text-slate-500" />
                   <div className="flex-1">
                     <div className="flex justify-between text-sm mb-2">
                       <span className="font-medium">{config.label}</span>
-                      <span className={`font-bold ${
-                        config.color === 'red' ? 'text-red-600' : 
-                        config.color === 'yellow' ? 'text-yellow-600' : 'text-green-600'
+                      <span className={`font-bold ${config.color === 'red' ? 'text-red-600' :
+                          config.color === 'yellow' ? 'text-yellow-600' : 'text-green-600'
                         }`}>{Math.round(value)}%</span>
                     </div>
                     <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-3 overflow-hidden">
-                      <motion.div 
-                        className={`h-3 rounded-full transition-all duration-1000 ease-out ${
-                          config.color === 'red' ? 'bg-gradient-to-r from-red-500 to-red-600' : 
-                          config.color === 'yellow' ? 'bg-gradient-to-r from-yellow-500 to-yellow-600' : 
-                          'bg-gradient-to-r from-green-500 to-green-600'
-                          }`} 
-                        initial={{ width: 0 }} 
-                        animate={{ width: `${value}%` }} 
+                      <motion.div
+                        className={`h-3 rounded-full transition-all duration-1000 ease-out ${config.color === 'red' ? 'bg-gradient-to-r from-red-500 to-red-600' :
+                            config.color === 'yellow' ? 'bg-gradient-to-r from-yellow-500 to-yellow-600' :
+                              'bg-gradient-to-r from-green-500 to-green-600'
+                          }`}
+                        initial={{ width: 0 }}
+                        animate={{ width: `${value}%` }}
                       />
                     </div>
                   </div>
@@ -594,7 +589,7 @@ export default function Admin() {
               )
             })}
           </div>
-          
+
           {/* Additional System Stats */}
           <div className="mt-6 pt-4 border-t border-slate-200 dark:border-slate-700">
             <div className="grid grid-cols-2 gap-4">
@@ -630,12 +625,12 @@ export default function Admin() {
                 visitor: { color: 'bg-slate-500', label: 'Visitors' },
                 user: { color: 'bg-gray-500', label: 'Generic Users' }
               }[role] || { color: 'bg-slate-400', label: role }
-              
+
               return (
-                <motion.div 
-                  key={role} 
-                  initial={{ opacity: 0, x: -20 }} 
-                  animate={{ opacity: 1, x: 0 }} 
+                <motion.div
+                  key={role}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
                   className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                   onClick={() => {
                     setUserFilter(role)
@@ -663,11 +658,11 @@ export default function Admin() {
           </h3>
           <div className="space-y-3">
             {analytics.recentUsers.slice(0, 8).map((user, i) => (
-              <motion.div 
-                key={user.id} 
-                initial={{ opacity: 0, y: 10 }} 
-                animate={{ opacity: 1, y: 0 }} 
-                transition={{ delay: i * 0.1 }} 
+              <motion.div
+                key={user.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.1 }}
                 className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
                 onClick={() => {
                   setSearchTerm(user.name)
@@ -720,14 +715,13 @@ export default function Admin() {
               onClick={() => setActiveTab('institutions')}
             >
               <div className="flex items-center gap-3 mb-3">
-                <div className={`p-2 rounded-lg ${
-                  inst.type === 'school' ? 'bg-purple-100 dark:bg-purple-900/20' :
-                  inst.type === 'college' ? 'bg-blue-100 dark:bg-blue-900/20' :
-                  'bg-emerald-100 dark:bg-emerald-900/20'
-                }`}>
-                  {inst.type === 'school' ? 
+                <div className={`p-2 rounded-lg ${inst.type === 'school' ? 'bg-purple-100 dark:bg-purple-900/20' :
+                    inst.type === 'college' ? 'bg-blue-100 dark:bg-blue-900/20' :
+                      'bg-emerald-100 dark:bg-emerald-900/20'
+                  }`}>
+                  {inst.type === 'school' ?
                     <School className="h-5 w-5 text-purple-600 dark:text-purple-400" /> :
-                    inst.type === 'college' ? 
+                    inst.type === 'college' ?
                       <GraduationCap className="h-5 w-5 text-blue-600 dark:text-blue-400" /> :
                       <Building className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
                   }
@@ -793,15 +787,15 @@ export default function Admin() {
           <div className="flex-1">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-              <input 
-                type="text" 
-                placeholder="Search users by name, email, or role..." 
-                value={searchTerm} 
+              <input
+                type="text"
+                placeholder="Search users by name, email, or role..."
+                value={searchTerm}
                 onChange={(e) => {
                   setSearchTerm(e.target.value)
                   setCurrentPage(1)
-                }} 
-                className="w-full pl-10 pr-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-800 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all" 
+                }}
+                className="w-full pl-10 pr-4 py-3 border border-slate-300 dark:border-slate-600 rounded-xl bg-white dark:bg-slate-800 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
               />
             </div>
           </div>
@@ -850,16 +844,16 @@ export default function Admin() {
             <div>
               <p className="text-2xl font-bold text-slate-800 dark:text-white">{filteredUsers.length}</p>
               <p className="text-sm text-slate-600 dark:text-slate-300">
-                {userFilter === 'all' ? 'Total Users' : 
-                 userFilter === 'students' ? 'Students' :
-                 userFilter === 'teachers' ? 'Teachers' :
-                 userFilter === 'admins' ? 'Administrators' :
-                 'Recent Users'}
+                {userFilter === 'all' ? 'Total Users' :
+                  userFilter === 'students' ? 'Students' :
+                    userFilter === 'teachers' ? 'Teachers' :
+                      userFilter === 'admins' ? 'Administrators' :
+                        'Recent Users'}
               </p>
             </div>
           </div>
         </div>
-        
+
         <div className="p-4 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-emerald-100 dark:bg-emerald-900/20 rounded-lg">
@@ -967,14 +961,13 @@ export default function Admin() {
             </thead>
             <tbody>
               {paginatedUsers.map((user, i) => (
-                <motion.tr 
-                  key={user.id} 
-                  initial={{ opacity: 0, y: 20 }} 
-                  animate={{ opacity: 1, y: 0 }} 
-                  transition={{ delay: i * 0.02 }} 
-                  className={`border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors ${
-                    selectedUsers.includes(user.id) ? 'bg-emerald-50 dark:bg-emerald-900/20' : ''
-                  }`}
+                <motion.tr
+                  key={user.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.02 }}
+                  className={`border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors ${selectedUsers.includes(user.id) ? 'bg-emerald-50 dark:bg-emerald-900/20' : ''
+                    }`}
                 >
                   <td className="py-4 px-6">
                     <input
@@ -1013,11 +1006,10 @@ export default function Admin() {
                           toast.success(`Updated ${user.name}'s role to ${e.target.value.replace('-', ' ')}`)
                         }
                       }}
-                      className={`inline-flex items-center px-3 py-1 text-xs font-medium rounded-full border-0 focus:ring-2 focus:ring-emerald-500 ${
-                        user.role === 'admin' ? 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400' :
-                        user.role.includes('teacher') ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400' :
-                          user.role.includes('student') ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400' :
-                            'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400'
+                      className={`inline-flex items-center px-3 py-1 text-xs font-medium rounded-full border-0 focus:ring-2 focus:ring-emerald-500 ${user.role === 'admin' ? 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400' :
+                          user.role.includes('teacher') ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400' :
+                            user.role.includes('student') ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400' :
+                              'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400'
                         }`}
                     >
                       <option value="visitor">Visitor</option>
@@ -1047,9 +1039,9 @@ export default function Admin() {
                           <span>Level {Math.floor((user.stats?.xp || 0) / 500) + 1}</span>
                         </div>
                         <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
-                          <div 
-                            className="bg-gradient-to-r from-emerald-500 to-emerald-600 h-2 rounded-full transition-all duration-500" 
-                            style={{ width: `${Math.min(100, ((user.stats?.xp || 0) % 500) / 5)}%` }} 
+                          <div
+                            className="bg-gradient-to-r from-emerald-500 to-emerald-600 h-2 rounded-full transition-all duration-500"
+                            style={{ width: `${Math.min(100, ((user.stats?.xp || 0) % 500) / 5)}%` }}
                           />
                         </div>
                       </div>
@@ -1138,24 +1130,23 @@ export default function Admin() {
               >
                 Previous
               </button>
-              
+
               {[...Array(Math.min(5, totalPages))].map((_, i) => {
                 const pageNum = Math.max(1, Math.min(totalPages - 4, currentPage - 2)) + i
                 return (
                   <button
                     key={pageNum}
                     onClick={() => setCurrentPage(pageNum)}
-                    className={`px-3 py-2 text-sm border rounded-lg ${
-                      currentPage === pageNum
+                    className={`px-3 py-2 text-sm border rounded-lg ${currentPage === pageNum
                         ? 'bg-emerald-500 text-white border-emerald-500'
                         : 'border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800'
-                    }`}
+                      }`}
                   >
                     {pageNum}
                   </button>
                 )
               })}
-              
+
               <button
                 onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                 disabled={currentPage === totalPages}
@@ -1181,7 +1172,7 @@ export default function Admin() {
         toast.error('Name and email are required')
         return
       }
-      
+
       try {
         createInstitution({
           ...newInstitution,
@@ -1191,11 +1182,11 @@ export default function Admin() {
           teachers: 0,
           students: 0
         })
-        setNewInstitution({ 
-          name: '', 
-          type: 'school', 
-          address: '', 
-          email: '', 
+        setNewInstitution({
+          name: '',
+          type: 'school',
+          address: '',
+          email: '',
           phone: '',
           website: '',
           contactPerson: '',
@@ -1210,7 +1201,7 @@ export default function Admin() {
 
     const handleUpdateInstitution = () => {
       if (!editingInstitution) return
-      
+
       try {
         updateInstitution(editingInstitution.id, editingInstitution)
         setEditingInstitution(null)
@@ -1263,14 +1254,14 @@ export default function Admin() {
               <div>
                 <p className="text-2xl font-bold text-slate-800 dark:text-white">{filteredInstitutions.length}</p>
                 <p className="text-sm text-slate-600 dark:text-slate-300">
-                  {institutionFilter === 'all' ? 'Total Institutions' : 
-                   institutionFilter === 'school' ? 'Schools' :
-                   institutionFilter === 'college' ? 'Colleges' : 'Universities'}
+                  {institutionFilter === 'all' ? 'Total Institutions' :
+                    institutionFilter === 'school' ? 'Schools' :
+                      institutionFilter === 'college' ? 'Colleges' : 'Universities'}
                 </p>
               </div>
             </div>
           </div>
-          
+
           <div className="p-4 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-purple-100 dark:bg-purple-900/20 rounded-lg">
@@ -1438,8 +1429,8 @@ export default function Admin() {
               <Building className="h-12 w-12 mx-auto mb-3 opacity-50" />
               <p>No institutions found</p>
               <p className="text-sm">
-                {institutionFilter === 'all' 
-                  ? 'Create your first institution above' 
+                {institutionFilter === 'all'
+                  ? 'Create your first institution above'
                   : `No ${institutionFilter}s found. Try changing the filter or create a new one.`}
               </p>
             </div>
@@ -1536,14 +1527,13 @@ export default function Admin() {
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-3">
-                          <div className={`p-3 rounded-lg ${
-                            inst.type === 'school' ? 'bg-purple-100 dark:bg-purple-900/20' :
-                            inst.type === 'college' ? 'bg-blue-100 dark:bg-blue-900/20' :
-                            'bg-emerald-100 dark:bg-emerald-900/20'
-                          }`}>
-                            {inst.type === 'school' ? 
+                          <div className={`p-3 rounded-lg ${inst.type === 'school' ? 'bg-purple-100 dark:bg-purple-900/20' :
+                              inst.type === 'college' ? 'bg-blue-100 dark:bg-blue-900/20' :
+                                'bg-emerald-100 dark:bg-emerald-900/20'
+                            }`}>
+                            {inst.type === 'school' ?
                               <School className="h-6 w-6 text-purple-600 dark:text-purple-400" /> :
-                              inst.type === 'college' ? 
+                              inst.type === 'college' ?
                                 <GraduationCap className="h-6 w-6 text-blue-600 dark:text-blue-400" /> :
                                 <Building className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
                             }
@@ -1553,7 +1543,7 @@ export default function Admin() {
                             <p className="text-sm text-slate-600 dark:text-slate-400 capitalize">{inst.type}</p>
                           </div>
                         </div>
-                        
+
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm mb-4">
                           {inst.address && (
                             <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
@@ -1600,7 +1590,7 @@ export default function Admin() {
                             {inst.description}
                           </p>
                         )}
-                        
+
                         <div className="flex gap-6 text-sm">
                           <span className="flex items-center gap-1">
                             <Users className="h-4 w-4" />
@@ -1618,7 +1608,7 @@ export default function Admin() {
                           </span>
                         </div>
                       </div>
-                      
+
                       <div className="flex gap-2 ml-6">
                         <button
                           onClick={() => setEditingInstitution(inst)}
@@ -1675,7 +1665,7 @@ export default function Admin() {
             </div>
           </div>
         </div>
-        
+
         <div className="p-4 bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
@@ -1760,26 +1750,26 @@ export default function Admin() {
                   </div>
                 </div>
                 <div className="flex gap-2 ml-4">
-                  <button 
+                  <button
                     className="flex items-center gap-2 px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors font-medium"
-                    onClick={() => { 
+                    onClick={() => {
                       approveGame(g.id)
                       toast.success(`Game "${g.title}" approved!`)
                     }}
                   >
-                    <CheckCircle className="h-4 w-4" /> 
+                    <CheckCircle className="h-4 w-4" />
                     Approve
                   </button>
-                  <button 
+                  <button
                     className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-medium"
-                    onClick={() => { 
+                    onClick={() => {
                       if (window.confirm(`Are you sure you want to reject "${g.title}"?`)) {
                         rejectGame(g.id)
                         toast.success(`Game "${g.title}" rejected`)
                       }
                     }}
                   >
-                    <XCircle className="h-4 w-4" /> 
+                    <XCircle className="h-4 w-4" />
                     Reject
                   </button>
                   <button className="p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors">
@@ -1837,26 +1827,26 @@ export default function Admin() {
                   </div>
                 </div>
                 <div className="flex gap-2 ml-4">
-                  <button 
+                  <button
                     className="flex items-center gap-2 px-4 py-2 bg-emerald-500 text-white rounded-lg hover:bg-emerald-600 transition-colors font-medium"
-                    onClick={() => { 
+                    onClick={() => {
                       approveQuiz(q.id)
                       toast.success(`Quiz "${q.quiz.title}" approved!`)
                     }}
                   >
-                    <CheckCircle className="h-4 w-4" /> 
+                    <CheckCircle className="h-4 w-4" />
                     Approve
                   </button>
-                  <button 
+                  <button
                     className="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-medium"
-                    onClick={() => { 
+                    onClick={() => {
                       if (window.confirm(`Are you sure you want to reject "${q.quiz.title}"?`)) {
                         rejectQuiz(q.id)
                         toast.success(`Quiz "${q.quiz.title}" rejected`)
                       }
                     }}
                   >
-                    <XCircle className="h-4 w-4" /> 
+                    <XCircle className="h-4 w-4" />
                     Reject
                   </button>
                   <button className="p-2 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition-colors">
@@ -1963,12 +1953,11 @@ export default function Admin() {
             { level: 'info', message: 'Database backup completed successfully', time: '1 hour ago' },
             { level: 'success', message: 'SSL certificates renewed', time: '2 hours ago' }
           ].map((alert, i) => (
-            <div key={i} className={`p-3 rounded-lg border-l-4 ${
-              alert.level === 'warning' ? 'bg-amber-50 border-amber-500 text-amber-800' :
-              alert.level === 'error' ? 'bg-red-50 border-red-500 text-red-800' :
-              alert.level === 'success' ? 'bg-green-50 border-green-500 text-green-800' :
-              'bg-blue-50 border-blue-500 text-blue-800'
-            } dark:bg-opacity-10`}>
+            <div key={i} className={`p-3 rounded-lg border-l-4 ${alert.level === 'warning' ? 'bg-amber-50 border-amber-500 text-amber-800' :
+                alert.level === 'error' ? 'bg-red-50 border-red-500 text-red-800' :
+                  alert.level === 'success' ? 'bg-green-50 border-green-500 text-green-800' :
+                    'bg-blue-50 border-blue-500 text-blue-800'
+              } dark:bg-opacity-10`}>
               <div className="flex items-center justify-between">
                 <p className="font-medium">{alert.message}</p>
                 <span className="text-sm opacity-75">{alert.time}</span>
@@ -2101,25 +2090,22 @@ export default function Admin() {
                     onClick={() => setActiveTab(tab.id)}
                     whileHover={{ scale: 1.02, y: -2 }}
                     whileTap={{ scale: 0.98 }}
-                    className={`group relative flex flex-col items-start gap-3 p-4 rounded-xl font-medium transition-all duration-200 ${
-                      activeTab === tab.id
+                    className={`group relative flex flex-col items-start gap-3 p-4 rounded-xl font-medium transition-all duration-200 ${activeTab === tab.id
                         ? 'bg-gradient-to-r from-emerald-500 to-blue-500 text-white shadow-lg shadow-emerald-500/25'
                         : 'text-slate-600 dark:text-slate-300 hover:bg-white/60 dark:hover:bg-slate-700/60 hover:shadow-md'
-                    }`}
+                      }`}
                   >
                     <div className="flex items-center gap-3 w-full">
-                      <div className={`p-2 rounded-lg transition-colors ${
-                        activeTab === tab.id
+                      <div className={`p-2 rounded-lg transition-colors ${activeTab === tab.id
                           ? 'bg-white/20'
                           : 'bg-slate-100 dark:bg-slate-700 group-hover:bg-emerald-100 dark:group-hover:bg-emerald-900/20'
-                      }`}>
+                        }`}>
                         <Icon className="h-5 w-5" />
                       </div>
                       <div className="text-left flex-1">
                         <div className="font-semibold text-sm">{tab.label}</div>
-                        <div className={`text-xs mt-1 opacity-70 ${
-                          activeTab === tab.id ? 'text-white/80' : 'text-slate-500 dark:text-slate-400'
-                        }`}>
+                        <div className={`text-xs mt-1 opacity-70 ${activeTab === tab.id ? 'text-white/80' : 'text-slate-500 dark:text-slate-400'
+                          }`}>
                           {tab.description}
                         </div>
                       </div>
@@ -2139,7 +2125,7 @@ export default function Admin() {
           </motion.div>
 
           {/* Tab Content */}
-          <AnimatePresence mode="wait">
+          <AnimatePresence mode="wait" initial={false}>
             {activeTab === 'overview' && <OverviewTab key="overview" />}
             {activeTab === 'users' && <UsersTab key="users" />}
             {activeTab === 'institutions' && <InstitutionsTab key="institutions" />}
