@@ -95,11 +95,50 @@
   .text-responsive-md { @apply text-lg sm:text-xl md:text-2xl; }
   .text-responsive-sm { @apply text-sm sm:text-base md:text-lg; }
   
-  /* Animations */
+  /* Enhanced Animations */
   @keyframes gradient-x { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
+  @keyframes gradient-golden {
+    0% { 
+      background-position: 0% 50%;
+      filter: hue-rotate(0deg) saturate(1) brightness(1);
+    }
+    25% {
+      background-position: 25% 50%;
+      filter: hue-rotate(10deg) saturate(1.1) brightness(1.1);
+    }
+    50% { 
+      background-position: 100% 50%;
+      filter: hue-rotate(20deg) saturate(1.2) brightness(1.2);
+    }
+    75% {
+      background-position: 75% 50%;
+      filter: hue-rotate(10deg) saturate(1.1) brightness(1.1);
+    }
+    100% { 
+      background-position: 0% 50%;
+      filter: hue-rotate(0deg) saturate(1) brightness(1);
+    }
+  }
+  @keyframes shimmer {
+    0% { transform: translateX(-100%) skewX(-15deg); }
+    100% { transform: translateX(100%) skewX(-15deg); }
+  }
+  @keyframes glow-pulse {
+    0%, 100% { 
+      box-shadow: 0 0 20px rgba(247, 193, 75, 0.3), 0 0 40px rgba(255, 215, 0, 0.2);
+      filter: drop-shadow(0 0 8px rgba(247, 193, 75, 0.4));
+    }
+    50% { 
+      box-shadow: 0 0 30px rgba(247, 193, 75, 0.6), 0 0 60px rgba(255, 215, 0, 0.4);
+      filter: drop-shadow(0 0 12px rgba(247, 193, 75, 0.7));
+    }
+  }
   @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-20px); } }
   @keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 20px rgba(16,185,129,0.3); } 50% { box-shadow: 0 0 40px rgba(16,185,129,0.6); } }
   
   .animate-float { animation: float 3s ease-in-out infinite; }
   .animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
+  .animate-gradient-golden { animation: gradient-golden 4s ease-in-out infinite; }
+  .animate-shimmer { animation: shimmer 2s ease-in-out infinite; }
+  .animate-glow-pulse { animation: glow-pulse 3s ease-in-out infinite; }
 }

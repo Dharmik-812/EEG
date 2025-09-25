@@ -7,7 +7,7 @@ import { useSubmissionsStore } from '../store/submissionsStore'
 import {
   Users, Gamepad2, BookOpen, Building, TrendingUp, GraduationCap, School,
   Shield, UserCheck, UserCog, Eye, Zap, Target, Leaf, Globe, TreePine,
-  Award, Eye as EyeIcon
+  Award, Eye as EyeIcon, ArrowRight
 } from 'lucide-react'
 import { useScrollReveal, useGSAP } from '../animations'
 
@@ -308,30 +308,6 @@ export default function About() {
             Empowering the next generation of environmental champions through gamified learning and interactive experiences.
           </motion.p>
 
-          <motion.div
-            className="mt-8 flex justify-center gap-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.52, duration: 0.6 }}
-          >
-            <motion.a
-              href="/get-started"
-              className="inline-flex items-center gap-3 px-6 py-3 bg-emerald-600 text-white rounded-xl font-semibold shadow-lg hover:shadow-2xl"
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              Get Started
-            </motion.a>
-
-            <motion.a
-              href="/learn-more"
-              className="inline-flex items-center gap-3 px-6 py-3 border border-white/20 rounded-xl text-slate-800 dark:text-white bg-white/10"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
-              Learn More
-            </motion.a>
-          </motion.div>
         </motion.div>
       </div>
     </section>
@@ -351,7 +327,7 @@ export default function About() {
           >
             <div className="relative bg-white/8 backdrop-blur-xl rounded-3xl p-8 border border-white/20 shadow-2xl overflow-hidden">
               <motion.div
-                className="absolute -top-6 -left-6 w-28 h-28 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-full flex items-center justify-center text-4xl"
+                className="absolute -top-3 -left-3 w-16 h-16 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-full flex items-center justify-center text-2xl"
                 initial={{ rotate: 0, scale: 0.95 }}
                 animate={{ rotate: 360 }}
                 transition={{ duration: 28, repeat: Infinity, ease: 'linear' }}
@@ -618,31 +594,47 @@ export default function About() {
     </section>
   )
 
-  // Big CTA at bottom with motion
-  const CTA = () => (
-    <motion.section initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.4 }}>
-      <div className="p-8 rounded-2xl bg-gradient-to-br from-emerald-500 to-sky-600 text-white shadow-2xl">
-        <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
-          <div className="text-center lg:text-left">
-            <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.45 }} className="text-2xl font-extrabold mb-2">Join the movement</motion.div>
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.5 }} className="opacity-90">Bring AverSoltix to your classroom or campus.</motion.div>
-          </div>
-
-          <motion.a
-            href="/community"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.6 }}
-            className="px-6 py-3 bg-white text-emerald-600 rounded-xl font-semibold shadow-lg hover:shadow-xl"
-          >
-            Get Involved
-          </motion.a>
-        </div>
+  // Ready to Make a Difference CTA with motion
+  const ReadyToMakeDifferenceCTA = () => (
+    <motion.section 
+      className="mb-12"
+      initial={{ opacity: 0, y: 20 }} 
+      animate={{ opacity: 1, y: 0 }} 
+      transition={{ delay: 1.3 }}
+    >
+      <div className="bg-gradient-to-r from-emerald-500 to-sky-600 rounded-3xl p-8 sm:p-12 text-white text-center">
+        <motion.h3 
+          className="text-2xl sm:text-3xl font-bold mb-4"
+          initial={{ opacity: 0, y: 6 }} 
+          animate={{ opacity: 1, y: 0 }} 
+          transition={{ delay: 1.35 }}
+        >
+          Ready to Make a Difference?
+        </motion.h3>
+        <motion.p 
+          className="text-emerald-100 mb-6 max-w-2xl mx-auto"
+          initial={{ opacity: 0 }} 
+          animate={{ opacity: 1 }} 
+          transition={{ delay: 1.4 }}
+        >
+          Join our community of environmental champions and start your journey today.
+        </motion.p>
+        <motion.a
+          href="/register"
+          className="btn-gold inline-flex items-center gap-2 px-8 py-3 text-lg font-semibold"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.5 }}
+        >
+          Get Started Free
+          <ArrowRight className="h-5 w-5" />
+        </motion.a>
       </div>
     </motion.section>
   )
+
 
   // If loading, show an animated loading screen with presence
   if (isLoading) {
@@ -688,8 +680,8 @@ export default function About() {
       {/* Community */}
       <CommunitySnapshot />
 
-      {/* CTA */}
-      <CTA />
+      {/* Ready to Make a Difference CTA */}
+      <ReadyToMakeDifferenceCTA />
     </>
   )
 }

@@ -164,9 +164,10 @@ export default function Community() {
       {/* Welcome Section */}
       {currentUser && (
         <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="relative bg-gradient-to-br from-emerald-500/10 via-sky-500/10 to-purple-500/10 rounded-3xl p-8 border border-emerald-200/20 dark:border-emerald-800/20 overflow-hidden"
+          initial={{ opacity: 0, y: -20, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          className="relative bg-gradient-to-br from-emerald-500/10 via-sky-500/10 to-purple-500/10 rounded-3xl p-8 border border-emerald-200/20 dark:border-emerald-800/20 overflow-hidden backdrop-blur-sm"
         >
           <div className="absolute inset-0 bg-white/5 dark:bg-black/5 backdrop-blur-3xl" />
           <div className="relative z-10">
@@ -232,16 +233,31 @@ export default function Community() {
             </div>
           </div>
           
-          {/* Floating decorative elements */}
+          {/* Enhanced floating decorative elements */}
           <motion.div 
-            className="absolute top-4 right-4 w-20 h-20 bg-gradient-to-br from-emerald-400/10 to-sky-400/10 rounded-full"
-            animate={{ y: [-5, 5, -5], rotate: [0, 5, -5, 0] }}
+            className="absolute top-4 right-4 w-20 h-20 bg-gradient-to-br from-emerald-400/15 to-sky-400/15 rounded-full"
+            animate={{ y: [-5, 5, -5], rotate: [0, 5, -5, 0], scale: [1, 1.1, 1] }}
             transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
           />
           <motion.div 
-            className="absolute bottom-4 left-8 w-12 h-12 bg-gradient-to-br from-purple-400/10 to-pink-400/10 rounded-full"
-            animate={{ y: [5, -5, 5], rotate: [0, -5, 5, 0] }}
+            className="absolute top-8 right-12 w-6 h-6 bg-gradient-to-br from-yellow-400/20 to-orange-400/20 rounded-full"
+            animate={{ y: [-3, 3, -3], x: [-1, 1, -1], opacity: [0.7, 1, 0.7] }}
+            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+          />
+          <motion.div 
+            className="absolute bottom-4 left-8 w-12 h-12 bg-gradient-to-br from-purple-400/15 to-pink-400/15 rounded-full"
+            animate={{ y: [5, -5, 5], rotate: [0, -5, 5, 0], scale: [0.9, 1.1, 0.9] }}
             transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+          />
+          <motion.div 
+            className="absolute bottom-8 left-16 w-4 h-4 bg-gradient-to-br from-cyan-400/25 to-blue-400/25 rounded-full"
+            animate={{ y: [2, -2, 2], rotate: [0, 10, -10, 0] }}
+            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+          />
+          <motion.div 
+            className="absolute top-1/2 right-8 w-8 h-8 bg-gradient-to-br from-green-400/10 to-teal-400/10 rounded-full"
+            animate={{ x: [-4, 4, -4], y: [-2, 2, -2] }}
+            transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
           />
         </motion.div>
       )}
@@ -325,34 +341,90 @@ export default function Community() {
                 return (
                   <motion.div
                     key={game.id}
-                    initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    transition={{ delay: index * 0.1 }}
-                    whileHover={{ y: -4, scale: 1.02 }}
-                    className={`group rounded-xl border overflow-hidden bg-white/50 dark:bg-slate-800/50 backdrop-blur hover:shadow-lg transition-all duration-300 ${!canAccess ? 'opacity-75' : ''}`}
+                    initial={{ opacity: 0, y: 30, scale: 0.9, rotateX: -15 }}
+                    animate={{ opacity: 1, y: 0, scale: 1, rotateX: 0 }}
+                    transition={{ 
+                      delay: index * 0.1, 
+                      duration: 0.6,
+                      type: "spring",
+                      stiffness: 100,
+                      damping: 15
+                    }}
+                    whileHover={{ 
+                      y: -8, 
+                      scale: 1.03, 
+                      rotateY: 2,
+                      transition: { type: "spring", stiffness: 400, damping: 25 }
+                    }}
+                    whileTap={{ scale: 0.98 }}
+                    className={`group rounded-2xl border overflow-hidden bg-gradient-to-br from-white/60 to-white/40 dark:from-slate-800/60 dark:to-slate-900/40 backdrop-blur-xl shadow-xl hover:shadow-2xl transition-all duration-500 will-change-transform ${!canAccess ? 'opacity-75' : ''} relative`}
+                    style={{ transformStyle: 'preserve-3d' }}
                   >
+                    {/* Animated floating particles */}
+                    <motion.div 
+                      className="absolute top-2 right-2 w-2 h-2 bg-emerald-400 rounded-full opacity-60"
+                      animate={{ 
+                        y: [-3, 3, -3],
+                        x: [-1, 1, -1],
+                        scale: [1, 1.2, 1]
+                      }}
+                      transition={{ 
+                        duration: 4, 
+                        repeat: Infinity, 
+                        ease: "easeInOut",
+                        delay: index * 0.2
+                      }}
+                    />
+                    <motion.div 
+                      className="absolute bottom-2 left-2 w-1.5 h-1.5 bg-purple-400 rounded-full opacity-50"
+                      animate={{ 
+                        y: [2, -2, 2],
+                        opacity: [0.5, 0.8, 0.5]
+                      }}
+                      transition={{ 
+                        duration: 3, 
+                        repeat: Infinity, 
+                        ease: "easeInOut",
+                        delay: index * 0.3 + 1
+                      }}
+                    />
+                    
                     <div className="relative">
                       {firstImage && (
-                        <div className="aspect-video overflow-hidden">
-                          <img 
+                        <div className="aspect-video overflow-hidden rounded-t-2xl">
+                          <motion.img 
                             src={firstImage} 
                             alt={`${game.title} thumbnail`} 
-                            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" 
+                            className="w-full h-full object-cover" 
+                            whileHover={{ scale: 1.08 }}
+                            transition={{ duration: 0.4, ease: "easeOut" }}
                           />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                         </div>
                       )}
                       {!canAccess && (
-                        <div className="absolute top-2 right-2 px-2 py-1 bg-amber-100 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 text-xs rounded-full flex items-center gap-1">
+                        <motion.div 
+                          initial={{ scale: 0, rotate: -10 }}
+                          animate={{ scale: 1, rotate: 0 }}
+                          className="absolute top-2 right-2 px-2 py-1 bg-amber-100/90 dark:bg-amber-900/40 backdrop-blur-sm text-amber-600 dark:text-amber-400 text-xs rounded-full flex items-center gap-1 border border-amber-200 dark:border-amber-800"
+                        >
                           <Lock className="h-3 w-3" />
                           Restricted
-                        </div>
+                        </motion.div>
                       )}
                     </div>
                     
-                    <div className="p-4">
-                      <h4 className="font-semibold text-lg mb-2 group-hover:text-purple-600 transition-colors">
+                    <div className="p-4 relative">
+                      {/* Interactive glow effect */}
+                      <div className="absolute inset-0 bg-gradient-to-r from-purple-500/0 via-purple-500/5 to-purple-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-b-2xl" />
+                      
+                      <motion.h4 
+                        className="font-semibold text-lg mb-2 group-hover:text-purple-600 transition-colors relative z-10"
+                        whileHover={{ scale: 1.02 }}
+                        transition={{ type: "spring", stiffness: 400 }}
+                      >
                         {game.title}
-                      </h4>
+                      </motion.h4>
                       <p className="text-sm text-slate-600 dark:text-slate-400 mb-4 line-clamp-2">
                         {game.description}
                       </p>
@@ -362,13 +434,24 @@ export default function Community() {
                           👤 By {game.ownerId || 'Anonymous'}
                         </div>
                         {canAccess ? (
-                          <Link 
-                            to={`/play/${game.id}`} 
-                            className="btn !px-4 !py-2 text-sm flex items-center gap-1"
-                            data-ripple
+                          <motion.div
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
                           >
-                            <Play className="h-4 w-4" /> Play
-                          </Link>
+                            <Link 
+                              to={`/play/${game.id}`} 
+                              className="btn !px-4 !py-2 text-sm flex items-center gap-1 shadow-lg hover:shadow-xl transition-shadow"
+                              data-ripple
+                            >
+                              <motion.div
+                                animate={{ rotate: [0, 5, -5, 0] }}
+                                transition={{ duration: 2, repeat: Infinity }}
+                              >
+                                <Play className="h-4 w-4" />
+                              </motion.div>
+                              Play
+                            </Link>
+                          </motion.div>
                         ) : (
                           <button 
                             className="btn opacity-50 cursor-not-allowed !px-4 !py-2 text-sm flex items-center gap-1"
@@ -401,9 +484,18 @@ export default function Community() {
               transition={{ delay: 0.2 }}
             >
               <div className="flex items-center gap-4 mb-3">
-                <div className="p-3 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl">
-                  <BookOpen className="h-6 w-6 text-white" />
-                </div>
+                <motion.div 
+                  className="p-3 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl relative overflow-hidden"
+                  whileHover={{ scale: 1.1, rotate: 5 }}
+                  transition={{ type: "spring", stiffness: 400 }}
+                >
+                  <motion.div
+                    className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0"
+                    animate={{ x: ['-100%', '100%'] }}
+                    transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                  />
+                  <BookOpen className="h-6 w-6 text-white relative z-10" />
+                </motion.div>
                 <div>
                   <h2 className="text-2xl font-black text-slate-800 dark:text-white">
                     Community Quizzes
@@ -613,14 +705,69 @@ export default function Community() {
                     <motion.div 
                       key={q.id}
                       layout
-                      initial={{ opacity: 0, y: 20, scale: 0.9 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: -20, scale: 0.9 }}
-                      transition={{ delay: index * 0.1, duration: 0.5 }}
-                      whileHover={{ y: -8, scale: 1.02 }}
-                      className="group bg-white/90 dark:bg-slate-800/90 backdrop-blur-xl rounded-2xl border border-slate-200/50 dark:border-slate-700/50 overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500"
+                      initial={{ opacity: 0, y: 30, scale: 0.8, rotateY: -10 }}
+                      animate={{ opacity: 1, y: 0, scale: 1, rotateY: 0 }}
+                      exit={{ opacity: 0, y: -20, scale: 0.8, rotateX: 10 }}
+                      transition={{ 
+                        delay: index * 0.08, 
+                        duration: 0.7,
+                        type: "spring",
+                        stiffness: 120,
+                        damping: 18
+                      }}
+                      whileHover={{ 
+                        y: -10, 
+                        scale: 1.03, 
+                        rotateY: 3,
+                        transition: { type: "spring", stiffness: 400, damping: 20 }
+                      }}
+                      whileTap={{ scale: 0.97, rotateY: 1 }}
+                      className="group bg-gradient-to-br from-white/95 to-white/85 dark:from-slate-800/95 dark:to-slate-900/85 backdrop-blur-2xl rounded-2xl border border-slate-200/60 dark:border-slate-700/60 overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-600 will-change-transform relative"
+                      style={{ transformStyle: 'preserve-3d' }}
                     >
-                      <div className={`h-2 bg-gradient-to-r ${difficultyColors[difficulty] || difficultyColors.medium}`} />
+                      {/* Floating decorative particles */}
+                      <motion.div 
+                        className="absolute top-4 right-4 w-3 h-3 bg-emerald-400/60 rounded-full"
+                        animate={{ 
+                          y: [-4, 4, -4],
+                          opacity: [0.6, 1, 0.6],
+                          scale: [1, 1.3, 1]
+                        }}
+                        transition={{ 
+                          duration: 5, 
+                          repeat: Infinity, 
+                          ease: "easeInOut",
+                          delay: index * 0.15
+                        }}
+                      />
+                      <motion.div 
+                        className="absolute bottom-4 left-4 w-2 h-2 bg-sky-400/50 rounded-full"
+                        animate={{ 
+                          x: [-2, 2, -2],
+                          y: [1, -1, 1],
+                          opacity: [0.5, 0.9, 0.5]
+                        }}
+                        transition={{ 
+                          duration: 4, 
+                          repeat: Infinity, 
+                          ease: "easeInOut",
+                          delay: index * 0.2 + 0.5
+                        }}
+                      />
+                      
+                      {/* Gradient border animation */}
+                      <div className={`h-2 bg-gradient-to-r ${difficultyColors[difficulty] || difficultyColors.medium} relative overflow-hidden`}>
+                        <motion.div 
+                          className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
+                          animate={{ x: ['-100%', '100%'] }}
+                          transition={{ 
+                            duration: 2, 
+                            repeat: Infinity, 
+                            ease: "easeInOut",
+                            delay: index * 0.3
+                          }}
+                        />
+                      </div>
                       
                       <div className="p-6">
                         <div className="flex items-start justify-between mb-4">

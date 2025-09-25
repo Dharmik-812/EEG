@@ -266,6 +266,128 @@ export default function Admin() {
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6"
     >
+      {/* Welcome Admin Header */}
+      <div className="bg-gradient-to-br from-emerald-50 via-blue-50 to-purple-50 dark:from-slate-800 dark:via-slate-900 dark:to-slate-800 -mx-6 -mt-6 px-6 pt-6 pb-8 mb-10 border-b border-slate-200 dark:border-slate-700">
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            <div className="space-y-4">
+              <h1 className="text-4xl lg:text-5xl font-black text-slate-800 dark:text-white leading-tight">
+                Welcome back,{' '}
+                <span className="bg-gradient-to-r from-emerald-600 via-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  {currentUser?.name || 'Admin'}
+                </span>!
+                <span className="inline-block ml-2 text-3xl">⚡</span>
+              </h1>
+              
+              <div className="flex flex-wrap items-center gap-3">
+                <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-semibold bg-gradient-to-r from-red-500 to-pink-600 text-white shadow-lg">
+                  Platform Administrator
+                </span>
+                
+                <div className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 rounded-full shadow-md border border-slate-200 dark:border-slate-700">
+                  <Calendar className="h-4 w-4 text-slate-600 dark:text-slate-400" />
+                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                    {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
+                  </span>
+                </div>
+                
+                <div className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 rounded-full shadow-md border border-slate-200 dark:border-slate-700">
+                  <Clock className="h-4 w-4 text-slate-600 dark:text-slate-400" />
+                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                    System Uptime: {systemMetrics.uptime.toFixed(1)}%
+                  </span>
+                </div>
+              </div>
+            </div>
+            
+            {/* Admin Avatar */}
+            <div className="flex-shrink-0">
+              <div className="w-20 h-20 bg-gradient-to-br from-red-400 to-pink-500 rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-xl">
+                {currentUser?.name?.charAt(0) || 'A'}
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+
+      {/* Admin Quick Actions */}
+      <div className="mb-10">
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.3 }}
+          className="mb-8"
+        >
+          <h2 className="text-3xl font-bold text-slate-800 dark:text-white mb-3 flex items-center gap-3">
+            <div className="p-2 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-xl">
+              <Zap className="h-6 w-6 text-white" />
+            </div>
+            Admin Quick Actions
+          </h2>
+          <p className="text-slate-600 dark:text-slate-400 text-lg">
+            Essential admin tools and management features
+          </p>
+        </motion.div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
+          {[
+            { id: 'users', label: 'Manage Users', icon: Users, color: 'blue', count: analytics.totalUsers },
+            { id: 'content', label: 'Content Review', icon: BookOpen, color: 'purple', count: pendingGames.length + pendingQuizzes.length },
+            { id: 'institutions', label: 'Institutions', icon: Building, color: 'emerald', count: institutions.length },
+            { id: 'system', label: 'System Health', icon: Server, color: 'orange', status: systemMetrics.uptime > 99 ? 'Excellent' : 'Good' },
+          ].map((action, i) => {
+            const Icon = action.icon
+            const colorClasses = {
+              blue: { bg: 'bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/10 dark:to-blue-800/20', icon: 'bg-blue-500', hover: 'hover:shadow-blue-500/20' },
+              purple: { bg: 'bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/10 dark:to-purple-800/20', icon: 'bg-purple-500', hover: 'hover:shadow-purple-500/20' },
+              emerald: { bg: 'bg-gradient-to-br from-emerald-50 to-emerald-100 dark:from-emerald-900/10 dark:to-emerald-800/20', icon: 'bg-emerald-500', hover: 'hover:shadow-emerald-500/20' },
+              orange: { bg: 'bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/10 dark:to-orange-800/20', icon: 'bg-orange-500', hover: 'hover:shadow-orange-500/20' },
+            }
+            const colors = colorClasses[action.color]
+            
+            return (
+              <motion.button
+                key={action.id}
+                initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ delay: 0.4 + i * 0.1, duration: 0.4 }}
+                whileHover={{ scale: 1.02, y: -4 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => setActiveTab(action.id)}
+                className={`group relative p-6 ${colors.bg} rounded-2xl border-2 border-white dark:border-slate-700 ${colors.hover} transition-all duration-300 text-left shadow-lg hover:shadow-xl overflow-hidden`}
+              >
+                <div className="absolute top-0 right-0 w-20 h-20 opacity-5 transform rotate-12 translate-x-6 -translate-y-6">
+                  <Icon className="w-full h-full" />
+                </div>
+                
+                <div className="relative z-10">
+                  <div className={`inline-flex p-3 rounded-xl ${colors.icon} text-white mb-4 group-hover:scale-110 transition-transform duration-200`}>
+                    <Icon className="h-6 w-6" />
+                  </div>
+                  
+                  <h3 className="text-lg font-bold text-slate-800 dark:text-white mb-2">
+                    {action.label}
+                  </h3>
+                  
+                  <div className="text-2xl font-extrabold text-slate-700 dark:text-slate-200 mb-2">
+                    {action.count !== undefined ? action.count.toLocaleString() : action.status}
+                  </div>
+                  
+                  <div className="flex items-center text-sm text-slate-600 dark:text-slate-400">
+                    <span className="font-medium">Manage</span>
+                    <ChevronRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform duration-200" />
+                  </div>
+                </div>
+              </motion.button>
+            )
+          })}
+        </div>
+      </div>
+
       {/* Notifications */}
       {notifications.length > 0 && (
         <Card>

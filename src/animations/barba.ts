@@ -21,18 +21,94 @@ export function useBarbaTransitions({ enabled = false }: { enabled?: boolean } =
             timeout: 10000,
             transitions: [
               {
-                name: 'fade',
+                name: 'default',
                 leave(data: any) {
                   const el = data.current?.container || document.querySelector('main')
                   if (!el) return
                   return new Promise<void>((res) => {
-                    el.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 250, easing: 'ease' }).finished.then(() => res())
+                    const animation = el.animate([
+                      { 
+                        opacity: 1, 
+                        transform: 'translateY(0) scale(1)', 
+                        filter: 'blur(0px)' 
+                      }, 
+                      { 
+                        opacity: 0, 
+                        transform: 'translateY(-20px) scale(0.98)', 
+                        filter: 'blur(4px)' 
+                      }
+                    ], { 
+                      duration: 400, 
+                      easing: 'cubic-bezier(0.4, 0, 0.2, 1)' 
+                    })
+                    animation.finished.then(() => res())
                   })
                 },
                 enter(data: any) {
                   const el = data.next?.container || document.querySelector('main')
                   if (!el) return
-                  el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 350, easing: 'ease' })
+                  el.animate([
+                    { 
+                      opacity: 0, 
+                      transform: 'translateY(20px) scale(0.98)', 
+                      filter: 'blur(4px)' 
+                    }, 
+                    { 
+                      opacity: 1, 
+                      transform: 'translateY(0) scale(1)', 
+                      filter: 'blur(0px)' 
+                    }
+                  ], { 
+                    duration: 500, 
+                    easing: 'cubic-bezier(0.16, 1, 0.3, 1)' 
+                  })
+                },
+              },
+              {
+                name: 'slide-up',
+                to: {
+                  route: /\/(challenges|community|dashboard)/
+                },
+                leave(data: any) {
+                  const el = data.current?.container || document.querySelector('main')
+                  if (!el) return
+                  return new Promise<void>((res) => {
+                    const animation = el.animate([
+                      { 
+                        opacity: 1, 
+                        transform: 'translateY(0) rotateX(0deg)', 
+                        filter: 'brightness(1)' 
+                      }, 
+                      { 
+                        opacity: 0, 
+                        transform: 'translateY(-50px) rotateX(-5deg)', 
+                        filter: 'brightness(0.8)' 
+                      }
+                    ], { 
+                      duration: 450, 
+                      easing: 'cubic-bezier(0.4, 0, 0.6, 1)' 
+                    })
+                    animation.finished.then(() => res())
+                  })
+                },
+                enter(data: any) {
+                  const el = data.next?.container || document.querySelector('main')
+                  if (!el) return
+                  el.animate([
+                    { 
+                      opacity: 0, 
+                      transform: 'translateY(80px) rotateX(5deg)', 
+                      filter: 'brightness(0.8)' 
+                    }, 
+                    { 
+                      opacity: 1, 
+                      transform: 'translateY(0) rotateX(0deg)', 
+                      filter: 'brightness(1)' 
+                    }
+                  ], { 
+                    duration: 600, 
+                    easing: 'cubic-bezier(0.16, 1, 0.3, 1)' 
+                  })
                 },
               },
             ],

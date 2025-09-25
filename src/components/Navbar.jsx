@@ -6,15 +6,16 @@ import useTheme from '../store/useTheme.js'
 import { useAuthStore } from '../store/authStore'
 import { useAnimationStore } from '../store/animationStore'
 
+// Professional navigation flow: Overview → Learn → Engage → Track
 const links = [
-  { to: '/', label: 'Home' },
-  { to: '/about', label: 'About' },
-  { to: '/challenges', label: 'Challenges' },
-  { to: '/dashboard', label: 'Dashboard' },
-  { to: '/community', label: 'Community' },
-  { to: '/leaderboard', label: 'Leaderboard' },
-  { to: '/badges', label: 'Badges' },
-  { to: '/how-it-works', label: 'Guide' },
+  { to: '/', label: 'Home', category: 'overview' },
+  { to: '/about', label: 'About', category: 'overview' },
+  { to: '/how-it-works', label: 'Guide', category: 'learn' },
+  { to: '/challenges', label: 'Challenges', category: 'engage' },
+  { to: '/community', label: 'Community', category: 'engage' },
+  { to: '/dashboard', label: 'Dashboard', category: 'track', hideForAdmin: true },
+  { to: '/leaderboard', label: 'Leaderboard', category: 'track' },
+  { to: '/badges', label: 'Badges', category: 'track' },
 ]
 
 export default function Navbar() {
@@ -56,18 +57,37 @@ export default function Navbar() {
       className={`fixed top-0 inset-x-0 z-50 backdrop-blur bg-white/60 dark:bg-slate-900/60 border-b border-white/20 dark:border-slate-800 transition-all safe-area-top ${scrolled ? 'shadow-sm' : ''}`}
     >
       <div className="absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r from-emerald-400 via-sky-400 to-emerald-400 opacity-60" />
-      <nav className={`container-fluid mx-auto ${scrolled ? 'py-2' : 'py-3'} flex items-center justify-between transition-all`}>
+      <nav className={`container-fluid mx-auto ${scrolled ? 'py-2' : 'py-4'} flex items-center justify-between transition-all duration-300`}>
         <Link to="/" className="group flex items-center gap-2 font-extrabold text-xl tracking-tight">
           <Leaf className="h-6 w-6 text-emerald-500 drop-shadow group-hover:scale-110 transition-transform" aria-hidden />
           <span className="font-display text-gold">AverSoltix</span>
         </Link>
 
-        <div className="hidden md:flex items-center gap-2">
-          {links.map(l => (
+        <div className="hidden lg:flex items-center gap-1 xl:gap-2">
+          {/* Overview Section */}
+          {links.filter(l => l.category === 'overview' && !(l.hideForAdmin && currentUser?.role === 'admin')).map(l => (
+            <LinkItem key={l.to} {...l} />
+          ))}
+          <div className="w-px h-5 bg-slate-300 dark:bg-slate-600 mx-2 opacity-50" />
+          
+          {/* Learn Section */}
+          {links.filter(l => l.category === 'learn' && !(l.hideForAdmin && currentUser?.role === 'admin')).map(l => (
+            <LinkItem key={l.to} {...l} />
+          ))}
+          <div className="w-px h-5 bg-slate-300 dark:bg-slate-600 mx-2 opacity-50" />
+          
+          {/* Engage Section */}
+          {links.filter(l => l.category === 'engage' && !(l.hideForAdmin && currentUser?.role === 'admin')).map(l => (
             <LinkItem key={l.to} {...l} />
           ))}
           <NavLink to="/editor" className="nav-link" data-ripple>Editor</NavLink>
           <NavLink to="/create-quiz" className="nav-link" data-ripple>Create Quiz</NavLink>
+          <div className="w-px h-5 bg-slate-300 dark:bg-slate-600 mx-2 opacity-50" />
+          
+          {/* Track Section */}
+          {links.filter(l => l.category === 'track' && !(l.hideForAdmin && currentUser?.role === 'admin')).map(l => (
+            <LinkItem key={l.to} {...l} />
+          ))}
 {currentUser?.role === 'admin' && <NavLink to="/admin" className="nav-link" data-ripple>Admin</NavLink>}
           {currentUser ? (
             <>
@@ -100,6 +120,32 @@ export default function Navbar() {
           <button aria-label="Toggle theme" onClick={toggle} className="ml-1 p-2 rounded-lg hover:bg-emerald-100/50 dark:hover:bg-slate-800">
             {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
           </button>
+        </div>
+
+        {/* Medium screen navbar - condensed */}
+        <div className="hidden md:flex lg:hidden items-center gap-2">
+          <div className="flex items-center gap-1">
+            {links.slice(0, 4).filter(l => !(l.hideForAdmin && currentUser?.role === 'admin')).map(l => (
+              <LinkItem key={l.to} {...l} />
+            ))}
+          </div>
+          <div className="w-px h-4 bg-slate-300 dark:bg-slate-600 mx-1" />
+          <div className="flex items-center gap-1">
+            {currentUser ? (
+              <>
+                <span className="text-sm text-slate-500 mx-2">Hi, {currentUser.name.split(' ')[0]}</span>
+                <button onClick={logout} className="btn-outline !px-3 !py-1 text-sm">Logout</button>
+              </>
+            ) : (
+              <>
+                <NavLink to="/login" className="btn-outline !px-3 !py-1 text-sm" data-ripple>Login</NavLink>
+                <NavLink to="/register" className="btn !px-3 !py-1 text-sm" data-ripple>Register</NavLink>
+              </>
+            )}
+            <button aria-label="Toggle theme" onClick={toggle} className="ml-1 p-2 rounded-lg hover:bg-emerald-100/50 dark:hover:bg-slate-800">
+              {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </button>
+          </div>
         </div>
 
         <div className="md:hidden flex items-center gap-2">
@@ -143,7 +189,7 @@ export default function Navbar() {
                   <X className="h-6 w-6" />
                 </button>
               </div>
-              {links.map(l => (
+              {links.filter(l => !(l.hideForAdmin && currentUser?.role === 'admin')).map(l => (
                 <div key={l.to}>
 <Link to={l.to} onClick={() => setOpen(false)} className="block px-3 py-2 rounded-lg hover:bg-emerald-50/60 dark:hover:bg-slate-800" data-ripple>
                     {l.label}
