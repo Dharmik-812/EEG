@@ -18,4 +18,8 @@ export * from './presets/routeTransitions'
 export * from './presets/uiMicro'
 export * from './presets/svgDraw'
 
+// Provide a minimal no-op hook so imports expecting `useScrollReveal` don't fail in JS builds.
+// Landing uses it optionally; real behavior can be implemented later if needed.
+export function useScrollReveal() {}
+
 
