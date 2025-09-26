@@ -7,7 +7,8 @@ import { useSplitText } from '../animations'
 import { useBarbaTransitions } from '../animations'
 
 export default function AnimationPlayground() {
-  const route = useFramerPreset('route.transition') as any
+  const preset = useFramerPreset('route.transition') as any
+  const route = (preset && typeof preset === 'object') ? preset : {}
   // Experimental Barba bridge disabled by default to avoid conflicts in SPA
   useBarbaTransitions({ enabled: false })
   const [count, setCount] = useState(3)

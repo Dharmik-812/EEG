@@ -19,13 +19,30 @@ if (import.meta.env.PROD && 'serviceWorker' in navigator) {
 }
 
 // Global runtime error hooks to surface issues
+function formatReason(reason) {
+  try {
+    if (!reason) return 'Unknown error'
+    if (typeof reason === 'string') return reason
+    if (reason instanceof Error) return reason.message || reason.toString()
+    if (typeof reason === 'object') {
+      if (reason.message) return reason.message
+      return JSON.stringify(reason)
+    }
+    return String(reason)
+  } catch {
+    return 'Unknown error'
+  }
+}
+
 window.addEventListener('error', (e) => {
-  try { useLogStore.getState().add(`Error: ${e.message}`) } catch {}
-  try { toast.error(e.message) } catch {}
+  const msg = e?.message ? String(e.message) : 'Unknown error'
+  try { useLogStore.getState().add(`Error: ${msg}`) } catch {}
+  try { toast.error(msg) } catch {}
 })
 window.addEventListener('unhandledrejection', (e) => {
-  try { useLogStore.getState().add(`Unhandled: ${e.reason?.message || e.reason}`) } catch {}
-  try { toast.error(`Unhandled: ${e.reason?.message || e.reason}`) } catch {}
+  const msg = formatReason(e?.reason)
+  try { useLogStore.getState().add(`Unhandled: ${msg}`) } catch {}
+  try { toast.error(`Unhandled: ${msg}`) } catch {}
 })
 
 function Root() {
