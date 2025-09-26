@@ -15,14 +15,26 @@ export class RenderSystem {
     // Prepare tilemap cache once
     if (!this._tileCache) this._tileCache = new Map()
 
+    // Camera support (pan/zoom)
+    const cam = this.engine.camera || (this.engine.camera = { x: 0, y: 0, zoom: 1 })
+    ctx.save()
+    if (cam.zoom && cam.zoom !== 1) {
+      ctx.scale(cam.zoom, cam.zoom)
+    }
+    ctx.translate(-cam.x, -cam.y)
+
     for (const layer of layers) {
-      const ents = scene.entities.filter(en => (en.layerId||null) === (layer.id||null))
+      let ents = scene.entities.filter(en => (en.layerId||null) === (layer.id||null))
+      // Optional z-index sort within layer
+      ents = ents.sort((a,b) => (a.zIndex||0) - (b.zIndex||0))
       // Tilemaps
       for (const e of ents.filter(en => en.components?.tilemap)) {
         const t = e.components?.transform
         if (!t) continue
         ctx.save()
-        ctx.translate(t.x, t.y)
+        const px = this.engine.opts?.pixelSnap ? Math.round(t.x) : t.x
+        const py = this.engine.opts?.pixelSnap ? Math.round(t.y) : t.y
+        ctx.translate(px, py)
         const tm = e.components.tilemap
         const img = tm.tilesetAssetId ? this.engine.assets.getImage(tm.tilesetAssetId) : null
         const totalW = tm.cols * tm.tileWidth
@@ -61,8 +73,8 @@ export class RenderSystem {
         const t = e.components?.transform
         if (!t) continue
         // Simple culling: skip if entirely outside viewport
-        const halfW = (e.components?.ui ? t.w : t.w) / 2
-        const halfH = (e.components?.ui ? t.h : t.h) / 2
+        const halfW = t.w / 2
+        const halfH = t.h / 2
         const minX = t.x - halfW, maxX = t.x + halfW
         const minY = t.y - halfH, maxY = t.y + halfH
         if (maxX < 0 || minX > scene.width || maxY < 0 || minY > scene.height) continue
@@ -80,7 +92,9 @@ export class RenderSystem {
           else if (ay === 'bottom') baseY = scene.height - t.h/2
           ctx.translate(baseX, baseY)
         } else {
-          ctx.translate(t.x, t.y)
+          const px = this.engine.opts?.pixelSnap ? Math.round(t.x) : t.x
+          const py = this.engine.opts?.pixelSnap ? Math.round(t.y) : t.y
+          ctx.translate(px, py)
         }
         ctx.rotate(((t.rotation || 0) * Math.PI) / 180)
         ctx.imageSmoothingEnabled = false
@@ -132,10 +146,18 @@ export class RenderSystem {
       // Text
       if (e.components?.text) {
         const txt = e.components.text
+        const fontSize = txt.size || 20
+        const fontFamily = txt.family || 'sans-serif'
+        const fontWeight = txt.bold ? 'bold' : 'normal'
         ctx.fillStyle = txt.color || '#000'
-        ctx.font = `${txt.size || 20}px sans-serif`
-        ctx.textAlign = 'center'
-        ctx.textBaseline = 'middle'
+        ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`
+        ctx.textAlign = txt.align || 'center'
+        ctx.textBaseline = txt.baseline || 'middle'
+        if (txt.stroke && txt.strokeWidth) {
+          ctx.lineWidth = txt.strokeWidth
+          ctx.strokeStyle = txt.stroke
+          ctx.strokeText(txt.value || '', 0, 0)
+        }
         ctx.fillText(txt.value || '', 0, 0)
       }
 
@@ -198,5 +220,6 @@ export class RenderSystem {
         ctx.restore()
       }
     }
+    ctx.restore()
   }
 }

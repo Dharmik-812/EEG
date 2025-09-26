@@ -4,6 +4,7 @@ import { useEditorStore } from '../store/editorStore'
 import { useAuthStore } from '../store/authStore'
 import { useSubmissionsStore } from '../store/submissionsStore'
 import SimpleEnhancedToolbar from '../components/editor/SimpleEnhancedToolbar'
+import TutorialTour from '../components/editor/TutorialTour'
 import EnhancedViewport from '../components/editor/EnhancedViewport'
 import EnhancedInspector from '../components/editor/EnhancedInspector'
 import EnhancedSceneManager from '../components/editor/EnhancedSceneManager'
@@ -94,6 +95,7 @@ export default function Editor() {
   }
 
   const [wsError, setWsError] = useState(null)
+  const [showTutorial, setShowTutorial] = useState(false)
 
   if (isLoading) {
     return (
@@ -159,7 +161,7 @@ export default function Editor() {
         className="h-screen flex flex-col bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-900 dark:to-slate-800"
       >
         {/* Unity-style Toolbar */}
-        <div className="flex-shrink-0 bg-slate-800 dark:bg-slate-900 text-white border-b border-slate-700">
+        <div className="flex-shrink-0 bg-slate-800 dark:bg-slate-900 text-white border-b border-slate-700" data-tour="toolbar">
           <div className="flex items-center justify-between px-4 py-2">
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
@@ -214,6 +216,13 @@ export default function Editor() {
               <div className="text-sm text-slate-300">
                 Scene: {project?.scenes?.[0]?.name || 'Untitled'}
               </div>
+              <button
+                onClick={() => setShowTutorial(true)}
+                className="flex items-center gap-2 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 rounded-lg transition-colors font-medium"
+                title="Start Tutorial"
+              >
+                <span>Tutorial</span>
+              </button>
               <button
                 onClick={submit}
                 className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors font-medium"
@@ -320,6 +329,8 @@ export default function Editor() {
           </div>
         </div>
       </motion.div>
+
+      <TutorialTour open={showTutorial} onClose={() => setShowTutorial(false)} />
 
       {/* Achievement Notifications */}
       <AchievementNotification

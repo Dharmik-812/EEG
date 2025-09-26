@@ -1,6 +1,15 @@
 // Detects collisions (AABB and circles) and emits events
 export class CollisionSystem {
-  constructor(engine) { this.engine = engine }
+  constructor(engine) { 
+    this.engine = engine 
+    this._colliding = new Set() // Set of pair keys currently colliding
+  }
+
+  _pairKey(a, b) {
+    const idA = a.id || ''
+    const idB = b.id || ''
+    return idA < idB ? `${idA}|${idB}` : `${idB}|${idA}`
+  }
 
   static aabb(e, f) {
     const a = e.components.transform
@@ -103,6 +112,7 @@ export class CollisionSystem {
 
   update(scene, dt) {
     // naive n^2 for now
+    const nowPairs = new Set()
     for (let i=0;i<scene.entities.length;i++) {
       const e = scene.entities[i]
       if (!e.components?.collider) continue
@@ -123,6 +133,14 @@ export class CollisionSystem {
         } else collides = CollisionSystem.aabb(e, f)
 
         if (collides) {
+          const key = this._pairKey(e, f)
+          nowPairs.add(key)
+          if (!this._colliding.has(key)) {
+            // Enter
+            this.engine.dispatchEvent(e, 'onCollisionEnter', { other: f })
+            this.engine.dispatchEvent(f, 'onCollisionEnter', { other: e })
+          }
+          // Stay
           this.engine.dispatchEvent(e, 'onCollision', { other: f })
           this.engine.dispatchEvent(f, 'onCollision', { other: e })
           // Back-compat with previous model using 'onOverlap'
@@ -131,5 +149,18 @@ export class CollisionSystem {
         }
       }
     }
+    // Exits = previously colliding but not in nowPairs
+    for (const key of this._colliding) {
+      if (!nowPairs.has(key)) {
+        const [idA, idB] = key.split('|')
+        const a = scene.entities.find(x => x.id === idA)
+        const b = scene.entities.find(x => x.id === idB)
+        if (a && b) {
+          this.engine.dispatchEvent(a, 'onCollisionExit', { other: b })
+          this.engine.dispatchEvent(b, 'onCollisionExit', { other: a })
+        }
+      }
+    }
+    this._colliding = nowPairs
   }
 }

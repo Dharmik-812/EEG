@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Navigate } from 'react-router-dom'
+import { Navigate, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import SEO from '../components/SEO.jsx'
 import Card from '../components/Card'
@@ -32,6 +32,7 @@ const ADMIN_TABS = [
 ]
 
 export default function Admin() {
+  const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState('overview')
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedUsers, setSelectedUsers] = useState([])
@@ -2060,23 +2061,32 @@ export default function Admin() {
   return (
     <>
       <SEO title="Admin Dashboard" description="Comprehensive admin panel for AverSoltix platform management." noIndex={true} />
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-emerald-50 dark:from-slate-900 dark:to-emerald-950">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-emerald-50 dark:from-slate-900 dark:to-emerald-950" style={{ willChange: 'transform', transform: 'translateZ(0)' }}>
         <div className="container mx-auto px-4 py-8">
           {/* Header */}
           <motion.div
-            initial={{ opacity: 0, y: -20 }}
+            initial={false}
             animate={{ opacity: 1, y: 0 }}
             className="mb-8"
           >
-            <h1 className="text-4xl font-black text-slate-800 dark:text-white mb-2">
-              Admin <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-blue-600">Dashboard</span>
-            </h1>
+            <div className="flex items-center justify-between gap-3">
+              <h1 className="text-4xl font-black text-slate-800 dark:text-white mb-2">
+                Admin <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-blue-600">Dashboard</span>
+              </h1>
+              <button
+                onClick={() => navigate('/')}
+                className="px-3 py-2 rounded-lg bg-white/80 dark:bg-slate-800/80 hover:bg-white dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 text-sm font-medium"
+                title="Return to main site"
+              >
+                ← Back to Site
+              </button>
+            </div>
             <p className="text-slate-600 dark:text-slate-300">Manage users, content, and monitor platform analytics</p>
           </motion.div>
 
           {/* Enhanced Tab Navigation */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={false}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
             className="mb-8"
@@ -2125,7 +2135,7 @@ export default function Admin() {
           </motion.div>
 
           {/* Tab Content */}
-          <AnimatePresence mode="wait" initial={false}>
+          <AnimatePresence mode="sync" initial={false}>
             {activeTab === 'overview' && <OverviewTab key="overview" />}
             {activeTab === 'users' && <UsersTab key="users" />}
             {activeTab === 'institutions' && <InstitutionsTab key="institutions" />}

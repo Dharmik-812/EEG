@@ -24,6 +24,9 @@ const seedAssets = () => ([
 ])
 
 const defaultProject = () => ({
+  version: 1,
+  createdAt: Date.now(),
+  updatedAt: Date.now(),
   id: `p-${Date.now()}`,
   name: 'Untitled Eco Game',
   scenes: [
@@ -72,8 +75,8 @@ export const useEditorStore = create(
       redo: [],
 
       newProject: () => set({ project: defaultProject(), selectedEntityId: null, selectedSceneId: 'scene-1', history: [], redo: [] }),
-      loadProject: (proj) => set({ project: proj, selectedEntityId: null, selectedSceneId: proj.startSceneId || proj.scenes[0]?.id, history: [], redo: [] }),
-      exportProject: () => JSON.stringify(get().project, null, 2),
+      loadProject: (proj) => set({ project: { ...proj, version: proj.version || 1, updatedAt: Date.now() }, selectedEntityId: null, selectedSceneId: proj.startSceneId || proj.scenes[0]?.id, history: [], redo: [] }),
+      exportProject: () => JSON.stringify({ ...get().project, updatedAt: Date.now() }, null, 2),
 
       setZoom: (z) => set({ zoom: Math.min(3, Math.max(0.25, z)) }),
       toggleGrid: () => set(state => ({ grid: !state.grid })),
@@ -96,7 +99,7 @@ export const useEditorStore = create(
       updateScene: (path, value) => set(state => {
         const scene = get().currentScene()
         if (!scene) return {}
-        const updated = { ...state.project }
+        const updated = { ...state.project, updatedAt: Date.now() }
         const sidx = updated.scenes.findIndex(s => s.id === scene.id)
         const newScene = { ...scene }
         let target = newScene
@@ -109,7 +112,7 @@ export const useEditorStore = create(
       selectScene: (id) => set({ selectedSceneId: id, selectedEntityId: null }),
       addScene: (name = 'New Scene') => set(state => {
         const id = `scene-${Date.now()}`
-        return { project: { ...state.project, scenes: [...state.project.scenes, { id, name, width: 960, height: 540, background: '#e6f7f1', entities: [] }] } }
+        return { project: { ...state.project, updatedAt: Date.now(), scenes: [...state.project.scenes, { id, name, width: 960, height: 540, background: '#e6f7f1', entities: [] }] } }
       }),
 
       selectEntity: (id) => set({ selectedEntityId: id }),
@@ -122,7 +125,7 @@ export const useEditorStore = create(
         if (kind === 'sprite') base.components.sprite = { fill: '#34d399' }
         if (kind === 'text') base.components.text = { value: 'Hello Earth', size: 24, color: '#065f46' }
         if (kind === 'tilemap') base.components.tilemap = { tileWidth: 32, tileHeight: 32, cols: Math.floor((scene.width-40)/32), rows: Math.floor((scene.height-40)/32), tilesetAssetId: null, paintIndex: 0, data: Array(Math.floor((scene.width-40)/32)*Math.floor((scene.height-40)/32)).fill(-1) }
-        const updated = { ...state.project }
+        const updated = { ...state.project, updatedAt: Date.now() }
         const idx = updated.scenes.findIndex(s => s.id === scene.id)
         updated.scenes[idx] = { ...scene, entities: [...scene.entities, base] }
         return { project: updated, selectedEntityId: id }
@@ -133,7 +136,7 @@ export const useEditorStore = create(
         const id = `e-${Date.now()}`
         const layerId = scene.layers?.[0]?.id || 'layer-default'
         const base = { id, layerId, parentId: null, name: 'Sprite', components: { transform: { x, y, w, h, rotation: 0 }, sprite: { fill: '#34d399', assetId } } }
-        const updated = { ...state.project }
+        const updated = { ...state.project, updatedAt: Date.now() }
         const idx = updated.scenes.findIndex(s => s.id === scene.id)
         updated.scenes[idx] = { ...scene, entities: [...scene.entities, base] }
         return { project: updated, selectedEntityId: id }
@@ -157,7 +160,7 @@ export const useEditorStore = create(
         const idxB = indices[j]
         const [ent] = entities.splice(idxA, 1)
         entities.splice(idxB, 0, ent)
-        const updated = { ...state.project }
+        const updated = { ...state.project, updatedAt: Date.now() }
         updated.scenes[sidx] = { ...scene, entities }
         return { project: updated }
       }),
@@ -166,7 +169,7 @@ export const useEditorStore = create(
         const scene = get().currentScene()
         const id = state.selectedEntityId
         if (!id) return {}
-        const updated = { ...state.project }
+        const updated = { ...state.project, updatedAt: Date.now() }
         const idx = updated.scenes.findIndex(s => s.id === scene.id)
         updated.scenes[idx] = { ...scene, entities: scene.entities.filter(e => e.id !== id) }
         return { project: updated, selectedEntityId: null }
@@ -176,7 +179,7 @@ export const useEditorStore = create(
         const scene = get().currentScene()
         const id = state.selectedEntityId
         if (!id) return {}
-        const updated = { ...state.project }
+        const updated = { ...state.project, updatedAt: Date.now() }
         const sidx = updated.scenes.findIndex(s => s.id === scene.id)
         const eidx = scene.entities.findIndex(e => e.id === id)
         const entity = { ...scene.entities[eidx] }
@@ -206,7 +209,7 @@ export const useEditorStore = create(
         const scene = get().currentScene()
         const id = state.selectedEntityId
         if (!id) return {}
-        const updated = { ...state.project }
+        const updated = { ...state.project, updatedAt: Date.now() }
         const sidx = updated.scenes.findIndex(s => s.id === scene.id)
         const eidx = scene.entities.findIndex(e => e.id === id)
         const entity = { ...scene.entities[eidx] }
@@ -235,7 +238,7 @@ export const useEditorStore = create(
         const scene = get().currentScene()
         const id = state.selectedEntityId
         if (!id) return {}
-        const updated = { ...state.project }
+        const updated = { ...state.project, updatedAt: Date.now() }
         const sidx = updated.scenes.findIndex(s => s.id === scene.id)
         const eidx = scene.entities.findIndex(e => e.id === id)
         const entity = { ...scene.entities[eidx] }
@@ -262,7 +265,7 @@ export const useEditorStore = create(
         ent.components = { ...ent.components, collider: col }
         const entities = [...scene.entities]
         entities[eidx] = ent
-        const updated = { ...state.project }
+        const updated = { ...state.project, updatedAt: Date.now() }
         updated.scenes[sidx] = { ...scene, entities }
         return { project: updated }
       }),
@@ -278,7 +281,7 @@ export const useEditorStore = create(
         ent.components = { ...ent.components, collider: col }
         const entities = [...scene.entities]
         entities[eidx] = ent
-        const updated = { ...state.project }
+        const updated = { ...state.project, updatedAt: Date.now() }
         updated.scenes[sidx] = { ...scene, entities }
         return { project: updated }
       }),
@@ -294,7 +297,7 @@ export const useEditorStore = create(
         ent.components = { ...ent.components, collider: col }
         const entities = [...scene.entities]
         entities[eidx] = ent
-        const updated = { ...state.project }
+        const updated = { ...state.project, updatedAt: Date.now() }
         updated.scenes[sidx] = { ...scene, entities }
         return { project: updated }
       }),
@@ -326,7 +329,7 @@ export const useEditorStore = create(
         get().pushHistory()
         const scene = get().currentScene()
         const id = `layer-${Date.now()}`
-        const updated = { ...state.project }
+        const updated = { ...state.project, updatedAt: Date.now() }
         const sidx = updated.scenes.findIndex(s => s.id === scene.id)
         const layers = [...(scene.layers || [])]
         layers.push({ id, name })
@@ -336,7 +339,7 @@ export const useEditorStore = create(
       renameLayer: (layerId, name) => set(state => {
         get().pushHistory()
         const scene = get().currentScene()
-        const updated = { ...state.project }
+        const updated = { ...state.project, updatedAt: Date.now() }
         const sidx = updated.scenes.findIndex(s => s.id === scene.id)
         const layers = (scene.layers || []).map(l => l.id === layerId ? { ...l, name } : l)
         updated.scenes[sidx] = { ...scene, layers }
@@ -346,7 +349,7 @@ export const useEditorStore = create(
         get().pushHistory()
         const scene = get().currentScene()
         if ((scene.layers||[]).length <= 1) return {}
-        const updated = { ...state.project }
+        const updated = { ...state.project, updatedAt: Date.now() }
         const sidx = updated.scenes.findIndex(s => s.id === scene.id)
         const layers = (scene.layers || []).filter(l => l.id !== layerId)
         // Move any entities on removed layer to first layer
@@ -365,7 +368,7 @@ export const useEditorStore = create(
         if (i === j) return {}
         const [lay] = layers.splice(i, 1)
         layers.splice(j, 0, lay)
-        const updated = { ...state.project }
+        const updated = { ...state.project, updatedAt: Date.now() }
         const sidx = updated.scenes.findIndex(s => s.id === scene.id)
         updated.scenes[sidx] = { ...scene, layers }
         return { project: updated }
@@ -579,7 +582,7 @@ export const useEditorStore = create(
         const clone = JSON.parse(JSON.stringify(src))
         clone.id = `scene-${Date.now()}`
         clone.name = src.name + ' Copy'
-        return { project: { ...state.project, scenes: [...state.project.scenes, clone] } }
+        return { project: { ...state.project, updatedAt: Date.now(), scenes: [...state.project.scenes, clone] } }
       }),
       setStartScene: (id) => set(state => ({ project: { ...state.project, startSceneId: id } })),
 

@@ -48,13 +48,19 @@ export class Engine {
     this.systems.push(this.particles)
 
     this.running = false
+    this.paused = false
     this.lastTs = 0
     this.accumulator = 0
     this.fixedDt = 1 / 60 // physics step
+    this.time = { elapsed: 0 }
 
     // Message manager state (throttle/dedupe/once)
     this._messageOnce = new Set()
     this._messageRecent = new Map() // key -> timestamp
+
+    // Lightweight event/timer helpers
+    this._timers = [] // { at, cb, repeat, interval }
+    this._events = new Map() // name -> Set(callback)
 
     // Resize canvas to current scene
     const scene = this.scenes.current()
@@ -236,10 +242,13 @@ export class Engine {
     this.lastTs = ts
 
     // Fixed-step update for determinism in physics
-    this.accumulator += dt
-    while (this.accumulator >= this.fixedDt) {
-      this.update(this.fixedDt)
-      this.accumulator -= this.fixedDt
+    if (!this.paused) {
+      this.accumulator += dt
+      while (this.accumulator >= this.fixedDt) {
+        this.update(this.fixedDt)
+        this.time.elapsed += this.fixedDt
+        this.accumulator -= this.fixedDt
+      }
     }
     // Render with the most recent state
     this.draw()
@@ -249,6 +258,21 @@ export class Engine {
   update(dt) {
     const scene = this.scenes.current()
     if (!scene) return
+    // timers
+    if (this._timers.length) {
+      const now = this.time.elapsed + dt
+      for (let i = this._timers.length - 1; i >= 0; i--) {
+        const t = this._timers[i]
+        if (now >= t.at) {
+          try { t.cb() } catch {}
+          if (t.repeat && t.interval) {
+            t.at += t.interval
+          } else {
+            this._timers.splice(i, 1)
+          }
+        }
+      }
+    }
     for (const sys of this.systems) if (sys.update) sys.update(scene, dt)
   }
 
@@ -257,4 +281,19 @@ export class Engine {
     if (!scene) return
     for (const sys of this.systems) if (sys.draw) sys.draw(scene, this.ctx)
   }
+
+  async preloadAssets(onProgress) {
+    await this.assets.preload(onProgress)
+  }
+
+  pause() { this.paused = true }
+  resume() { this.paused = false; this.lastTs = performance.now() }
+  togglePause() { this.paused ? this.resume() : this.pause() }
+
+  // Event/message/timer API for scripts
+  on(name, cb) { const set = this._events.get(name) || new Set(); set.add(cb); this._events.set(name, set); return () => set.delete(cb) }
+  emit(name, payload) { const set = this._events.get(name); if (!set) return; for (const cb of set) { try { cb(payload) } catch {} } }
+  setTimeout(cb, delaySec) { const t = { at: this.time.elapsed + Math.max(0, delaySec||0), cb }; this._timers.push(t); return t }
+  setInterval(cb, intervalSec) { const t = { at: this.time.elapsed + Math.max(0, intervalSec||0), cb, repeat: true, interval: Math.max(0, intervalSec||0) }; this._timers.push(t); return t }
+  clearTimer(timerRef) { const i = this._timers.indexOf(timerRef); if (i >= 0) this._timers.splice(i, 1) }
 }

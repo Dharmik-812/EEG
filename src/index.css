@@ -10,6 +10,8 @@
   html, body, #root {
     height: 100%;
   }
+  html { scroll-behavior: smooth; }
+  body { overscroll-behavior-y: contain; }
   img, video, canvas, svg {
     max-width: 100%;
     height: auto;
@@ -141,4 +143,8 @@
   .animate-gradient-golden { animation: gradient-golden 4s ease-in-out infinite; }
   .animate-shimmer { animation: shimmer 2s ease-in-out infinite; }
   .animate-glow-pulse { animation: glow-pulse 3s ease-in-out infinite; }
+  
+  /* Smooth scrolling helpers */
+  .smooth-scroll { scroll-behavior: smooth; -webkit-overflow-scrolling: touch; }
+  .gpu-layer { will-change: transform; transform: translateZ(0); }
 }

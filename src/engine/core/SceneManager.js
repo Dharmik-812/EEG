@@ -19,4 +19,39 @@ export class SceneManager {
     if (!next) return
     this.currentId = id
   }
+
+  addEntityToCurrent(entitySpec) {
+    const scene = this.current()
+    if (!scene) return null
+    const id = entitySpec?.id || `e-${Date.now()}-${Math.floor(Math.random()*9999)}`
+    const ent = { id, name: entitySpec?.name || 'Entity', components: entitySpec?.components || {}, layerId: entitySpec?.layerId || null }
+    scene.entities.push(ent)
+    return ent
+  }
+
+  removeEntityFromCurrent(idOrEnt) {
+    const scene = this.current()
+    if (!scene) return
+    const id = typeof idOrEnt === 'string' ? idOrEnt : idOrEnt?.id
+    const idx = scene.entities.findIndex(e => e.id === id)
+    if (idx >= 0) scene.entities.splice(idx, 1)
+  }
+
+  serialize() {
+    return {
+      ...this.project,
+      scenes: this.scenes.map(s => ({
+        id: s.id,
+        name: s.name,
+        width: s.width,
+        height: s.height,
+        background: s.background,
+        bgm: s.bgm,
+        bgmVolume: s.bgmVolume,
+        layers: s.layers,
+        entities: s.entities,
+      })),
+      startSceneId: this.currentId,
+    }
+  }
 }
