@@ -2063,10 +2063,11 @@ export default function Admin() {
       <SEO title="Admin Dashboard" description="Comprehensive admin panel for AverSoltix platform management." noIndex={true} />
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-emerald-50 dark:from-slate-900 dark:to-emerald-950" style={{ willChange: 'transform', transform: 'translateZ(0)' }}>
         <div className="container mx-auto px-4 py-8">
-          {/* Header */}
+          {/* Header (restored entrance animation) */}
           <motion.div
-            initial={false}
+            initial={{ opacity: 0, y: -16 }}
             animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, ease: 'easeOut' }}
             className="mb-8"
           >
             <div className="flex items-center justify-between gap-3">
@@ -2084,11 +2085,11 @@ export default function Admin() {
             <p className="text-slate-600 dark:text-slate-300">Manage users, content, and monitor platform analytics</p>
           </motion.div>
 
-          {/* Enhanced Tab Navigation */}
+          {/* Enhanced Tab Navigation (animated once on mount) */}
           <motion.div
-            initial={false}
+            initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
+            transition={{ duration: 0.35, delay: 0.08 }}
             className="mb-8"
           >
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 p-4 bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl rounded-2xl border border-white/20 shadow-lg">
@@ -2134,17 +2135,73 @@ export default function Admin() {
             </div>
           </motion.div>
 
-          {/* Tab Content */}
-          <AnimatePresence mode="sync" initial={false}>
-            {activeTab === 'overview' && <OverviewTab key="overview" />}
-            {activeTab === 'users' && <UsersTab key="users" />}
-            {activeTab === 'institutions' && <InstitutionsTab key="institutions" />}
-            {activeTab === 'content' && <ContentTab key="content" />}
-            {activeTab === 'analytics' && <AnalyticsTab key="analytics" />}
-            {activeTab === 'system' && <SystemTab key="system" />}
-            {activeTab === 'settings' && <SettingsTab key="settings" />}
-            {activeTab === 'playground' && <PlaygroundTab key="playground" />}
-          </AnimatePresence>
+          {/* Tab Content - keep components mounted to prevent flicker */}
+          <div className="relative">
+            <motion.div
+              initial={false}
+              animate={{ opacity: activeTab === 'overview' ? 1 : 0 }}
+              style={{ display: activeTab === 'overview' ? 'block' : 'none' }}
+              transition={{ duration: 0.2 }}
+            >
+              <OverviewTab />
+            </motion.div>
+            <motion.div
+              initial={false}
+              animate={{ opacity: activeTab === 'users' ? 1 : 0 }}
+              style={{ display: activeTab === 'users' ? 'block' : 'none' }}
+              transition={{ duration: 0.2 }}
+            >
+              <UsersTab />
+            </motion.div>
+            <motion.div
+              initial={false}
+              animate={{ opacity: activeTab === 'institutions' ? 1 : 0 }}
+              style={{ display: activeTab === 'institutions' ? 'block' : 'none' }}
+              transition={{ duration: 0.2 }}
+            >
+              <InstitutionsTab />
+            </motion.div>
+            <motion.div
+              initial={false}
+              animate={{ opacity: activeTab === 'content' ? 1 : 0 }}
+              style={{ display: activeTab === 'content' ? 'block' : 'none' }}
+              transition={{ duration: 0.2 }}
+            >
+              <ContentTab />
+            </motion.div>
+            <motion.div
+              initial={false}
+              animate={{ opacity: activeTab === 'analytics' ? 1 : 0 }}
+              style={{ display: activeTab === 'analytics' ? 'block' : 'none' }}
+              transition={{ duration: 0.2 }}
+            >
+              <AnalyticsTab />
+            </motion.div>
+            <motion.div
+              initial={false}
+              animate={{ opacity: activeTab === 'system' ? 1 : 0 }}
+              style={{ display: activeTab === 'system' ? 'block' : 'none' }}
+              transition={{ duration: 0.2 }}
+            >
+              <SystemTab />
+            </motion.div>
+            <motion.div
+              initial={false}
+              animate={{ opacity: activeTab === 'settings' ? 1 : 0 }}
+              style={{ display: activeTab === 'settings' ? 'block' : 'none' }}
+              transition={{ duration: 0.2 }}
+            >
+              <SettingsTab />
+            </motion.div>
+            <motion.div
+              initial={false}
+              animate={{ opacity: activeTab === 'playground' ? 1 : 0 }}
+              style={{ display: activeTab === 'playground' ? 'block' : 'none' }}
+              transition={{ duration: 0.2 }}
+            >
+              <PlaygroundTab />
+            </motion.div>
+          </div>
         </div>
       </div>
     </>
