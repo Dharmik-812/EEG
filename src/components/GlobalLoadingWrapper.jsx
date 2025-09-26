@@ -7,7 +7,6 @@ import ErrorBoundary from './ErrorBoundary'
 const GlobalLoadingWrapper = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true)
   const [isInitialized, setIsInitialized] = useState(false)
-  const [showApp, setShowApp] = useState(false)
   const [useFallback, setUseFallback] = useState(false)
 
   useEffect(() => {
@@ -47,14 +46,16 @@ const GlobalLoadingWrapper = ({ children }) => {
     }
 
     initializeApp()
+    
+    // Safety: never let the app get stuck behind the loading screen
+    const safetyTimer = setTimeout(() => {
+      setIsLoading(false)
+    }, 4000)
+    return () => clearTimeout(safetyTimer)
   }, [])
 
   const handleLoadingComplete = () => {
     setIsLoading(false)
-    // Small delay to ensure smooth transition
-    setTimeout(() => {
-      setShowApp(true)
-    }, 100)
   }
 
   // Add responsive viewport meta handling
@@ -91,6 +92,18 @@ const GlobalLoadingWrapper = ({ children }) => {
 
   return (
     <>
+      {/* App content is always mounted so routes/pages can preload while the overlay shows */}
+      <div 
+        className="min-h-screen w-full"
+        style={{
+          paddingTop: 'env(safe-area-inset-top)',
+          paddingBottom: 'env(safe-area-inset-bottom)',
+        }}
+      >
+        {children}
+      </div>
+
+      {/* Loading overlay sits above content during first boot */}
       <AnimatePresence mode="wait">
         {isLoading && isInitialized && (
           <ErrorBoundary 
@@ -109,19 +122,6 @@ const GlobalLoadingWrapper = ({ children }) => {
           </ErrorBoundary>
         )}
       </AnimatePresence>
-      
-      {/* App content with responsive wrapper - only show after loading is complete */}
-      {showApp && (
-        <div 
-          className="min-h-screen w-full"
-          style={{
-            paddingTop: 'env(safe-area-inset-top)',
-            paddingBottom: 'env(safe-area-inset-bottom)',
-          }}
-        >
-          {children}
-        </div>
-      )}
     </>
   )
 }

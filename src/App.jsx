@@ -136,6 +136,7 @@ export default function App() {
   const location = useLocation()
   const adminMode = location.pathname.startsWith('/admin')
   const [isNavigating, setIsNavigating] = useState(false)
+  const [routeOverlay, setRouteOverlay] = useState(false)
   const [showSplash, setShowSplash] = useState(true)
   const [isAppReady, setIsAppReady] = useState(false)
   const reduced = useAnimationStore(s => s.reduced)
@@ -145,8 +146,10 @@ export default function App() {
 
   useEffect(() => {
     setIsNavigating(true)
+    setRouteOverlay(true)
     const timer = setTimeout(() => setIsNavigating(false), 300)
-    return () => clearTimeout(timer)
+    const hide = setTimeout(() => setRouteOverlay(false), 500)
+    return () => { clearTimeout(timer); clearTimeout(hide) }
   }, [location.pathname])
 
   // Ensure proper initialization for new tabs
@@ -242,8 +245,7 @@ export default function App() {
           {!adminMode && <Navbar />}
 
           <div
-            className={`${adminMode ? 'pt-6 px-4' : 'pt-16 sm:pt-20'
-              } mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8 xl:px-12 relative`}
+            className={`${adminMode ? 'pt-6 px-4' : 'pt-16 sm:pt-20'} mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8 xl:px-12 relative`}
           >
             {isNavigating && (
               <motion.div
@@ -253,6 +255,21 @@ export default function App() {
                 className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-400 to-sky-400 z-10"
               />
             )}
+
+            {/* Route change overlay to avoid blank content during transitions */}
+            <AnimatePresence>
+              {routeOverlay && (
+                <motion.div
+                  key="route-overlay"
+                  className="pointer-events-none fixed inset-0 z-20"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 0.06 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.25 }}
+                  style={{ background: 'linear-gradient(180deg, rgba(16,185,129,0.08) 0%, rgba(56,189,248,0.08) 100%)' }}
+                />
+              )}
+            </AnimatePresence>
 
             <LayoutGroup>
               <AnimatePresence mode="wait">
