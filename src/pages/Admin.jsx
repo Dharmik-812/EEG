@@ -2193,14 +2193,15 @@ export default function Admin() {
             >
               <SettingsTab />
             </motion.div>
-            <motion.div
-              initial={false}
-              animate={{ opacity: activeTab === 'playground' ? 1 : 0 }}
-              style={{ display: activeTab === 'playground' ? 'block' : 'none' }}
-              transition={{ duration: 0.2 }}
-            >
-              <PlaygroundTab />
-            </motion.div>
+            {activeTab === 'playground' && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.2 }}
+              >
+                <PlaygroundTab />
+              </motion.div>
+            )}
           </div>
         </div>
       </div>
