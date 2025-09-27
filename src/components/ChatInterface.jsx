@@ -180,8 +180,8 @@ export default function ChatInterface() {
               disabled={isStreaming}
               aria-label="Select model"
             >
-              <option value="normal">Normal (gemini-1.5-flash-latest)</option>
-              <option value="pro">Gemini Pro (gemini-1.5-pro-latest)</option>
+              <option value="normal">AversoAI-Impulsive</option>
+              <option value="pro">AversoAI-Thinker</option>
             </select>
           </label>
           <button
