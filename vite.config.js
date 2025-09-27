@@ -21,4 +21,13 @@ export default defineConfig({
       process.env.VITE_GEMINI_API_KEY || GEMINI_FROM_KEY_ENV || ''
     ),
   },
+  server: {
+    proxy: {
+      '/api/gemini': {
+        target: 'https://generativelanguage.googleapis.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/gemini/, '')
+      }
+    }
+  }
 })

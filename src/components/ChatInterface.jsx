@@ -8,7 +8,7 @@ import {
 } from 'lucide-react'
 import gsap from 'gsap'
 import { useAnimationStore } from '../store/animationStore'
-import useServerChat from '../hooks/useServerChat'
+import useClientChat from '../hooks/useClientChat'
 import '../styles/chatbot.css'
 
 // Enhanced typing indicator component
@@ -162,7 +162,7 @@ function MessageBubble({
                 />
             )}
 
-            <div className="flex flex-col max-w-[85%]">
+            <div className="flex flex-col max-w-[90%] sm:max-w-[85%]">
                 <div
                     ref={bubbleRef}
                     onMouseEnter={handleMouseEnter}
@@ -463,7 +463,7 @@ export default function ChatInterface() {
         apiStatus,
         canSendMessage,
         rateLimitInfo
-    } = useServerChat()
+    } = useClientChat()
 
     // UI State
     const [input, setInput] = useState('')
@@ -753,55 +753,58 @@ export default function ChatInterface() {
 
     // Header component
     const Header = useMemo(() => (
-        <div className="sticky top-0 z-10 backdrop-blur supports-[backdrop-filter]:bg-white/80 dark:supports-[backdrop-filter]:bg-slate-900/80 bg-white/95 dark:bg-slate-900/95 border-b border-emerald-100 dark:border-emerald-900/30 shadow-sm">
-            <div className="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
-                <div className="flex items-center gap-3">
+        <div className="sticky top-0 z-10 backdrop-blur supports-[backdrop-filter]:bg-white/80 dark:supports-[backdrop-filter]:bg-slate-900/80 bg-white/95 dark:bg-slate-900/95 border-b border-emerald-100 dark:border-emerald-900/30 shadow-sm flex-shrink-0">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 sm:py-3 flex items-center justify-between">
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                     <motion.div
-                        className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shadow-lg"
+                        className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shadow-lg flex-shrink-0"
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                     >
-                        <span aria-hidden className="text-lg">🌱</span>
+                        <span aria-hidden className="text-base sm:text-lg">🌱</span>
                     </motion.div>
-                    <div>
-                        <h1 className="text-lg font-semibold text-slate-900 dark:text-white">
+                    <div className="min-w-0">
+                        <h1 className="text-base sm:text-lg font-semibold text-slate-900 dark:text-white truncate">
                             AversoAI
                         </h1>
                         <div className="flex items-center gap-2">
-                            <p className="text-sm text-slate-600 dark:text-slate-400">
-                                Environmental Education Assistant
+                            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 truncate">
+                                <span className="hidden sm:inline">Environmental Education Assistant</span>
+                                <span className="sm:hidden">Eco Assistant</span>
                             </p>
                             {apiStatus === 'ready' ? (
-                                <Wifi className="h-3 w-3 text-green-500" />
+                                <Wifi className="h-3 w-3 text-green-500 flex-shrink-0" />
                             ) : (
-                                <WifiOff className="h-3 w-3 text-red-500" />
+                                <WifiOff className="h-3 w-3 text-red-500 flex-shrink-0" />
                             )}
                         </div>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-2">
-                    {/* Rate limit indicator */}
+                <div className="flex items-center gap-1 sm:gap-2">
+                    {/* Rate limit indicator - hide on mobile */}
                     {rateLimitInfo.remaining <= 2 && (
-                        <div className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                        <div className="hidden sm:flex text-xs text-amber-600 dark:text-amber-400 items-center gap-1">
                             <Clock className="h-3 w-3" />
-                            {rateLimitInfo.remaining} requests left
+                            <span className="hidden md:inline">{rateLimitInfo.remaining} requests left</span>
                         </div>
                     )}
 
-                    {/* Model selector */}
-                    <div className="flex items-center gap-2">
-                        <label className="text-sm text-slate-700 dark:text-slate-300">
+                    {/* Model selector - simplified on mobile */}
+                    <div className="flex items-center gap-1 sm:gap-2">
+                        <label className="hidden md:inline text-sm text-slate-700 dark:text-slate-300">
                             Model:
                         </label>
                         <select
-                            className="text-sm px-3 py-1.5 rounded-lg border border-emerald-400/40 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100"
+                            className="text-xs sm:text-sm px-2 py-1 sm:px-3 sm:py-1.5 rounded-lg border border-emerald-400/40 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100"
                             value={modelKey}
                             onChange={(e) => setModelKey(e.target.value)}
                             disabled={isStreaming}
                         >
                             {Object.entries(availableModels).map(([key, name]) => (
-                                <option key={key} value={key}>{name}</option>
+                                <option key={key} value={key}>
+                                    {name}
+                                </option>
                             ))}
                         </select>
                     </div>
@@ -809,20 +812,20 @@ export default function ChatInterface() {
                     {/* Action buttons */}
                     <button
                         onClick={() => { refreshSessions(); setShowHistory(true) }}
-                        className="btn-secondary flex items-center gap-2"
+                        className="btn-secondary flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-2"
                         onMouseEnter={handleButtonHover}
                     >
-                        <History className="h-4 w-4" />
-                        History
+                        <History className="h-3 w-3 sm:h-4 sm:w-4" />
+                        <span className="hidden sm:inline">History</span>
                     </button>
 
                     <button
                         onClick={createNewChat}
-                        className="btn-secondary flex items-center gap-2"
+                        className="btn-secondary flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-2"
                         onMouseEnter={handleButtonHover}
                     >
-                        <Plus className="h-4 w-4" />
-                        New
+                        <Plus className="h-3 w-3 sm:h-4 sm:w-4" />
+                        <span className="hidden sm:inline">New</span>
                     </button>
                 </div>
             </div>
@@ -833,7 +836,7 @@ export default function ChatInterface() {
     ])
 
     return (
-        <section className="min-h-screen flex flex-col bg-slate-50/50 dark:bg-slate-950/50">
+        <section className="eco-chat-container bg-slate-50/50 dark:bg-slate-950/50">
             {Header}
 
             {/* Session History Sidebar */}
@@ -855,36 +858,37 @@ export default function ChatInterface() {
             </AnimatePresence>
 
             {/* Main Chat Area */}
-            <div className="flex-1 flex flex-col max-w-4xl mx-auto w-full px-4">
-                <div className="flex-1 py-6 overflow-auto">
-                    <div className="space-y-6">
+            <div className="flex-1 flex flex-col w-full min-h-0">
+                <div className="flex-1 flex flex-col max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 min-h-0">
+                    <div className="eco-chat-scroll py-4 min-h-0">
+                        <div className="space-y-4">
                         {/* Welcome message */}
                         {messages.length === 0 && (
                             <motion.div
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                className="rounded-2xl p-6 bg-gradient-to-br from-emerald-50 to-emerald-100/60 dark:from-emerald-950/40 dark:to-emerald-900/20 border border-emerald-200/60 dark:border-emerald-800/40"
+                                className="rounded-2xl p-4 sm:p-6 bg-gradient-to-br from-emerald-50 to-emerald-100/60 dark:from-emerald-950/40 dark:to-emerald-900/20 border border-emerald-200/60 dark:border-emerald-800/40 mx-auto max-w-4xl"
                             >
-                                <div className="flex items-start gap-4">
-                                    <Avatar role="assistant" size="lg" />
-                                    <div>
-                                        <h2 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">
+                                <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
+                                    <Avatar role="assistant" size="lg" className="flex-shrink-0" />
+                                    <div className="text-center sm:text-left flex-1">
+                                        <h2 className="text-lg sm:text-xl font-semibold text-slate-900 dark:text-white mb-3">
                                             Welcome to AversoAI! 🌍
                                         </h2>
-                                        <p className="text-slate-700 dark:text-slate-300 mb-4">
+                                        <p className="text-sm sm:text-base text-slate-700 dark:text-slate-300 mb-4 leading-relaxed">
                                             I'm your friendly environmental education assistant! I can help you learn about
                                             climate change, sustainability, renewable energy, conservation, and eco-friendly practices.
                                         </p>
-                                        <div className="grid gap-3 md:grid-cols-2">
-                                            <div className="p-3 rounded-lg bg-white/50 dark:bg-slate-800/50">
+                                        <div className="grid gap-3 sm:grid-cols-2">
+                                            <div className="p-3 rounded-lg bg-white/50 dark:bg-slate-800/50 cursor-pointer hover:bg-white/70 dark:hover:bg-slate-800/70 transition-colors" onClick={() => setInput('How can I reduce my carbon footprint at home?')}>
                                                 <h3 className="font-medium text-sm mb-1">🌱 Get Started</h3>
-                                                <p className="text-sm text-slate-600 dark:text-slate-400">
+                                                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
                                                     "How can I reduce my carbon footprint at home?"
                                                 </p>
                                             </div>
-                                            <div className="p-3 rounded-lg bg-white/50 dark:bg-slate-800/50">
+                                            <div className="p-3 rounded-lg bg-white/50 dark:bg-slate-800/50 cursor-pointer hover:bg-white/70 dark:hover:bg-slate-800/70 transition-colors" onClick={() => setInput('What\'s the difference between solar and wind energy?')}>
                                                 <h3 className="font-medium text-sm mb-1">♻️ Learn More</h3>
-                                                <p className="text-sm text-slate-600 dark:text-slate-400">
+                                                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">
                                                     "What's the difference between solar and wind energy?"
                                                 </p>
                                             </div>
@@ -959,12 +963,13 @@ export default function ChatInterface() {
                         )}
 
                         <div ref={messagesEndRef} />
+                        </div>
                     </div>
                 </div>
 
                 {/* Input Area */}
-                <div className="py-4 border-t border-emerald-200/70 dark:border-emerald-900/40 bg-white/80 dark:bg-slate-950/80 backdrop-blur">
-                    <form onSubmit={handleSubmit} className="space-y-3">
+                <div className="flex-shrink-0 p-3 sm:p-4 border-t border-emerald-200/70 dark:border-emerald-900/40 bg-white/90 dark:bg-slate-950/90 backdrop-blur">
+                    <form onSubmit={handleSubmit} className="space-y-3 max-w-4xl mx-auto">
                         {/* Image preview */}
                         <AnimatePresence>
                             {imagePreview && (
@@ -999,7 +1004,7 @@ export default function ChatInterface() {
                         </AnimatePresence>
 
                         {/* Main input row */}
-                        <div className="flex items-end gap-3">
+                        <div className="flex items-end gap-2 sm:gap-3">
                             {/* Left controls */}
                             <div className="flex items-center gap-1">
                                 {/* Voice input */}
@@ -1009,7 +1014,7 @@ export default function ChatInterface() {
                                         onClick={isListening ? stopListening : startListening}
                                         onMouseEnter={handleButtonHover}
                                         className={clsx(
-                                            'p-3 rounded-xl transition-all duration-200',
+                                            'p-2 sm:p-3 rounded-xl transition-all duration-200',
                                             isListening
                                                 ? 'bg-red-500 text-white shadow-lg'
                                                 : 'hover:bg-emerald-100/50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-400'
@@ -1017,12 +1022,12 @@ export default function ChatInterface() {
                                         disabled={isSubmitting}
                                         aria-label={isListening ? 'Stop listening' : 'Start voice input'}
                                     >
-                                        {isListening ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
+                                        {isListening ? <MicOff className="h-4 w-4 sm:h-5 sm:w-5" /> : <Mic className="h-4 w-4 sm:h-5 sm:w-5" />}
                                     </button>
                                 )}
 
                                 {/* Image input */}
-                                <label className="p-3 rounded-xl hover:bg-emerald-100/50 dark:hover:bg-slate-800 cursor-pointer text-slate-600 dark:text-slate-400 transition-colors">
+                                <label className="p-2 sm:p-3 rounded-xl hover:bg-emerald-100/50 dark:hover:bg-slate-800 cursor-pointer text-slate-600 dark:text-slate-400 transition-colors">
                                     <input
                                         ref={fileInputRef}
                                         type="file"
@@ -1031,7 +1036,7 @@ export default function ChatInterface() {
                                         className="hidden"
                                         disabled={isSubmitting}
                                     />
-                                    <ImageIcon className="h-5 w-5" />
+                                    <ImageIcon className="h-4 w-4 sm:h-5 sm:w-5" />
                                 </label>
                             </div>
 
@@ -1046,7 +1051,7 @@ export default function ChatInterface() {
                                             imageFile ? 'Ask about this image...' :
                                                 'Ask me anything about the environment...'
                                     }
-                                    className="w-full rounded-2xl border border-emerald-300/60 dark:border-emerald-800/60 bg-white/90 dark:bg-slate-900/80 px-6 py-4 text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-emerald-500/60 transition-all"
+                                    className="w-full rounded-2xl border border-emerald-300/60 dark:border-emerald-800/60 bg-white/90 dark:bg-slate-900/80 px-4 py-3 sm:px-6 sm:py-4 text-sm sm:text-base text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-emerald-500/60 transition-all"
                                     disabled={isSubmitting || !canSendMessage}
                                     onFocus={handleInputFocus}
                                     onBlur={handleInputBlur}
@@ -1077,7 +1082,7 @@ export default function ChatInterface() {
                                 type="submit"
                                 disabled={isSubmitting || !canSendMessage || (!input.trim() && !imageFile)}
                                 className={clsx(
-                                    'px-6 py-4 rounded-2xl font-medium transition-all duration-200 flex items-center gap-2',
+                                    'px-4 py-3 sm:px-6 sm:py-4 rounded-2xl font-medium transition-all duration-200 flex items-center gap-1 sm:gap-2 flex-shrink-0',
                                     isSubmitting || !canSendMessage || (!input.trim() && !imageFile)
                                         ? 'bg-slate-300 dark:bg-slate-700 text-slate-500 cursor-not-allowed'
                                         : 'bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white shadow-lg hover:shadow-xl'
@@ -1087,28 +1092,30 @@ export default function ChatInterface() {
                                 {isSubmitting ? (
                                     <>
                                         <motion.div
-                                            className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full"
+                                            className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-white/30 border-t-white rounded-full"
                                             animate={{ rotate: 360 }}
                                             transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
                                         />
-                                        {editingId ? 'Updating...' : 'Sending...'}
+                                        <span className="hidden sm:inline">{editingId ? 'Updating...' : 'Sending...'}</span>
                                     </>
                                 ) : (
                                     <>
-                                        {editingId ? <Edit3 className="h-5 w-5" /> : <Send className="h-5 w-5" />}
-                                        {editingId ? 'Update' : 'Send'}
+                                        {editingId ? <Edit3 className="h-4 w-4 sm:h-5 sm:w-5" /> : <Send className="h-4 w-4 sm:h-5 sm:w-5" />}
+                                        <span className="hidden sm:inline">{editingId ? 'Update' : 'Send'}</span>
                                     </>
                                 )}
                             </button>
                         </div>
 
                         {/* Status indicators */}
-                        <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-                            <div className="flex items-center gap-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400">
+                            <div className="flex items-center gap-2 sm:gap-4">
                                 {apiStatus !== 'ready' && (
                                     <span className="text-red-500 flex items-center gap-1">
                                         <AlertCircle className="h-3 w-3" />
-                                        {apiStatus === 'missing_key' ? 'API key missing' : 'Connection error'}
+                                        <span className="hidden sm:inline">
+                                            {apiStatus === 'missing_key' ? 'API key missing' : 'Connection error'}
+                                        </span>
                                     </span>
                                 )}
 
@@ -1119,20 +1126,21 @@ export default function ChatInterface() {
                                         transition={{ duration: 1, repeat: Infinity }}
                                     >
                                         <Mic className="h-3 w-3" />
-                                        Listening...
+                                        <span className="hidden sm:inline">Listening...</span>
                                     </motion.span>
                                 )}
 
                                 {speakingId && (
                                     <span className="text-emerald-600 flex items-center gap-1">
                                         <Volume2 className="h-3 w-3" />
-                                        Speaking...
+                                        <span className="hidden sm:inline">Speaking...</span>
                                     </span>
                                 )}
                             </div>
 
-                            <div className="text-slate-400">
-                                AversoAI can make mistakes. Verify important information.
+                            <div className="text-slate-400 text-center sm:text-right">
+                                <span className="hidden sm:inline">AversoAI can make mistakes. Verify important information.</span>
+                                <span className="sm:hidden">Verify AI responses</span>
                             </div>
                         </div>
                     </form>

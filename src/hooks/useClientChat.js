@@ -33,7 +33,7 @@ RESPONSE STYLE:
 - End with encouragement or a call to action when appropriate
 - Use varied sentence structures to keep responses engaging`
 
-// Enhanced safety settings with more granular control
+// Safety settings
 const SAFETY_SETTINGS = [
     { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
     { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
@@ -41,17 +41,17 @@ const SAFETY_SETTINGS = [
     { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
 ]
 
-// Enhanced generation config with better parameters
+// Generation config
 const GENERATION_CONFIG = {
-    temperature: 0.8, // Slightly higher for more creative responses
-    topP: 0.9, // More focused responses
+    temperature: 0.8,
+    topP: 0.9,
     topK: 40,
-    maxOutputTokens: 1024, // Increased for better responses
+    maxOutputTokens: 1024,
     candidateCount: 1,
-    stopSequences: ["Human:", "User:", "Assistant:"] // Prevent role confusion
+    stopSequences: ["Human:", "User:", "Assistant:"]
 }
 
-// Enhanced model mapping with fallback options
+// Model variants - using stable model names
 const MODEL_VARIANTS = {
     fast: {
         primary: 'gemini-1.5-flash',
@@ -62,10 +62,15 @@ const MODEL_VARIANTS = {
         primary: 'gemini-1.5-pro',
         fallback: 'gemini-1.5-pro',
         name: 'AversoAI-Thinker'
+    },
+    normal: {
+        primary: 'gemini-1.5-pro',
+        fallback: 'gemini-1.5-pro',
+        name: 'AversoAI-Thinker'
     }
 }
 
-// Enhanced rate limiter with exponential backoff
+// Rate limiter
 class RateLimiter {
     constructor(maxRequests = 5, windowMs = 15000) {
         this.maxRequests = maxRequests
@@ -77,8 +82,6 @@ class RateLimiter {
 
     canProceed() {
         const now = Date.now()
-
-        // Clean old requests
         this.requests = this.requests.filter(time => now - time < this.windowMs)
 
         if (this.requests.length >= this.maxRequests) {
@@ -86,7 +89,7 @@ class RateLimiter {
         }
 
         this.requests.push(now)
-        this.backoffMultiplier = Math.max(1, this.backoffMultiplier * 0.9) // Reduce backoff on success
+        this.backoffMultiplier = Math.max(1, this.backoffMultiplier * 0.9)
         return true
     }
 
@@ -102,7 +105,7 @@ class RateLimiter {
     }
 }
 
-// Enhanced error handling with categorized error types
+// API Error class
 class APIError extends Error {
     constructor(message, type = 'unknown', statusCode = null, retryable = false) {
         super(message)
@@ -114,43 +117,55 @@ class APIError extends Error {
 }
 
 function categorizeError(error) {
-    const status = error?.status || error?.response?.status || error?.statusCode
+    const status = error?.status || error?.statusCode
     const message = error?.message || error?.toString() || 'Unknown error'
+    
+    console.error('Categorizing error:', { error, status, message })
+
+    // CORS issues
+    if (message.includes('CORS') || message.includes('cross-origin')) {
+        return new APIError('Cross-origin request blocked. API calls from browser may be restricted.', 'cors', status, false)
+    }
+
+    // Network/fetch failures
+    if (message.includes('Failed to fetch') || message.includes('NetworkError') || message.includes('ERR_NETWORK')) {
+        return new APIError('Network request failed. Check your internet connection or try again.', 'network', status, true)
+    }
 
     // Rate limiting
-    if (status === 429 || message.includes('quota') || message.includes('rate limit')) {
+    if (status === 429 || message.includes('quota') || message.includes('rate limit') || message.includes('RESOURCE_EXHAUSTED')) {
         return new APIError('Rate limit exceeded. Please wait a moment.', 'rate_limit', status, true)
     }
 
     // API key issues
-    if (status === 401 || status === 403 || message.includes('API key')) {
-        return new APIError('Invalid API key. Please check your configuration.', 'auth', status, false)
+    if (status === 401 || status === 403 || message.includes('API key') || message.includes('PERMISSION_DENIED') || message.includes('authentication')) {
+        return new APIError('Invalid or missing API key. Please check your configuration.', 'auth', status, false)
+    }
+
+    // Gemini-specific errors
+    if (message.includes('INVALID_ARGUMENT')) {
+        return new APIError('Invalid request format. Please try again.', 'invalid_request', status, false)
     }
 
     // Server errors (retryable)
-    if (status >= 500 || message.includes('server error') || message.includes('internal error')) {
+    if (status >= 500 || message.includes('server error') || message.includes('internal error') || message.includes('INTERNAL')) {
         return new APIError('Server temporarily unavailable. Retrying...', 'server', status, true)
     }
 
-    // Network issues (retryable)
-    if (message.includes('network') || message.includes('fetch') || message.includes('timeout')) {
-        return new APIError('Network connection issue. Please check your internet.', 'network', status, true)
+    // Generic network issues (retryable)
+    if (message.includes('network') || message.includes('timeout') || message.includes('connection')) {
+        return new APIError('Network connection issue. Please check your internet connection.', 'network', status, true)
     }
 
     // Content filtering
-    if (message.includes('safety') || message.includes('blocked')) {
-        return new APIError('Response was blocked by safety filters.', 'safety', status, false)
+    if (message.includes('safety') || message.includes('blocked') || message.includes('SAFETY')) {
+        return new APIError('Response was blocked by safety filters. Try rephrasing your message.', 'safety', status, false)
     }
 
-    // Generic retryable error
-    if (status >= 400 && status < 500) {
-        return new APIError(message, 'client', status, false)
-    }
-
-    return new APIError(message, 'unknown', status, true)
+    return new APIError(`Request failed: ${message}`, 'unknown', status, true)
 }
 
-export default function useGeminiChat() {
+export default function useClientChat() {
     // Core state
     const [messages, setMessages] = useState(() => loadChatHistory())
     const [isStreaming, setIsStreaming] = useState(false)
@@ -158,44 +173,155 @@ export default function useGeminiChat() {
     const [error, setError] = useState(null)
     const [currentSessionId, setCurrentSessionId] = useState(null)
 
-    // Enhanced user preferences
+    // User preferences
     const [preferences, setPreferences] = useState(() => loadUserPreferences())
-    const [modelKey, setModelKey] = useState(() => preferences.model || 'fast')
+    const [modelKey, setModelKey] = useState(() => preferences.model || 'normal')
 
-    // Enhanced refs and utilities
+    // API status
+    const [apiStatus, setApiStatus] = useState('checking')
+    const [genAI, setGenAI] = useState(null)
+
+    // Refs and utilities
     const rateLimiter = useRef(new RateLimiter(5, 15000))
     const abortControllerRef = useRef(null)
     const retryTimeoutRef = useRef(null)
 
-    // API configuration
-    const apiKey = import.meta.env.VITE_GEMINI_API_KEY
-
-    // Enhanced Gemini AI client with error handling
-    const genAI = useMemo(() => {
-        if (!apiKey) {
-            console.warn('Missing VITE_GEMINI_API_KEY environment variable')
-            return null
-        }
-
+    // List available models
+    const listAvailableModels = useCallback(async (ai) => {
         try {
-            return new GoogleGenerativeAI(apiKey)
+            console.log('Listing available models...')
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1/models?key=${import.meta.env.VITE_GEMINI_API_KEY}`)
+            const data = await response.json()
+            console.log('Available models:', data.models?.map(m => ({ name: m.name, supportedMethods: m.supportedGenerationMethods })))
+            return data.models?.filter(m => m.supportedGenerationMethods?.includes('generateContent')) || []
         } catch (error) {
-            console.error('Failed to initialize GoogleGenerativeAI:', error)
-            return null
+            console.error('Failed to list models:', error)
+            return []
         }
-    }, [apiKey])
+    }, [])
 
-    // Enhanced model selection with fallbacks
-    const getModel = useCallback((modelType = 'fast', isVision = false) => {
+    // Test API connection
+    const testAPIConnection = useCallback(async (ai, apiKey, modelName = 'gemini-1.5-flash-latest') => {
+        try {
+            console.log(`Testing API connection with model: ${modelName}...`)
+            const model = ai.getGenerativeModel(
+                {
+                    model: modelName,
+                    generationConfig: { maxOutputTokens: 50 }
+                },
+                { apiVersion: 'v1' }
+            )
+            
+            const result = await model.generateContent('Hello')
+            const response = await result.response
+            console.log('API test successful:', response.text())
+            return { success: true, modelName }
+        } catch (error) {
+            console.error(`API test failed for model ${modelName}:`, error)
+            return { success: false, error: error.message }
+        }
+    }, [])
+
+    // Initialize Gemini AI
+    useEffect(() => {
+        const apiKey = import.meta.env.VITE_GEMINI_API_KEY
+        
+        console.log('API Key available:', apiKey ? 'Yes' : 'No')
+        console.log('API Key (first 20 chars):', apiKey ? apiKey.substring(0, 20) + '...' : 'None')
+        
+        if (!apiKey) {
+            console.error('Missing VITE_GEMINI_API_KEY environment variable')
+            setApiStatus('missing_key')
+            return
+        }
+
+        async function initializeAPI() {
+            try {
+                const ai = new GoogleGenerativeAI(apiKey)
+                
+                // First, list available models
+                const availableModels = await listAvailableModels(ai)
+                
+                // Build candidate list from API response (v1) and prefer 1.5 pro/flash
+                const availableNames = (availableModels || [])
+                    .map(m => (m.name || '').replace(/^models\//, ''))
+                    .filter(Boolean)
+
+                const prefer = (prefix) => {
+                    return availableNames
+                        .filter(n => n.startsWith(prefix))
+                        .sort() // lexicographically puts -002 above -001 above no suffix
+                        .reverse()
+                }
+
+                const modelsToTry = [
+                    ...prefer('gemini-1.5-pro'),
+                    ...prefer('gemini-1.5-flash'),
+                    ...prefer('gemini-pro'),
+                ].filter((v, i, a) => a.indexOf(v) === i)
+
+                // Fallback to whatever the API listed if nothing matched the preferred prefixes
+                let finalModelsToTry = modelsToTry.length ? modelsToTry : availableNames
+
+                // If the list endpoint failed or returned nothing, try a safe fallback set
+                if (!finalModelsToTry.length) {
+                    finalModelsToTry = [
+                        'gemini-1.5-pro-002',
+                        'gemini-1.5-flash-002',
+                        'gemini-1.5-pro-001',
+                        'gemini-1.5-flash-001',
+                        'gemini-1.0-pro',
+                        'gemini-pro'
+                    ]
+                }
+
+                console.log('Models supporting generateContent (v1):', availableNames)
+                console.log('Model test order:', finalModelsToTry)
+
+                let workingModel = null
+                for (const modelName of finalModelsToTry) {
+                    const testResult = await testAPIConnection(ai, apiKey, modelName)
+                    if (testResult.success) {
+                        workingModel = modelName
+                        console.log(`Found working model: ${modelName}`)
+                        break
+                    }
+                }
+                
+                if (workingModel) {
+                    // Update model variants to use the working model
+                    MODEL_VARIANTS.fast.primary = workingModel
+                    MODEL_VARIANTS.fast.fallback = workingModel
+                    MODEL_VARIANTS.balanced.primary = workingModel
+                    MODEL_VARIANTS.balanced.fallback = workingModel
+                    MODEL_VARIANTS.normal.primary = workingModel
+                    MODEL_VARIANTS.normal.fallback = workingModel
+                    
+                    setGenAI(ai)
+                    setApiStatus('ready')
+                    console.log('Gemini AI initialized and tested successfully')
+                } else {
+                    setApiStatus('error')
+                    console.error('No working models found')
+                }
+            } catch (error) {
+                console.error('Failed to initialize GoogleGenerativeAI:', error)
+                setApiStatus('error')
+            }
+        }
+
+        initializeAPI()
+    }, [])
+
+    // Get model with fallbacks
+    const getModel = useCallback((modelType = 'normal', isVision = false) => {
         if (!genAI) return null
 
-        const variant = MODEL_VARIANTS[modelType] || MODEL_VARIANTS.fast
+        const variant = MODEL_VARIANTS[modelType] || MODEL_VARIANTS.normal
         const models = [variant.primary, variant.fallback]
 
-        // For vision tasks, ensure we use a compatible model
-        if (isVision) {
-            models.unshift('gemini-1.5-pro', 'gemini-1.5-flash')
-        }
+        // For vision tasks, Gemini 1.5 models already support image inputs.
+        // Avoid forcing unsupported fallbacks that could 404.
 
         for (const modelId of models) {
             try {
@@ -214,13 +340,12 @@ export default function useGeminiChat() {
         return null
     }, [genAI])
 
-    // Enhanced retry logic with exponential backoff
+    // Retry logic with exponential backoff
     const executeWithRetry = useCallback(async (operation, maxAttempts = 3) => {
         let lastError
 
         for (let attempt = 1; attempt <= maxAttempts; attempt++) {
             try {
-                // Check if we should abort
                 if (abortControllerRef.current?.signal?.aborted) {
                     throw new Error('Operation aborted')
                 }
@@ -229,19 +354,16 @@ export default function useGeminiChat() {
             } catch (error) {
                 lastError = categorizeError(error)
 
-                // Don't retry non-retryable errors
                 if (!lastError.retryable || attempt === maxAttempts) {
                     break
                 }
 
-                // Calculate delay with exponential backoff
                 const baseDelay = Math.min(1000 * Math.pow(2, attempt - 1), 8000)
                 const jitter = Math.random() * 0.1 * baseDelay
                 const delay = baseDelay + jitter
 
                 console.warn(`Attempt ${attempt} failed, retrying in ${delay}ms:`, lastError.message)
 
-                // Wait before retry
                 await new Promise(resolve => {
                     retryTimeoutRef.current = setTimeout(resolve, delay)
                 })
@@ -251,11 +373,10 @@ export default function useGeminiChat() {
         throw lastError
     }, [])
 
-    // Enhanced message validation and processing
+    // Message validation and processing
     const processUserMessage = useCallback((rawInput, imageFile = null) => {
         const text = sanitizeInput(rawInput)
 
-        // Validate input
         if (!text && !imageFile) {
             throw new Error('Please provide a message or image')
         }
@@ -275,9 +396,8 @@ export default function useGeminiChat() {
         return { text, isValid: true }
     }, [])
 
-    // Enhanced streaming message handler
+    // Send message
     const sendMessage = useCallback(async (rawInput) => {
-        // Reset error state
         setError(null)
 
         try {
@@ -310,12 +430,6 @@ export default function useGeminiChat() {
                 )
             }
 
-            // Get appropriate model
-            const model = getModel(modelKey)
-            if (!model) {
-                throw new APIError('AI model unavailable. Please check your API key.', 'model')
-            }
-
             // Create user message
             const userMsg = {
                 id: crypto.randomUUID(),
@@ -324,46 +438,41 @@ export default function useGeminiChat() {
                 timestamp: Date.now()
             }
 
-            // Add user message to state
             setMessages(prev => [...prev, userMsg])
-
-            // Setup streaming
             setIsStreaming(true)
             setStreamingText('')
 
-            // Create abort controller for this request
-            abortControllerRef.current = new AbortController()
-
             try {
-                // Build conversation context
-                const updatedHistory = [...messages, userMsg]
-                const contents = buildGeminiContents(updatedHistory, processed.text, SYSTEM_PROMPT)
-
-                // Execute with retry logic
-                const response = await executeWithRetry(async () => {
-                    const result = await model.generateContentStream({ contents })
-                    return result
-                })
-
-                // Process streaming response
-                let fullText = ''
-                for await (const chunk of response.stream) {
-                    if (abortControllerRef.current?.signal?.aborted) {
-                        break
-                    }
-
-                    const delta = chunk?.text?.() || ''
-                    if (delta) {
-                        fullText += delta
-                        setStreamingText(fullText)
-                    }
+                // Get model and generate response
+                const model = getModel(modelKey, false)
+                if (!model) {
+                    throw new Error('AI model not available')
                 }
 
-                // Process final response
-                let finalText = limitToSentences(fullText || 'Got it! 🌱', 3)
+                // Build simple prompt with conversation context
+                let prompt = `${SYSTEM_PROMPT}\n\nUser: ${processed.text}`
+                
+                // Add recent conversation context if available
+                if (messages.length > 0) {
+                    const recentMessages = messages.slice(-4) // Last 4 messages for context
+                    let context = recentMessages.map(msg => 
+                        `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`
+                    ).join('\n')
+                    prompt = `${SYSTEM_PROMPT}\n\nPrevious conversation:\n${context}\n\nUser: ${processed.text}`
+                }
+
+                // Call Gemini API directly with retry logic
+                console.log('Sending to Gemini API:', { prompt, modelKey })
+                const result = await executeWithRetry(async () => {
+                    const response = await model.generateContent(prompt)
+                    return response.response
+                })
+                console.log('Gemini API response received:', result)
+
+                // Process response
+                let finalText = limitToSentences(result.text() || 'Got it! 🌱', 3)
                 finalText = addPlayfulEmojis(finalText)
 
-                // Create assistant message
                 const assistantMsg = {
                     id: crypto.randomUUID(),
                     role: 'assistant',
@@ -374,9 +483,9 @@ export default function useGeminiChat() {
 
                 setMessages(prev => [...prev, assistantMsg])
 
-            } catch (streamError) {
-                if (streamError.message === 'Operation aborted') return
-                throw streamError
+            } catch (apiError) {
+                if (apiError.message === 'Operation aborted') return
+                throw apiError
             }
 
         } catch (error) {
@@ -390,17 +499,15 @@ export default function useGeminiChat() {
         }
     }, [messages, modelKey, getModel, executeWithRetry, processUserMessage])
 
-    // Enhanced image message handler
+    // Send message with image
     const sendMessageWithImage = useCallback(async (rawInput, imageData) => {
         setError(null)
 
         try {
-            // Validate inputs
             if (!imageData || !imageData.data || !imageData.mimeType) {
                 throw new Error('Invalid image data')
             }
 
-            // Process text input (allow empty for image-only messages)
             const text = sanitizeInput(rawInput) || 'What can you tell me about this image from an environmental perspective?'
 
             // Rate limiting
@@ -412,13 +519,6 @@ export default function useGeminiChat() {
                 )
             }
 
-            // Get vision model
-            const model = getModel(modelKey, true)
-            if (!model) {
-                throw new APIError('Vision model unavailable. Please try again.', 'model')
-            }
-
-            // Create user message with image
             const userMsg = {
                 id: crypto.randomUUID(),
                 role: 'user',
@@ -430,8 +530,6 @@ export default function useGeminiChat() {
             setMessages(prev => [...prev, userMsg])
             setIsStreaming(true)
             setStreamingText('')
-
-            abortControllerRef.current = new AbortController()
 
             try {
                 // Prepare content parts for vision model
@@ -445,19 +543,20 @@ export default function useGeminiChat() {
                     }
                 ]
 
-                // Execute with retry
-                const response = await executeWithRetry(async () => {
-                    return await model.generateContent({
-                        contents: [{ role: 'user', parts }]
-                    })
+                const contents = [{ role: 'user', parts }]
+
+                // Get vision model and generate response
+                const model = getModel(modelKey, true)
+                if (!model) {
+                    throw new Error('Vision model not available')
+                }
+
+                const result = await executeWithRetry(async () => {
+                    const response = await model.generateContent(contents)
+                    return response.response
                 })
 
-                // Process response
-                const responseText = response?.response?.text?.() ||
-                    response?.response?.candidates?.[0]?.content?.parts?.map(p => p.text).join(' ') ||
-                    'I can see the image, but I\'m having trouble analyzing it right now.'
-
-                let finalText = limitToSentences(responseText, 3)
+                let finalText = limitToSentences(result.text() || 'I can see the image, but I\'m having trouble analyzing it right now.', 3)
                 finalText = addPlayfulEmojis(finalText)
 
                 const assistantMsg = {
@@ -486,21 +585,19 @@ export default function useGeminiChat() {
         }
     }, [messages, modelKey, getModel, executeWithRetry])
 
-    // Enhanced regenerate function
+    // Regenerate last response
     const regenerateLastResponse = useCallback(async () => {
         setError(null)
 
         try {
-            // Find last user message
             const userMessages = messages.filter(m => m.role === 'user')
             if (userMessages.length === 0) {
                 throw new Error('No message to regenerate')
             }
 
             const lastUserMessage = userMessages[userMessages.length - 1]
-
-            // Remove messages after the last user message
             const cutoffIndex = messages.findIndex(m => m.id === lastUserMessage.id)
+            
             if (cutoffIndex === -1) {
                 throw new Error('Could not find message to regenerate from')
             }
@@ -508,10 +605,8 @@ export default function useGeminiChat() {
             const trimmedMessages = messages.slice(0, cutoffIndex + 1)
             setMessages(trimmedMessages)
 
-            // Wait for state update
             await new Promise(resolve => setTimeout(resolve, 100))
 
-            // Regenerate response
             if (lastUserMessage.image) {
                 return await sendMessageWithImage(lastUserMessage.content, lastUserMessage.image)
             } else {
@@ -525,7 +620,7 @@ export default function useGeminiChat() {
         }
     }, [messages, sendMessage, sendMessageWithImage])
 
-    // Enhanced edit function
+    // Edit last user message
     const editLastUserMessage = useCallback(async (newText) => {
         setError(null)
 
@@ -535,7 +630,6 @@ export default function useGeminiChat() {
                 throw new Error('Please provide a valid message')
             }
 
-            // Find last user message
             const userMessages = messages.filter(m => m.role === 'user')
             if (userMessages.length === 0) {
                 throw new Error('No message to edit')
@@ -548,7 +642,6 @@ export default function useGeminiChat() {
                 throw new Error('Could not find message to edit')
             }
 
-            // Update the message and remove everything after it
             const updatedMessages = messages.slice(0, messageIndex)
             const editedMessage = {
                 ...lastUserMessage,
@@ -558,10 +651,7 @@ export default function useGeminiChat() {
 
             setMessages([...updatedMessages, editedMessage])
 
-            // Wait for state update
             await new Promise(resolve => setTimeout(resolve, 100))
-
-            // Send new response
             return await sendMessage(sanitizedText)
 
         } catch (error) {
@@ -571,7 +661,7 @@ export default function useGeminiChat() {
         }
     }, [messages, sendMessage])
 
-    // Enhanced session management
+    // Session management
     const clearCurrentChat = useCallback(() => {
         try {
             abortControllerRef.current?.abort()
@@ -632,7 +722,6 @@ export default function useGeminiChat() {
         try {
             const success = deleteSession(sessionId)
             if (success && sessionId === currentSessionId) {
-                // If we deleted the current session, load the new active one
                 const newHistory = loadChatHistory()
                 setMessages(newHistory)
             }
@@ -643,19 +732,18 @@ export default function useGeminiChat() {
         }
     }, [currentSessionId])
 
-    // Enhanced preferences management
+    // Preferences management
     const updatePreferences = useCallback((newPreferences) => {
         const updated = { ...preferences, ...newPreferences }
         setPreferences(updated)
         saveUserPreferences(updated)
 
-        // Update model if changed
         if (newPreferences.model && newPreferences.model !== modelKey) {
             setModelKey(newPreferences.model)
         }
     }, [preferences, modelKey])
 
-    // Enhanced abort function
+    // Abort current request
     const abortCurrentRequest = useCallback(() => {
         try {
             abortControllerRef.current?.abort()
@@ -690,14 +778,7 @@ export default function useGeminiChat() {
         }
     }, [])
 
-    // Enhanced API status
-    const apiStatus = useMemo(() => {
-        if (!apiKey) return 'missing_key'
-        if (!genAI) return 'invalid_key'
-        return 'ready'
-    }, [apiKey, genAI])
-
-    // Return enhanced API
+    // Return API
     return {
         // Core state
         messages,

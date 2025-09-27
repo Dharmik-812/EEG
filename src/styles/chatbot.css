@@ -1,28 +1,67 @@
 /* Chat-specific styles: bubbles, typing indicator, scrollbars, spinners */
 
+/* Full screen chat layout */
+.eco-chat-container {
+  height: 100vh;
+  height: 100dvh; /* Dynamic viewport height for mobile */
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  /* Prevent mobile browser zoom on input focus */
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 .eco-chat-scroll {
-  max-height: calc(100dvh - 220px);
+  flex: 1;
   overflow-y: auto;
   scroll-behavior: smooth;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }
 
 /* Message bubbles */
 .eco-bubble {
   border-radius: 1rem;
   padding: 0.75rem 1rem;
-  max-width: 80%;
+  max-width: 85%;
   box-shadow: 0 6px 18px rgba(16, 185, 129, 0.08);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
+
+/* Responsive bubble sizing */
+@media (max-width: 640px) {
+  .eco-bubble {
+    max-width: 90%;
+    padding: 0.625rem 0.875rem;
+    font-size: 0.875rem;
+  }
+}
+
 .eco-bubble-user {
   margin-left: auto;
   background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   color: white;
   border: 1px solid rgba(16, 185, 129, 0.15);
 }
+
 .eco-bubble-bot {
   background: linear-gradient(135deg, #ecfdf5 0%, #e6fffa 100%);
   color: #0f172a;
   border: 1px solid rgba(16, 185, 129, 0.35);
+}
+
+/* Dark mode bubble styles */
+@media (prefers-color-scheme: dark) {
+  .eco-bubble-bot {
+    background: linear-gradient(135deg, #064e3b 0%, #065f46 100%);
+    color: #ecfdf5;
+    border: 1px solid rgba(16, 185, 129, 0.25);
+  }
 }
 
 /* Typing indicator */
@@ -57,6 +96,64 @@
 @keyframes eco-spin { to { transform: rotate(360deg); } }
 
 /* Scrollbar (WebKit) */
-.eco-chat-scroll::-webkit-scrollbar { width: 10px; }
-.eco-chat-scroll::-webkit-scrollbar-thumb { background: rgba(16,185,129,.35); border-radius: 999px; }
-.eco-chat-scroll::-webkit-scrollbar-track { background: rgba(16,185,129,.1); border-radius: 999px; }
+.eco-chat-scroll::-webkit-scrollbar { 
+  width: 6px; 
+}
+.eco-chat-scroll::-webkit-scrollbar-thumb { 
+  background: rgba(16,185,129,.35); 
+  border-radius: 999px; 
+  transition: background 0.2s ease;
+}
+.eco-chat-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(16,185,129,.55);
+}
+.eco-chat-scroll::-webkit-scrollbar-track { 
+  background: rgba(16,185,129,.08); 
+  border-radius: 999px; 
+}
+
+/* Mobile scrollbar */
+@media (max-width: 768px) {
+  .eco-chat-scroll::-webkit-scrollbar { 
+    width: 4px; 
+  }
+}
+
+/* Hide scrollbar on very small screens but keep functionality */
+@media (max-width: 480px) {
+  .eco-chat-scroll {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE and Edge */
+  }
+  .eco-chat-scroll::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+  }
+}
+
+/* Mobile input optimizations */
+@media (max-width: 640px) {
+  /* Prevent zoom on input focus */
+  input[type="text"], 
+  input[type="email"], 
+  input[type="search"], 
+  textarea, 
+  select {
+    font-size: 16px !important; /* Prevents zoom on iOS */
+    transform: translateZ(0); /* Force hardware acceleration */
+  }
+  
+  /* Optimize touch targets */
+  button {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* Very small screens (phones in portrait) */
+@media (max-width: 375px) {
+  .eco-bubble {
+    max-width: 95%;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8125rem;
+  }
+}
