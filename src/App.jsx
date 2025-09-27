@@ -31,6 +31,7 @@ const Admin = lazy(() => import('./pages/Admin.jsx'))
 const CreateQuiz = lazy(() => import('./pages/CreateQuiz.jsx'))
 const HowItWorks = lazy(() => import('./pages/HowItWorks.jsx'))
 const Projects = lazy(() => import('./pages/Projects.jsx'))
+const ChatInterface = lazy(() => import('./components/ChatInterface.jsx'))
 
 // Suspense fallback
 function PageFallback() {
@@ -289,6 +290,7 @@ export default function App() {
                   <Route path="/create-quiz" element={<PageWrapper><CreateQuiz /></PageWrapper>} />
                   <Route path="/admin" element={<PageWrapper><Admin /></PageWrapper>} />
                   <Route path="/how-it-works" element={<PageWrapper><HowItWorks /></PageWrapper>} />
+                  <Route path="/chat" element={<PageWrapper><ChatInterface /></PageWrapper>} />
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
               </AnimatePresence>
