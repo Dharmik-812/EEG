@@ -12,6 +12,7 @@ const links = [
   { to: '/about', label: 'About', category: 'overview' },
   { to: '/how-it-works', label: 'Guide', category: 'learn' },
   { to: '/community', label: 'Community', category: 'engage' },
+  { to: '/chat', label: 'Chatbot', category: 'engage' },
   { to: '/dashboard', label: 'Dashboard', category: 'track', hideForAdmin: true },
   { to: '/leaderboard', label: 'Leaderboard', category: 'track' },
   { to: '/badges', label: 'Badges', category: 'track' },
@@ -126,6 +127,8 @@ export default function Navbar() {
             {links.slice(0, 4).filter(l => !(l.hideForAdmin && currentUser?.role === 'admin')).map(l => (
               <LinkItem key={l.to} {...l} />
             ))}
+            {/* Ensure Chatbot is visible on medium screens */}
+            <NavLink to="/chat" className="nav-link" data-ripple>Chatbot</NavLink>
           </div>
           <div className="w-px h-4 bg-slate-300 dark:bg-slate-600 mx-1" />
           <div className="flex items-center gap-1">

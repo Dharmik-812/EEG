@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai'
-import { addPlayfulEmojis, buildGeminiContents, isEnvironmentalTopic, limitToSentences, loadHistory, persistHistory, sanitizeInput } from '../utils/chatHelpers'
+import { addPlayfulEmojis, buildGeminiContents, isEnvironmentalTopic, limitToSentences, loadHistory, persistHistory, sanitizeInput, listSessions as listSessionsHelper, newSession as newSessionHelper, openSession as openSessionHelper, deleteSession as deleteSessionHelper } from '../utils/chatHelpers'
 
 const SYSTEM_PROMPT = "You are EcoBot, a fun environmental education assistant for a gamified learning app. You ONLY answer questions about environmental topics like climate change, recycling, sustainability, renewable energy, conservation, and eco-friendly habits. For off-topic questions, politely redirect to environmental education. Keep responses under 3 sentences, use emojis occasionally, and maintain an enthusiastic, game-like tone."
 
@@ -55,6 +55,15 @@ export default function useGeminiChat() {
     if (!genAI) return null
     try {
       return genAI.getGenerativeModel({ model: 'gemini-pro', safetySettings: SAFETY, generationConfig: GEN_CFG, systemInstruction: SYSTEM_PROMPT })
+    } catch {
+      return null
+    }
+  }, [genAI])
+
+  const visionModel = useMemo(() => {
+    if (!genAI) return null
+    try {
+      return genAI.getGenerativeModel({ model: 'gemini-1.5-flash', safetySettings: SAFETY, generationConfig: GEN_CFG, systemInstruction: SYSTEM_PROMPT })
     } catch {
       return null
     }
@@ -131,11 +140,92 @@ export default function useGeminiChat() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [model, messages, streamingText, withRetry, canProceed])
 
+  const sendMessageWithImage = useCallback(async (rawInput, image) => {
+    setError(null)
+    const text = sanitizeInput(rawInput)
+    if (!text && !image) return
+
+    if (!canProceed()) {
+      setError('Rate limit: Please wait a moment before sending another message.')
+      return
+    }
+
+    if (!visionModel) {
+      setError('Missing API key or vision model unavailable.')
+      return
+    }
+
+    // Build user message with optional image attachment (persisted for history)
+    const userMsg = { id: crypto.randomUUID(), role: 'user', content: text || '(sent an image)', createdAt: Date.now(), image }
+    setMessages(prev => [...prev, userMsg])
+    setIsStreaming(true)
+    setStreamingText('')
+
+    try {
+      const parts = []
+      if (text) parts.push({ text })
+      if (image?.data && image?.mimeType) parts.push({ inlineData: { data: image.data, mimeType: image.mimeType } })
+
+      const run = await withRetry(() => visionModel.generateContent({ contents: [{ role: 'user', parts }] }))
+      const finalTextRaw = run?.response?.text?.() || run?.response?.candidates?.[0]?.content?.parts?.map(p=>p.text).join(' ') || 'I looked at the image.'
+      let finalText = limitToSentences(finalTextRaw, 3)
+      finalText = addPlayfulEmojis(finalText)
+
+      const botMsg = { id: crypto.randomUUID(), role: 'assistant', content: finalText, createdAt: Date.now() }
+      setMessages(prev => [...prev, botMsg])
+    } catch (err) {
+      console.error(err)
+      setError('EcoBot could not process the image. Please try a different one.')
+    } finally {
+      setIsStreaming(false)
+      setStreamingText('')
+    }
+  }, [visionModel, withRetry, canProceed])
+
+  const regenerateLast = useCallback(async () => {
+    setError(null)
+    const idx = [...messages].map(m => m.role).lastIndexOf('user')
+    if (idx < 0) return
+    const lastPrompt = messages[idx].content
+    // Trim any assistant messages after last user prompt
+    setMessages(prev => prev.slice(0, idx + 1))
+    await new Promise(res => setTimeout(res, 0)) // allow state to apply
+    return sendMessage(lastPrompt)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [messages, sendMessage])
+
+  const editLastUserMessage = useCallback(async (newText) => {
+    const text = sanitizeInput(newText)
+    if (!text) return
+    const idx = [...messages].map(m => m.role).lastIndexOf('user')
+    if (idx < 0) return
+    // Replace last user message content and drop anything after
+    setMessages(prev => {
+      const copy = prev.slice(0, idx + 1)
+      copy[idx] = { ...copy[idx], content: text, editedAt: Date.now() }
+      return copy
+    })
+    await new Promise(res => setTimeout(res, 0))
+    return sendMessage(text)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [messages, sendMessage])
+
   const clearChat = useCallback(() => {
-    localStorage.removeItem('eco_chat_history_v1')
+    // Start a brand new session
+    newSessionHelper()
     setMessages([])
     setError(null)
   }, [])
+
+  // Sessions API for UI
+  const listSessions = useCallback(() => listSessionsHelper(), [])
+  const newChat = useCallback(() => { newSessionHelper(); setMessages([]); setError(null) }, [])
+  const openChat = useCallback((id) => {
+    const ses = openSessionHelper(id)
+    setMessages(ses?.messages || [])
+    setError(null)
+  }, [])
+  const deleteChat = useCallback((id) => { deleteSessionHelper(id); const active = loadHistory(); setMessages(active) }, [])
 
   return {
     messages,
@@ -143,6 +233,13 @@ export default function useGeminiChat() {
     streamingText,
     error,
     sendMessage,
+    sendMessageWithImage,
+    regenerateLast,
+    editLastUserMessage,
     clearChat,
+    listSessions,
+    newChat,
+    openChat,
+    deleteChat,
   }
 }

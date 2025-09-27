@@ -53,14 +53,103 @@ export function buildGeminiContents(history, userText, systemPrompt) {
   return turns
 }
 
-const STORAGE_KEY = 'eco_chat_history_v1'
+// Session-aware storage (migrates from legacy single-history storage)
+const LEGACY_HISTORY_KEY = 'eco_chat_history_v1'
+const SESSIONS_KEY = 'eco_chat_sessions_v1'
+const ACTIVE_ID_KEY = 'eco_chat_active_id_v1'
+
+function nowId() { return 's_' + Math.random().toString(36).slice(2, 10) }
+
+function readJSON(key, fallback) {
+  try {
+    const raw = localStorage.getItem(key)
+    return raw ? JSON.parse(raw) : fallback
+  } catch { return fallback }
+}
+function writeJSON(key, value) {
+  try { localStorage.setItem(key, JSON.stringify(value)) } catch {}
+}
+
+function titleFromMessages(msgs) {
+  const firstUser = (msgs || []).find(m => m.role === 'user')
+  if (firstUser && firstUser.content) {
+    const t = String(firstUser.content).trim().slice(0, 40)
+    return t || 'New chat'
+  }
+  return 'New chat'
+}
+
+function migrateLegacyIfNeeded() {
+  const sessions = readJSON(SESSIONS_KEY, null)
+  if (Array.isArray(sessions) && sessions.length) return
+  const legacy = readJSON(LEGACY_HISTORY_KEY, null)
+  if (Array.isArray(legacy)) {
+    const sid = nowId()
+    const newSessions = [{ id: sid, title: titleFromMessages(legacy), createdAt: Date.now(), messages: legacy }]
+    writeJSON(SESSIONS_KEY, newSessions)
+    writeJSON(ACTIVE_ID_KEY, sid)
+    try { localStorage.removeItem(LEGACY_HISTORY_KEY) } catch {}
+  }
+}
+
+function ensureActiveSession() {
+  migrateLegacyIfNeeded()
+  let sessions = readJSON(SESSIONS_KEY, [])
+  let activeId = readJSON(ACTIVE_ID_KEY, null)
+  if (!Array.isArray(sessions)) sessions = []
+  if (!sessions.length) {
+    const sid = nowId()
+    sessions = [{ id: sid, title: 'New chat', createdAt: Date.now(), messages: [] }]
+    writeJSON(SESSIONS_KEY, sessions)
+    writeJSON(ACTIVE_ID_KEY, sid)
+    return sessions[0]
+  }
+  const found = sessions.find(s => s.id === activeId) || sessions[0]
+  if (!activeId || !sessions.find(s => s.id === activeId)) {
+    writeJSON(ACTIVE_ID_KEY, found.id)
+  }
+  return found
+}
+
+export function listSessions() {
+  migrateLegacyIfNeeded()
+  const sessions = readJSON(SESSIONS_KEY, [])
+  return Array.isArray(sessions) ? sessions.sort((a,b)=>b.createdAt-a.createdAt) : []
+}
+
+export function newSession() {
+  const sessions = readJSON(SESSIONS_KEY, []) || []
+  const sid = nowId()
+  const ses = { id: sid, title: 'New chat', createdAt: Date.now(), messages: [] }
+  sessions.push(ses)
+  writeJSON(SESSIONS_KEY, sessions)
+  writeJSON(ACTIVE_ID_KEY, sid)
+  return sid
+}
+
+export function openSession(id) {
+  const sessions = readJSON(SESSIONS_KEY, []) || []
+  const found = sessions.find(s => s.id === id)
+  if (!found) return null
+  writeJSON(ACTIVE_ID_KEY, id)
+  return found
+}
+
+export function deleteSession(id) {
+  let sessions = readJSON(SESSIONS_KEY, []) || []
+  sessions = sessions.filter(s => s.id !== id)
+  writeJSON(SESSIONS_KEY, sessions)
+  const activeId = readJSON(ACTIVE_ID_KEY, null)
+  if (activeId === id) {
+    if (sessions[0]) writeJSON(ACTIVE_ID_KEY, sessions[0].id)
+    else newSession()
+  }
+}
 
 export function loadHistory() {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    const parsed = raw ? JSON.parse(raw) : []
-    if (!Array.isArray(parsed)) return []
-    return parsed
+    const active = ensureActiveSession()
+    return Array.isArray(active.messages) ? active.messages : []
   } catch {
     return []
   }
@@ -68,6 +157,18 @@ export function loadHistory() {
 
 export function persistHistory(messages) {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(messages))
+    const sessions = readJSON(SESSIONS_KEY, []) || []
+    const activeId = readJSON(ACTIVE_ID_KEY, null)
+    const idx = sessions.findIndex(s => s.id === activeId)
+    if (idx >= 0) {
+      const title = titleFromMessages(messages)
+      sessions[idx] = { ...sessions[idx], title, messages }
+      writeJSON(SESSIONS_KEY, sessions)
+    } else {
+      const sid = nowId()
+      sessions.push({ id: sid, title: titleFromMessages(messages), createdAt: Date.now(), messages })
+      writeJSON(SESSIONS_KEY, sessions)
+      writeJSON(ACTIVE_ID_KEY, sid)
+    }
   } catch {}
 }
