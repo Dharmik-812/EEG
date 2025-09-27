@@ -3,7 +3,6 @@ import { clsx } from 'clsx'
 import { motion } from 'framer-motion'
 import { History, RefreshCw, Edit3, Image as ImageIcon, Mic, MicOff, Volume2, VolumeX, X, PlayCircle, PauseCircle } from 'lucide-react'
 import gsap from 'gsap'
-import { animate as anime } from 'animejs'
 import { useAnimationStore } from '../store/animationStore'
 import useGeminiChat from '../hooks/useGeminiChat'
 import '../styles/chatbot.css'
@@ -23,6 +22,8 @@ export default function ChatInterface() {
     newChat,
     openChat,
     deleteChat,
+    modelKey,
+    setModelKey,
   } = useGeminiChat()
 
   const [input, setInput] = useState('')
@@ -93,7 +94,8 @@ export default function ChatInterface() {
 
   const onIconHover = (e) => {
     if (reduced) return
-    anime({ targets: e.currentTarget, translateY: [{ value: -2, duration: 140 }, { value: 0, duration: 200 }], easing: 'easeOutQuad' })
+    const el = e.currentTarget
+    gsap.to(el, { y: -2, duration: 0.14, ease: 'power2.out', onComplete: () => gsap.to(el, { y: 0, duration: 0.2, ease: 'power2.out' }) })
   }
   const onSendPress = (e) => {
     if (reduced) return
@@ -164,11 +166,24 @@ export default function ChatInterface() {
             <span aria-hidden>🌱</span>
           </div>
           <div>
-            <h1 className="text-base font-semibold text-slate-900 dark:text-white">EcoBot</h1>
+            <h1 className="text-base font-semibold text-slate-900 dark:text-white">AversoAI</h1>
             <p className="text-xs text-slate-600 dark:text-slate-400">Environmental Education Assistant</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <label className="text-xs text-slate-700 dark:text-slate-300">
+            Model:
+            <select
+              className="ml-2 px-2 py-1 rounded-md border border-emerald-400/40 bg-white dark:bg-slate-900"
+              value={modelKey}
+              onChange={(e) => setModelKey(e.target.value)}
+              disabled={isStreaming}
+              aria-label="Select model"
+            >
+              <option value="normal">Normal (gemini-1.5-flash-latest)</option>
+              <option value="pro">Gemini Pro (gemini-1.5-pro-latest)</option>
+            </select>
+          </label>
           <button
             onClick={() => { refreshSessions(); setShowHistory(true) }}
             className="text-xs px-3 py-2 rounded-lg border border-emerald-400/40 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50/60 dark:hover:bg-emerald-900/20 transition-colors inline-flex items-center gap-1"
@@ -190,7 +205,7 @@ export default function ChatInterface() {
         </div>
       </div>
     </div>
-  ), [clearChat])
+  ), [clearChat, isStreaming, modelKey, setModelKey])
 
   const lastUserId = messages.filter(m => m.role === 'user').slice(-1)[0]?.id
   const lastAssistant = [...messages].reverse().find(m => m.role === 'assistant')
@@ -237,7 +252,7 @@ export default function ChatInterface() {
           {/* Intro card when no messages */}
           {messages.length === 0 && (
             <div className="rounded-2xl p-5 bg-gradient-to-br from-emerald-50 to-emerald-100/60 dark:from-emerald-950/40 dark:to-emerald-900/20 border border-emerald-200/60 dark:border-emerald-800/40">
-              <h2 className="font-semibold text-slate-900 dark:text-white mb-1">Welcome to EcoBot! ♻️</h2>
+              <h2 className="font-semibold text-slate-900 dark:text-white mb-1">Welcome to AversoAI! ♻️</h2>
               <p className="text-sm text-slate-700 dark:text-slate-300">Ask me about climate change, recycling, sustainability, renewable energy, conservation, or eco-friendly habits. I’ll keep it short, fun, and gamified! ✨</p>
               <ul className="mt-3 text-sm text-slate-600 dark:text-slate-400 list-disc pl-5">
                 <li>Try: "How can I reduce plastic at home?"</li>
@@ -385,12 +400,16 @@ function MessageBubble({ role, content, image, onEdit, onSpeak, speaking }) {
     const y = role === 'user' ? 6 : 8
     gsap.fromTo(el, { opacity: 0, y, scale: 0.98 }, { opacity: 1, y: 0, scale: 1, duration: 0.35, ease: 'power2.out' })
     // Soft box-shadow pulse
-    anime({ targets: el, boxShadow: ['0 6px 18px rgba(16,185,129,0.06)', '0 10px 28px rgba(16,185,129,0.15)'], duration: 600, direction: 'alternate', easing: 'easeOutQuad' })
+    gsap.fromTo(el,
+      { boxShadow: '0 6px 18px rgba(16,185,129,0.06)' },
+      { boxShadow: '0 10px 28px rgba(16,185,129,0.15)', duration: 0.6, ease: 'power2.out', yoyo: true, repeat: 1 }
+    )
   }, [reduced, role])
 
   const onHover = (e) => {
     if (reduced) return
-    anime({ targets: e.currentTarget, scale: [{ value: 1.01, duration: 180 }, { value: 1, duration: 220 }], easing: 'easeOutCubic' })
+    const el = e.currentTarget
+    gsap.to(el, { scale: 1.01, duration: 0.18, ease: 'power2.out', onComplete: () => gsap.to(el, { scale: 1, duration: 0.22, ease: 'power2.out' }) })
   }
 
   return (
@@ -416,7 +435,7 @@ function MessageBubble({ role, content, image, onEdit, onSpeak, speaking }) {
 
 function TypingIndicator() {
   return (
-    <div className="eco-typing" aria-live="polite" aria-label="EcoBot is typing">
+    <div className="eco-typing" aria-live="polite" aria-label="AversoAI is typing">
       <span className="dot" />
       <span className="dot" />
       <span className="dot" />

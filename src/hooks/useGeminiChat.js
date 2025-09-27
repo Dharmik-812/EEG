@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai'
 import { addPlayfulEmojis, buildGeminiContents, isEnvironmentalTopic, limitToSentences, loadHistory, persistHistory, sanitizeInput, listSessions as listSessionsHelper, newSession as newSessionHelper, openSession as openSessionHelper, deleteSession as deleteSessionHelper } from '../utils/chatHelpers'
 
-const SYSTEM_PROMPT = "You are EcoBot, a fun environmental education assistant for a gamified learning app. You ONLY answer questions about environmental topics like climate change, recycling, sustainability, renewable energy, conservation, and eco-friendly habits. For off-topic questions, politely redirect to environmental education. Keep responses under 3 sentences, use emojis occasionally, and maintain an enthusiastic, game-like tone."
+const SYSTEM_PROMPT = "You are AversoAI, a fun environmental education assistant for a gamified learning website. You ONLY answer questions about environmental topics like climate change, recycling, sustainability, renewable energy, conservation, and eco-friendly habits. For off-topic questions, politely redirect to environmental education. Keep responses under 3 sentences, use emojis occasionally, and maintain an enthusiastic, game-like tone."
 
 const SAFETY = [
   { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
@@ -16,6 +16,12 @@ const GEN_CFG = {
   topP: 0.95,
   topK: 40,
   maxOutputTokens: 512,
+}
+
+// Models mapping for user selection
+const MODEL_MAP = {
+  normal: 'gemini-1.5-flash-latest',
+  pro: 'gemini-1.5-pro-latest',
 }
 
 // Simple in-memory rate limiter (3 requests per 10s)
@@ -39,8 +45,18 @@ export default function useGeminiChat() {
   const [streamingText, setStreamingText] = useState('')
   const [error, setError] = useState(null)
   const canProceed = useRateLimiter(3, 10_000)
+  const [modelKey, setModelKey] = useState(() => {
+    try {
+      return (typeof window !== 'undefined' && localStorage.getItem('aversoai:model')) || 'normal'
+    } catch {
+      return 'normal'
+    }
+  })
 
   useEffect(() => { persistHistory(messages) }, [messages])
+  useEffect(() => {
+    try { if (typeof window !== 'undefined') localStorage.setItem('aversoai:model', modelKey) } catch {}
+  }, [modelKey])
 
   const genAI = useMemo(() => {
     if (!apiKey) return null
@@ -53,21 +69,26 @@ export default function useGeminiChat() {
 
   const model = useMemo(() => {
     if (!genAI) return null
+    const modelId = MODEL_MAP[modelKey] || MODEL_MAP.normal
     try {
-      return genAI.getGenerativeModel({ model: 'gemini-pro', safetySettings: SAFETY, generationConfig: GEN_CFG, systemInstruction: SYSTEM_PROMPT })
+      return genAI.getGenerativeModel({ model: modelId, safetySettings: SAFETY, generationConfig: GEN_CFG, systemInstruction: SYSTEM_PROMPT })
     } catch {
       return null
     }
-  }, [genAI])
+  }, [genAI, modelKey])
 
+  // Use the same selected model for multimodal (1.5 supports images). Fallback across 1.5 variants.
   const visionModel = useMemo(() => {
     if (!genAI) return null
-    try {
-      return genAI.getGenerativeModel({ model: 'gemini-1.5-flash', safetySettings: SAFETY, generationConfig: GEN_CFG, systemInstruction: SYSTEM_PROMPT })
-    } catch {
-      return null
+    const preferred = MODEL_MAP[modelKey] || MODEL_MAP.normal
+    const fallbacks = [preferred, 'gemini-1.5-flash-latest', 'gemini-1.5-pro-latest']
+    for (const m of fallbacks) {
+      try {
+        return genAI.getGenerativeModel({ model: m, safetySettings: SAFETY, generationConfig: GEN_CFG, systemInstruction: SYSTEM_PROMPT })
+      } catch {}
     }
-  }, [genAI])
+    return null
+  }, [genAI, modelKey])
 
   const withRetry = useCallback(async (fn, attempts = 3) => {
     let lastErr
@@ -132,7 +153,7 @@ export default function useGeminiChat() {
       setMessages(prev => [...prev, botMsg])
     } catch (err) {
       console.error(err)
-      setError('EcoBot hit a snag. Please try again. 🌱')
+      setError('AversoAI hit a snag. Please try again. 🌱')
     } finally {
       setIsStreaming(false)
       setStreamingText('')
@@ -175,7 +196,7 @@ export default function useGeminiChat() {
       setMessages(prev => [...prev, botMsg])
     } catch (err) {
       console.error(err)
-      setError('EcoBot could not process the image. Please try a different one.')
+      setError('AversoAI could not process the image. Please try a different one.')
     } finally {
       setIsStreaming(false)
       setStreamingText('')
@@ -241,5 +262,7 @@ export default function useGeminiChat() {
     newChat,
     openChat,
     deleteChat,
+    modelKey,
+    setModelKey,
   }
 }
