@@ -1,329 +1,507 @@
-// Environmental topics for content filtering
-const ENVIRONMENTAL_TOPICS = [
-    'climate', 'climate change', 'global warming', 'recycle', 'recycling',
-    'sustain', 'sustainability', 'renewable', 'solar', 'wind', 'hydro',
-    'geothermal', 'conservation', 'biodiversity', 'pollution', 'water',
-    'waste', 'plastic', 'compost', 'eco', 'green', 'carbon', 'footprint',
-    'emissions', 'energy', 'deforestation', 'ocean', 'wildlife', 'habitat',
-    'transport', 'electric vehicle', 'ev', 'soil', 'tree', 'forest',
-    'environment', 'ecological', 'ecosystem', 'planet', 'earth', 'nature',
-    'clean energy', 'sustainable', 'greenhouse', 'gas', 'emission',
-    'conservation', 'preservation', 'organic', 'biodegradable', 'zero waste'
-];
+/* Enhanced Chat helpers: topic enforcement, sentence limiting, storage helpers */
 
-// Storage keys
-const STORAGE_KEYS = {
-    LEGACY_HISTORY: 'eco_chat_history_v1',
-    SESSIONS: 'eco_chat_sessions_v1',
-    ACTIVE_ID: 'eco_chat_active_id_v1'
-};
+const ENV_TOPICS = [
+    'climate', 'climate change', 'global warming', 'recycle', 'recycling', 'sustain', 'sustainability',
+    'renewable', 'solar', 'wind', 'hydro', 'geothermal', 'conservation', 'biodiversity', 'pollution',
+    'water', 'waste', 'plastic', 'compost', 'eco', 'green', 'carbon', 'footprint', 'emissions', 'energy',
+    'deforestation', 'ocean', 'wildlife', 'habitat', 'transport', 'electric vehicle', 'ev', 'soil', 'tree',
+    'forest', 'environment', 'ecosystem', 'organic', 'natural', 'greenhouse', 'ozone', 'renewable energy'
+]
 
-/**
- * Sanitizes user input by removing control characters
- */
-export function sanitizeInput(text: string): string {
-    if (!text) return '';
-    return text.replace(/[\u0000-\u001F\u007F]/g, '').trim();
+// Enhanced input sanitization with comprehensive cleaning
+export function sanitizeInput(text) {
+    if (!text || typeof text !== 'string') return ''
+    return text
+        .replace(/[\u0000-\u001F\u007F]/g, '') // Remove control characters
+        .replace(/\s+/g, ' ') // Normalize whitespace
+        .trim()
+        .slice(0, 2000) // Prevent excessive input length
 }
 
-/**
- * Checks if the text is related to environmental topics
- */
-export function isEnvironmentalTopic(text: string): boolean {
-    if (!text) return false;
+// Improved topic detection with fuzzy matching and context awareness
+export function isEnvironmentalTopic(text) {
+    if (!text || typeof text !== 'string') return false
 
-    const normalizedText = text.toLowerCase();
+    const normalized = text.toLowerCase()
+        .replace(/[^\w\s]/g, ' ') // Remove punctuation
+        .replace(/\s+/g, ' ')
+        .trim()
 
-    return ENVIRONMENTAL_TOPICS.some(topic =>
-        normalizedText.includes(topic) ||
-        normalizedText.split(/\s+/).some(word =>
-            topic.includes(word) || word.includes(topic)
-        )
-    );
+    // Direct keyword matching
+    const hasDirectMatch = ENV_TOPICS.some(keyword =>
+        normalized.includes(keyword.toLowerCase())
+    )
+
+    if (hasDirectMatch) return true
+
+    // Context-aware patterns for environmental discussions
+    const contextPatterns = [
+        /\b(how to|ways to|tips for).*(save|protect|conserve|reduce)\b/i,
+        /\b(eco.?friendly|environmentally safe|green alternative)\b/i,
+        /\b(carbon.?neutral|zero.?waste|sustainable.?living)\b/i,
+        /\b(clean.?energy|alternative.?fuel|green.?tech)\b/i
+    ]
+
+    return contextPatterns.some(pattern => pattern.test(text))
 }
 
-/**
- * Limits text to a maximum number of sentences
- */
-export function limitToSentences(text: string, maxSentences: number = 3): string {
-    if (!text) return '';
+// Enhanced sentence limiting with better punctuation handling
+export function limitToSentences(text, maxSentences = 3) {
+    if (!text || typeof text !== 'string') return ''
 
-    const cleanedText = text.replace(/\s+/g, ' ');
-    const sentences = cleanedText.split(/(?<=[.!?])\s+/).filter(Boolean);
+    const normalized = text.replace(/\s+/g, ' ').trim()
 
-    if (sentences.length <= maxSentences) {
-        return cleanedText.trim();
+    // Improved sentence splitting that handles abbreviations better
+    const sentences = normalized
+        .split(/(?<=[.!?])\s+(?=[A-Z])/g)
+        .filter(sentence => sentence.trim().length > 0)
+        .map(sentence => sentence.trim())
+
+    const limited = sentences.slice(0, maxSentences).join(' ')
+    return limited.length > 280 ? limited.slice(0, 277) + '...' : limited
+}
+
+// Enhanced emoji addition with context awareness
+export function addPlayfulEmojis(text) {
+    if (!text || typeof text !== 'string') return ''
+
+    // Check if emojis already exist
+    const hasEmoji = /[\u{1F300}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/u.test(text)
+    if (hasEmoji) return text
+
+    // Context-aware emoji selection
+    const emojiMap = {
+        recycle: ['♻️', '🔄'],
+        water: ['💧', '🌊'],
+        energy: ['⚡', '🔋'],
+        solar: ['☀️', '🌞'],
+        wind: ['💨', '🌪️'],
+        tree: ['🌳', '🌲'],
+        plant: ['🌱', '🪴'],
+        earth: ['🌍', '🌎', '🌏'],
+        default: ['🌱', '♻️', '💧', '🌍', '🌞', '🌿', '🪴', '🌳']
     }
 
-    const limited = sentences.slice(0, maxSentences).join(' ');
-    return limited.trim() + (text.trim().endsWith('.') ? '' : '.');
-}
-
-/**
- * Adds playful emojis to text if none exist
- */
-export function addPlayfulEmojis(text: string): string {
-    if (!text) return '';
-
-    // Check if text already contains emojis
-    const hasEmoji = /[\u{1F300}-\u{1F9FF}]/u.test(text);
-
-    if (!hasEmoji) {
-        const emojis = ['🌱', '♻️', '💧', '🌍', '🌞', '🌿', '🪴', '🍃', '🌎', '🌈'];
-        const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
-        return `${text} ${randomEmoji}`;
+    // Find contextual emoji
+    let selectedEmojis = emojiMap.default
+    for (const [key, emojis] of Object.entries(emojiMap)) {
+        if (key !== 'default' && text.toLowerCase().includes(key)) {
+            selectedEmojis = emojis
+            break
+        }
     }
 
-    return text;
+    const emoji = selectedEmojis[Math.floor(Math.random() * selectedEmojis.length)]
+    return `${text} ${emoji}`
 }
 
-/**
- * Converts chat history to Gemini API format
- */
-export function buildGeminiContents(
-    history: Array<{ role: string; content: string }>,
-    userText: string,
-    systemPrompt?: string
-): Array<{ role: string; parts: Array<{ text: string }> }> {
-    const turns: Array<{ role: string; parts: Array<{ text: string }> }> = [];
+// Enhanced Gemini content builder with better error handling
+export function buildGeminiContents(history, userText, systemPrompt) {
+    const contents = []
 
     // Add system prompt if provided
-    if (systemPrompt) {
-        turns.push({
+    if (systemPrompt && typeof systemPrompt === 'string') {
+        contents.push({
             role: 'user',
             parts: [{ text: `SYSTEM: ${systemPrompt}` }]
-        });
+        })
     }
 
-    // Limit history to last 6 turns for context management
-    const recentHistory = history.slice(-6);
+    // Process conversation history with validation
+    const validHistory = Array.isArray(history) ? history : []
+    const recentHistory = validHistory.slice(-12) // Increased context window
 
     recentHistory.forEach(message => {
-        const role = message.role === 'assistant' ? 'model' : 'user';
-        turns.push({
-            role,
-            parts: [{ text: message.content }]
-        });
-    });
+        if (!message || typeof message !== 'object') return
+
+        const role = message.role === 'assistant' ? 'model' : 'user'
+        const content = sanitizeInput(message.content)
+
+        if (content) {
+            contents.push({
+                role,
+                parts: [{ text: content }]
+            })
+        }
+    })
 
     // Add current user message
-    turns.push({
-        role: 'user',
-        parts: [{ text: userText }]
-    });
+    const currentText = sanitizeInput(userText)
+    if (currentText) {
+        contents.push({
+            role: 'user',
+            parts: [{ text: currentText }]
+        })
+    }
 
-    return turns;
+    return contents
 }
 
-// Session management utilities
-function generateSessionId(): string {
-    return 's_' + Math.random().toString(36).slice(2, 10) + '_' + Date.now().toString(36);
+// Enhanced storage with compression and error recovery
+const STORAGE_KEYS = {
+    LEGACY_HISTORY: 'eco_chat_history_v1',
+    SESSIONS: 'eco_chat_sessions_v2', // Incremented version for improvements
+    ACTIVE_ID: 'eco_chat_active_id_v1',
+    USER_PREFERENCES: 'eco_chat_preferences_v1'
 }
 
-function readFromStorage<T>(key: string, fallback: T): T {
+const MAX_SESSIONS = 50 // Prevent unlimited storage growth
+const SESSION_CLEANUP_THRESHOLD = 100
+
+// Enhanced storage utilities with better error handling
+function isStorageAvailable() {
     try {
-        if (typeof window === 'undefined') return fallback;
-
-        const item = localStorage.getItem(key);
-        return item ? JSON.parse(item) : fallback;
-    } catch (error) {
-        console.warn(`Failed to read from storage key "${key}":`, error);
-        return fallback;
+        const test = '__storage_test__'
+        localStorage.setItem(test, test)
+        localStorage.removeItem(test)
+        return true
+    } catch {
+        return false
     }
 }
 
-function writeToStorage(key: string, value: any): void {
+function compressData(data) {
     try {
-        if (typeof window === 'undefined') return;
-        localStorage.setItem(key, JSON.stringify(value));
-    } catch (error) {
-        console.warn(`Failed to write to storage key "${key}":`, error);
+        return JSON.stringify(data)
+    } catch {
+        return null
     }
 }
 
-function migrateLegacyStorage(): void {
-    const existingSessions = readFromStorage(STORAGE_KEYS.SESSIONS, []);
-    if (Array.isArray(existingSessions) && existingSessions.length > 0) return;
+function decompressData(compressed, fallback = null) {
+    try {
+        return JSON.parse(compressed)
+    } catch {
+        return fallback
+    }
+}
 
-    const legacyHistory = readFromStorage(STORAGE_KEYS.LEGACY_HISTORY, null);
-    if (Array.isArray(legacyHistory) && legacyHistory.length > 0) {
-        const newSessionId = generateSessionId();
-        const newSession = {
-            id: newSessionId,
-            title: generateTitleFromMessages(legacyHistory),
-            createdAt: Date.now(),
-            messages: legacyHistory
-        };
+function readStorage(key, fallback = null) {
+    if (!isStorageAvailable()) return fallback
 
-        writeToStorage(STORAGE_KEYS.SESSIONS, [newSession]);
-        writeToStorage(STORAGE_KEYS.ACTIVE_ID, newSessionId);
+    try {
+        const raw = localStorage.getItem(key)
+        return raw ? decompressData(raw, fallback) : fallback
+    } catch (error) {
+        console.warn(`Failed to read from storage (${key}):`, error)
+        return fallback
+    }
+}
 
-        // Clean up legacy storage
-        try {
-            localStorage.removeItem(STORAGE_KEYS.LEGACY_HISTORY);
-        } catch (error) {
-            console.warn('Failed to remove legacy storage:', error);
+function writeStorage(key, value) {
+    if (!isStorageAvailable()) return false
+
+    try {
+        const compressed = compressData(value)
+        if (compressed) {
+            localStorage.setItem(key, compressed)
+            return true
         }
+    } catch (error) {
+        console.warn(`Failed to write to storage (${key}):`, error)
     }
+    return false
 }
 
-function generateTitleFromMessages(messages: Array<{ role: string; content: string }>): string {
-    const firstUserMessage = messages.find(msg => msg.role === 'user');
+// Enhanced session ID generation with better uniqueness
+function generateSessionId() {
+    const timestamp = Date.now().toString(36)
+    const random = Math.random().toString(36).substring(2, 10)
+    return `s_${timestamp}_${random}`
+}
 
-    if (firstUserMessage?.content) {
-        const content = String(firstUserMessage.content).trim();
-        if (content.length > 0) {
-            // Extract first 40 characters, but break at last complete word
-            const truncated = content.slice(0, 40);
-            if (truncated.length === 40) {
-                const lastSpace = truncated.lastIndexOf(' ');
-                return lastSpace > 20 ? truncated.slice(0, lastSpace) + '…' : truncated + '…';
+// Improved title generation with better content extraction
+function generateSessionTitle(messages) {
+    if (!Array.isArray(messages) || messages.length === 0) {
+        return 'New Chat'
+    }
+
+    const firstUserMessage = messages.find(m =>
+        m?.role === 'user' &&
+        m?.content &&
+        typeof m.content === 'string'
+    )
+
+    if (!firstUserMessage) return 'New Chat'
+
+    let title = sanitizeInput(firstUserMessage.content)
+
+    // Extract meaningful keywords for title
+    const words = title.split(' ').filter(word =>
+        word.length > 2 &&
+        !['the', 'and', 'but', 'for', 'are', 'with', 'how', 'what', 'why'].includes(word.toLowerCase())
+    )
+
+    title = words.slice(0, 6).join(' ')
+
+    if (title.length > 50) {
+        title = title.substring(0, 47) + '...'
+    }
+
+    return title || 'New Chat'
+}
+
+// Enhanced migration with better error recovery
+function migrateLegacyData() {
+    try {
+        const existingSessions = readStorage(STORAGE_KEYS.SESSIONS, [])
+        if (Array.isArray(existingSessions) && existingSessions.length > 0) {
+            return // Already migrated
+        }
+
+        const legacyHistory = readStorage(STORAGE_KEYS.LEGACY_HISTORY, null)
+        if (Array.isArray(legacyHistory) && legacyHistory.length > 0) {
+            const sessionId = generateSessionId()
+            const newSession = {
+                id: sessionId,
+                title: generateSessionTitle(legacyHistory),
+                createdAt: Date.now(),
+                updatedAt: Date.now(),
+                messages: legacyHistory,
+                version: 2
             }
-            return truncated;
+
+            writeStorage(STORAGE_KEYS.SESSIONS, [newSession])
+            writeStorage(STORAGE_KEYS.ACTIVE_ID, sessionId)
+
+            // Clean up legacy data
+            try {
+                localStorage.removeItem(STORAGE_KEYS.LEGACY_HISTORY)
+            } catch { }
         }
-    }
-
-    return 'New chat';
-}
-
-function ensureActiveSession(): { id: string; title: string; createdAt: number; messages: any[] } {
-    migrateLegacyStorage();
-
-    let sessions = readFromStorage(STORAGE_KEYS.SESSIONS, []);
-    let activeId = readFromStorage(STORAGE_KEYS.ACTIVE_ID, null);
-
-    if (!Array.isArray(sessions)) {
-        sessions = [];
-    }
-
-    // Create initial session if none exist
-    if (sessions.length === 0) {
-        const newSessionId = generateSessionId();
-        const newSession = {
-            id: newSessionId,
-            title: 'New chat',
-            createdAt: Date.now(),
-            messages: []
-        };
-
-        sessions = [newSession];
-        writeToStorage(STORAGE_KEYS.SESSIONS, sessions);
-        writeToStorage(STORAGE_KEYS.ACTIVE_ID, newSessionId);
-
-        return newSession;
-    }
-
-    // Find active session or fallback to first session
-    const activeSession = sessions.find(session => session.id === activeId) || sessions[0];
-
-    if (!activeId || !sessions.find(session => session.id === activeId)) {
-        writeToStorage(STORAGE_KEYS.ACTIVE_ID, activeSession.id);
-    }
-
-    return activeSession;
-}
-
-// Public API
-export function loadHistory(): any[] {
-    try {
-        const activeSession = ensureActiveSession();
-        return Array.isArray(activeSession.messages) ? activeSession.messages : [];
     } catch (error) {
-        console.error('Failed to load chat history:', error);
-        return [];
+        console.warn('Failed to migrate legacy data:', error)
     }
 }
 
-export function persistHistory(messages: any[]): void {
+// Enhanced session cleanup
+function cleanupOldSessions() {
     try {
-        const sessions = readFromStorage(STORAGE_KEYS.SESSIONS, []);
-        const activeId = readFromStorage(STORAGE_KEYS.ACTIVE_ID, null);
+        const sessions = readStorage(STORAGE_KEYS.SESSIONS, [])
+        if (!Array.isArray(sessions) || sessions.length <= MAX_SESSIONS) {
+            return sessions
+        }
 
-        const sessionIndex = sessions.findIndex(session => session.id === activeId);
+        // Sort by updatedAt (most recent first) and keep only MAX_SESSIONS
+        const sortedSessions = sessions
+            .sort((a, b) => (b.updatedAt || b.createdAt || 0) - (a.updatedAt || a.createdAt || 0))
+            .slice(0, MAX_SESSIONS)
+
+        writeStorage(STORAGE_KEYS.SESSIONS, sortedSessions)
+        return sortedSessions
+    } catch (error) {
+        console.warn('Failed to cleanup old sessions:', error)
+        return []
+    }
+}
+
+// Enhanced session management
+function ensureActiveSession() {
+    migrateLegacyData()
+
+    let sessions = readStorage(STORAGE_KEYS.SESSIONS, [])
+    if (!Array.isArray(sessions)) sessions = []
+
+    // Cleanup if needed
+    if (sessions.length > SESSION_CLEANUP_THRESHOLD) {
+        sessions = cleanupOldSessions()
+    }
+
+    let activeId = readStorage(STORAGE_KEYS.ACTIVE_ID, null)
+
+    // Create first session if none exist
+    if (sessions.length === 0) {
+        const sessionId = generateSessionId()
+        const newSession = {
+            id: sessionId,
+            title: 'New Chat',
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+            messages: [],
+            version: 2
+        }
+
+        sessions = [newSession]
+        writeStorage(STORAGE_KEYS.SESSIONS, sessions)
+        writeStorage(STORAGE_KEYS.ACTIVE_ID, sessionId)
+        return newSession
+    }
+
+    // Find active session or use most recent
+    let activeSession = sessions.find(s => s.id === activeId)
+    if (!activeSession) {
+        activeSession = sessions.sort((a, b) =>
+            (b.updatedAt || b.createdAt || 0) - (a.updatedAt || a.createdAt || 0)
+        )[0]
+        writeStorage(STORAGE_KEYS.ACTIVE_ID, activeSession.id)
+    }
+
+    return activeSession
+}
+
+// Public API functions with enhanced error handling
+export function listSessions() {
+    migrateLegacyData()
+    const sessions = readStorage(STORAGE_KEYS.SESSIONS, [])
+
+    if (!Array.isArray(sessions)) return []
+
+    return sessions
+        .filter(session => session && typeof session === 'object' && session.id)
+        .sort((a, b) => (b.updatedAt || b.createdAt || 0) - (a.updatedAt || a.createdAt || 0))
+}
+
+export function createNewSession() {
+    try {
+        const sessions = readStorage(STORAGE_KEYS.SESSIONS, []) || []
+        const sessionId = generateSessionId()
+        const newSession = {
+            id: sessionId,
+            title: 'New Chat',
+            createdAt: Date.now(),
+            updatedAt: Date.now(),
+            messages: [],
+            version: 2
+        }
+
+        sessions.unshift(newSession) // Add to beginning
+        writeStorage(STORAGE_KEYS.SESSIONS, sessions)
+        writeStorage(STORAGE_KEYS.ACTIVE_ID, sessionId)
+
+        return sessionId
+    } catch (error) {
+        console.error('Failed to create new session:', error)
+        return null
+    }
+}
+
+export function switchToSession(sessionId) {
+    try {
+        const sessions = readStorage(STORAGE_KEYS.SESSIONS, [])
+        const session = sessions.find(s => s?.id === sessionId)
+
+        if (!session) {
+            console.warn(`Session not found: ${sessionId}`)
+            return null
+        }
+
+        // Update last accessed time
+        session.updatedAt = Date.now()
+        writeStorage(STORAGE_KEYS.SESSIONS, sessions)
+        writeStorage(STORAGE_KEYS.ACTIVE_ID, sessionId)
+
+        return session
+    } catch (error) {
+        console.error('Failed to switch to session:', error)
+        return null
+    }
+}
+
+export function deleteSession(sessionId) {
+    try {
+        let sessions = readStorage(STORAGE_KEYS.SESSIONS, [])
+        const initialLength = sessions.length
+
+        sessions = sessions.filter(s => s?.id !== sessionId)
+
+        if (sessions.length === initialLength) {
+            console.warn(`Session not found for deletion: ${sessionId}`)
+            return false
+        }
+
+        writeStorage(STORAGE_KEYS.SESSIONS, sessions)
+
+        const activeId = readStorage(STORAGE_KEYS.ACTIVE_ID, null)
+        if (activeId === sessionId) {
+            if (sessions.length > 0) {
+                // Switch to most recent session
+                const mostRecent = sessions.sort((a, b) =>
+                    (b.updatedAt || b.createdAt || 0) - (a.updatedAt || a.createdAt || 0)
+                )[0]
+                writeStorage(STORAGE_KEYS.ACTIVE_ID, mostRecent.id)
+            } else {
+                // Create new session if no sessions left
+                createNewSession()
+            }
+        }
+
+        return true
+    } catch (error) {
+        console.error('Failed to delete session:', error)
+        return false
+    }
+}
+
+export function loadChatHistory() {
+    try {
+        const activeSession = ensureActiveSession()
+        return Array.isArray(activeSession.messages) ? activeSession.messages : []
+    } catch (error) {
+        console.error('Failed to load chat history:', error)
+        return []
+    }
+}
+
+export function saveChatHistory(messages) {
+    try {
+        if (!Array.isArray(messages)) {
+            console.warn('Invalid messages array provided to saveChatHistory')
+            return false
+        }
+
+        const sessions = readStorage(STORAGE_KEYS.SESSIONS, [])
+        const activeId = readStorage(STORAGE_KEYS.ACTIVE_ID, null)
+
+        const sessionIndex = sessions.findIndex(s => s?.id === activeId)
 
         if (sessionIndex >= 0) {
-            const title = generateTitleFromMessages(messages);
+            // Update existing session
             sessions[sessionIndex] = {
                 ...sessions[sessionIndex],
-                title,
-                messages,
+                title: generateSessionTitle(messages),
+                messages: messages.map(msg => ({
+                    ...msg,
+                    content: sanitizeInput(msg.content) // Sanitize on save
+                })),
                 updatedAt: Date.now()
-            };
-
-            writeToStorage(STORAGE_KEYS.SESSIONS, sessions);
+            }
         } else {
-            // Create new session if active session not found
-            const newSessionId = generateSessionId();
-            const newSession = {
-                id: newSessionId,
-                title: generateTitleFromMessages(messages),
+            // Create new session
+            const sessionId = generateSessionId()
+            sessions.unshift({
+                id: sessionId,
+                title: generateSessionTitle(messages),
                 createdAt: Date.now(),
-                messages
-            };
-
-            sessions.push(newSession);
-            writeToStorage(STORAGE_KEYS.SESSIONS, sessions);
-            writeToStorage(STORAGE_KEYS.ACTIVE_ID, newSessionId);
+                updatedAt: Date.now(),
+                messages: messages.map(msg => ({
+                    ...msg,
+                    content: sanitizeInput(msg.content)
+                })),
+                version: 2
+            })
+            writeStorage(STORAGE_KEYS.ACTIVE_ID, sessionId)
         }
+
+        return writeStorage(STORAGE_KEYS.SESSIONS, sessions)
     } catch (error) {
-        console.error('Failed to persist chat history:', error);
+        console.error('Failed to save chat history:', error)
+        return false
     }
 }
 
-export function listSessions(): Array<{ id: string; title: string; createdAt: number }> {
-    migrateLegacyStorage();
-
-    const sessions = readFromStorage(STORAGE_KEYS.SESSIONS, []);
-    return Array.isArray(sessions)
-        ? sessions
-            .map(({ id, title, createdAt }) => ({ id, title, createdAt }))
-            .sort((a, b) => b.createdAt - a.createdAt)
-        : [];
+// User preferences management
+export function saveUserPreferences(preferences) {
+    return writeStorage(STORAGE_KEYS.USER_PREFERENCES, {
+        ...preferences,
+        updatedAt: Date.now()
+    })
 }
 
-export function newSession(): string {
-    const sessions = readFromStorage(STORAGE_KEYS.SESSIONS, []);
-    const newSessionId = generateSessionId();
-
-    const newSession = {
-        id: newSessionId,
-        title: 'New chat',
-        createdAt: Date.now(),
-        messages: []
-    };
-
-    sessions.push(newSession);
-    writeToStorage(STORAGE_KEYS.SESSIONS, sessions);
-    writeToStorage(STORAGE_KEYS.ACTIVE_ID, newSessionId);
-
-    return newSessionId;
-}
-
-export function openSession(id: string): { id: string; title: string; createdAt: number; messages: any[] } | null {
-    const sessions = readFromStorage(STORAGE_KEYS.SESSIONS, []);
-    const session = sessions.find(s => s.id === id);
-
-    if (session) {
-        writeToStorage(STORAGE_KEYS.ACTIVE_ID, id);
-        return session;
-    }
-
-    return null;
-}
-
-export function deleteSession(id: string): void {
-    let sessions = readFromStorage(STORAGE_KEYS.SESSIONS, []);
-    const activeId = readFromStorage(STORAGE_KEYS.ACTIVE_ID, null);
-
-    sessions = sessions.filter(session => session.id !== id);
-    writeToStorage(STORAGE_KEYS.SESSIONS, sessions);
-
-    // Update active session if deleted session was active
-    if (activeId === id) {
-        if (sessions.length > 0) {
-            writeToStorage(STORAGE_KEYS.ACTIVE_ID, sessions[0].id);
-        } else {
-            newSession(); // Create a new session if all were deleted
-        }
-    }
+export function loadUserPreferences() {
+    return readStorage(STORAGE_KEYS.USER_PREFERENCES, {
+        theme: 'auto',
+        animations: true,
+        sound: true,
+        model: 'normal'
+    })
 }
