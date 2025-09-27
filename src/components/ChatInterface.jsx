@@ -8,7 +8,7 @@ import {
 } from 'lucide-react'
 import gsap from 'gsap'
 import { useAnimationStore } from '../store/animationStore'
-import useGeminiChat from '../hooks/useGeminiChat'
+import useServerChat from '../hooks/useServerChat'
 import '../styles/chatbot.css'
 
 // Enhanced typing indicator component
@@ -463,7 +463,7 @@ export default function ChatInterface() {
         apiStatus,
         canSendMessage,
         rateLimitInfo
-    } = useGeminiChat()
+    } = useServerChat()
 
     // UI State
     const [input, setInput] = useState('')
