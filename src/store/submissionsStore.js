@@ -289,7 +289,7 @@ export const useSubmissionsStore = create(
 { id: 'dq-01', quiz: { title: 'Renewables 101', topic: 'Energy', difficulty: 'easy', xp: 100, questions: [
           { id: 'q1', type: 'mcq', question: 'Which is NOT renewable?', options: ['Wind','Solar','Coal','Hydro'], answerIndex: 2 },
           { id: 'q2', type: 'mcq', question: 'Main material of most solar cells?', options: ['Aluminum','Silicon','Copper','Iron'], answerIndex: 1 },
-          { id: 'q3', type: 'mcq', question: 'Geothermal energy comes from…', options: ['Earth's internal heat','Ocean tides only','Lightning','Car engines'], answerIndex: 0 },
+          { id: 'q3', type: 'mcq', question: 'Geothermal energy comes from…', options: ['Earth\'s internal heat','Ocean tides only','Lightning','Car engines'], answerIndex: 0 },
           { id: 'q4', type: 'mcq', question: 'Which factor improves rooftop solar output?', options: ['Proper orientation/tilt','Painting panels black','More shade','Dirty panels'], answerIndex: 0 },
           { id: 'q5', type: 'mcq', question: 'Hydroelectric plants use the energy of…', options: ['Falling water','Underground oil','Jet fuel','Coal steam'], answerIndex: 0 }
         ] }, ownerId: 'system', status: 'approved', approvedAt: new Date().toISOString() },
