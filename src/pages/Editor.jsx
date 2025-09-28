@@ -3,13 +3,13 @@ import { runProject } from '../engine/runtime'
 import { useEditorStore } from '../store/editorStore'
 import { useAuthStore } from '../store/authStore'
 import { useSubmissionsStore } from '../store/submissionsStore'
-import SimpleEnhancedToolbar from '../components/editor/SimpleEnhancedToolbar'
-import TutorialTour from '../components/editor/TutorialTour'
+import ModernLayout from '../components/editor/ModernLayout'
+import ModernSceneToolbar from '../components/editor/ModernSceneToolbar'
+import ModernHierarchyPanel from '../components/editor/ModernHierarchyPanel'
+import ModernInspector from '../components/editor/ModernInspector'
+import ModernConsolePanel from '../components/editor/ModernConsolePanel'
 import EnhancedViewport from '../components/editor/EnhancedViewport'
-import EnhancedInspector from '../components/editor/EnhancedInspector'
-import EnhancedSceneManager from '../components/editor/EnhancedSceneManager'
-import EnhancedAssetManager from '../components/editor/EnhancedAssetManager'
-import ScriptEditor from '../components/editor/ScriptEditor'
+import TutorialTour from '../components/editor/TutorialTour'
 import toast from 'react-hot-toast'
 import LoadingSpinner from '../components/LoadingSpinner.jsx'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -86,6 +86,13 @@ export default function Editor() {
   const [showTutorial, setShowTutorial] = useState(false)
   const [showGrid, setShowGrid] = useState(true)
   const [showRulers, setShowRulers] = useState(false)
+  
+  // Modern layout state
+  const [leftCollapsed, setLeftCollapsed] = useState(false)
+  const [rightCollapsed, setRightCollapsed] = useState(false)
+  const [bottomCollapsed, setBottomCollapsed] = useState(false)
+  const [hierarchyTab, setHierarchyTab] = useState('hierarchy')
+  const [consoleTab, setConsoleTab] = useState('console')
 
   useEffect(() => {
     // Initialize editor loading
