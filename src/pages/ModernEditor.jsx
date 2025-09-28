@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { runProject } from '../engine/runtime'
 import { useEditorStore } from '../store/editorStore'
 import { useAuthStore } from '../store/authStore'
@@ -51,6 +52,7 @@ function validateProjectSchema(data){
 }
 
 export default function ModernEditor() {
+  const navigate = useNavigate()
   const canvasRef = useRef(null)
   const [runner, setRunner] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -340,6 +342,7 @@ export default function ModernEditor() {
               }}
               onShowSettings={() => console.log('Show settings')}
               onShowHelp={() => setShowTutorial(true)}
+              onHome={() => navigate('/')}
             />
             
             <div className="flex-1 flex items-center justify-center p-4">

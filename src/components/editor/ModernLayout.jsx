@@ -136,7 +136,7 @@ const CollapsiblePanel = ({
         </>
       )}
       {isCollapsed && (
-        <div className="absolute left-0 top-0 h-full w-8 bg-slate-750 border-r border-slate-700 flex flex-col items-center py-2">
+        <div className="absolute left-0 top-0 h-full w-8 bg-slate-750 border-r border-slate-700 flex flex-col items-center py-2 z-20">
           <button
             onClick={onToggle}
             className="p-2 hover:bg-slate-700 rounded-lg transition-colors"
@@ -238,7 +238,7 @@ const ModernLayout = ({
               </>
             )}
             {bottomCollapsed && (
-              <div className="absolute right-0 top-0 h-8 w-full bg-slate-750 border-t border-slate-700 flex items-center justify-center">
+              <div className="absolute right-0 top-0 h-8 w-full bg-slate-750 border-t border-slate-700 flex items-center justify-center z-20">
                 <button
                   onClick={onBottomToggle}
                   className="p-2 hover:bg-slate-700 rounded-lg transition-colors"

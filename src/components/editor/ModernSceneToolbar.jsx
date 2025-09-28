@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import { 
   Play, Square, Pause, RotateCcw, Save, Upload, Download, 
   Grid3X3, Ruler, MousePointer, Move, RotateCw, Scale,
-  ZoomIn, ZoomOut, Target, Maximize2, Settings, HelpCircle
+  ZoomIn, ZoomOut, Target, Maximize2, Settings, HelpCircle, Home
 } from 'lucide-react'
 
 const ToolbarButton = ({ 
@@ -149,13 +149,24 @@ const ModernSceneToolbar = ({
   onZoomReset,
   onZoomFit,
   onShowSettings,
-  onShowHelp
+  onShowHelp,
+  onHome
 }) => {
   return (
     <div className="bg-slate-800 border-b border-slate-700 px-4 py-3">
       <div className="flex items-center justify-between">
         {/* Left Section - Main Controls */}
         <div className="flex items-center gap-3">
+          {/* Home Button */}
+          <ToolbarButton
+            icon={Home}
+            onClick={onHome}
+            tooltip="Back to Home"
+            variant="default"
+          />
+
+          <div className="w-px h-6 bg-slate-600" />
+
           {/* Playback Controls */}
           <div className="flex items-center gap-1">
             {isPlaying ? (
