@@ -25,23 +25,23 @@ const CollapsibleSection = ({ title, icon: Icon, children, defaultOpen = true, o
           {Icon && <Icon className="h-4 w-4" />}
           {title}
         </button>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-2">
           {onAdd && (
             <button
               onClick={onAdd}
-              className="p-1 hover:bg-slate-600 rounded transition-colors"
+              className="p-2 hover:bg-slate-600 rounded-lg transition-colors"
               title="Add component"
             >
-              <Plus className="h-3 w-3 text-slate-400" />
+              <Plus className="h-4 w-4 text-slate-400" />
             </button>
           )}
           {onRemove && (
             <button
               onClick={onRemove}
-              className="p-1 hover:bg-red-600 rounded transition-colors"
+              className="p-2 hover:bg-red-600 rounded-lg transition-colors"
               title="Remove component"
             >
-              <Trash2 className="h-3 w-3 text-red-400" />
+              <Trash2 className="h-4 w-4 text-red-400" />
             </button>
           )}
         </div>
@@ -193,7 +193,7 @@ const ModernInspector = ({ selectedEntity, onUpdateEntity, onRemoveComponent, on
   }
 
   return (
-    <div className="h-full overflow-auto">
+    <div className="h-full overflow-auto enhanced-scrollbar">
       {/* Entity Header */}
       <div className="p-4 border-b border-slate-700 bg-slate-750">
         <div className="flex items-center gap-2 mb-2">
@@ -404,10 +404,13 @@ const ModernInspector = ({ selectedEntity, onUpdateEntity, onRemoveComponent, on
             <textarea
               value={script.code || ''}
               onChange={(e) => updateComponent('script', { code: e.target.value })}
-              className="w-full h-32 px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-sm text-slate-200 font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors resize-none"
+              className="w-full h-48 px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-sm text-slate-200 font-mono enhanced-input enhanced-scrollbar resize-y min-h-[120px] max-h-[300px]"
               placeholder="// Enter your script code here..."
             />
           </InputField>
+          <div className="text-xs text-slate-500 mt-1">
+            Tip: Use Ctrl+Enter to save, Ctrl+A to select all
+          </div>
         </CollapsibleSection>
       )}
 
@@ -439,9 +442,9 @@ const ModernInspector = ({ selectedEntity, onUpdateEntity, onRemoveComponent, on
       )}
 
       {/* Add Component Button */}
-      <div className="p-3">
-        <button className="w-full flex items-center justify-center gap-2 py-2 px-3 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm text-slate-300 hover:text-white transition-colors">
-          <Plus className="h-4 w-4" />
+      <div className="p-4">
+        <button className="w-full flex items-center justify-center gap-3 py-3 px-4 bg-slate-700 hover:bg-slate-600 rounded-lg text-base font-medium text-slate-300 hover:text-white enhanced-button shadow-md hover:shadow-lg">
+          <Plus className="h-5 w-5" />
           Add Component
         </button>
       </div>

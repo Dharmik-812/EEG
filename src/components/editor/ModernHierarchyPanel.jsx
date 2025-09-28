@@ -73,36 +73,36 @@ const EntityItem = ({
           {entity.name || 'Untitled Entity'}
         </span>
         
-        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
           <button
             onClick={(e) => {
               e.stopPropagation()
               onToggleVisibility?.(entity.id)
             }}
-            className="p-1 hover:bg-slate-600 rounded transition-colors"
+            className="p-2 hover:bg-slate-600 rounded-lg transition-colors"
             title="Toggle visibility"
           >
-            <Eye className="h-3 w-3 text-slate-400" />
+            <Eye className="h-4 w-4 text-slate-400" />
           </button>
           <button
             onClick={(e) => {
               e.stopPropagation()
               onToggleLock?.(entity.id)
             }}
-            className="p-1 hover:bg-slate-600 rounded transition-colors"
+            className="p-2 hover:bg-slate-600 rounded-lg transition-colors"
             title="Toggle lock"
           >
-            <Lock className="h-3 w-3 text-slate-400" />
+            <Lock className="h-4 w-4 text-slate-400" />
           </button>
           <button
             onClick={(e) => {
               e.stopPropagation()
               onDelete?.(entity.id)
             }}
-            className="p-1 hover:bg-red-600 rounded transition-colors"
+            className="p-2 hover:bg-red-600 rounded-lg transition-colors"
             title="Delete entity"
           >
-            <Trash2 className="h-3 w-3 text-red-400" />
+            <Trash2 className="h-4 w-4 text-red-400" />
           </button>
         </div>
       </div>
@@ -166,10 +166,10 @@ const HierarchyTab = ({
             </h3>
             <button
               onClick={() => onAddEntity('sprite')}
-              className="p-1 hover:bg-slate-700 rounded transition-colors"
+              className="p-2 hover:bg-slate-700 rounded-lg transition-colors"
               title="Add entity"
             >
-              <Plus className="h-4 w-4 text-slate-400" />
+              <Plus className="h-5 w-5 text-slate-400" />
             </button>
           </div>
           
@@ -277,9 +277,9 @@ const AssetsTab = ({
           </select>
           <button
             onClick={() => document.getElementById('asset-upload').click()}
-            className="flex items-center gap-1 px-2 py-1 bg-emerald-600 hover:bg-emerald-700 rounded text-xs text-white transition-colors"
+            className="flex items-center gap-2 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 rounded-lg text-sm font-medium text-white enhanced-button shadow-md hover:shadow-lg"
           >
-            <Plus className="h-3 w-3" />
+            <Plus className="h-4 w-4" />
             Import
           </button>
           <input
@@ -333,7 +333,7 @@ const ModernHierarchyPanel = ({
   onImportAsset
 }) => {
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col enhanced-scrollbar">
       {/* Tab Navigation */}
       <div className="flex border-b border-slate-700">
         <button

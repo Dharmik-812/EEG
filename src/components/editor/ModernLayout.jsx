@@ -110,7 +110,7 @@ const CollapsiblePanel = ({
             </div>
             <button
               onClick={onToggle}
-              className="p-1 hover:bg-slate-700 rounded transition-colors"
+              className="p-2 hover:bg-slate-700 rounded-lg transition-colors"
               title="Collapse panel"
             >
               <ChevronLeft className="h-4 w-4 text-slate-400" />
@@ -139,7 +139,7 @@ const CollapsiblePanel = ({
         <div className="absolute left-0 top-0 h-full w-8 bg-slate-750 border-r border-slate-700 flex flex-col items-center py-2">
           <button
             onClick={onToggle}
-            className="p-1 hover:bg-slate-700 rounded transition-colors"
+            className="p-2 hover:bg-slate-700 rounded-lg transition-colors"
             title="Expand panel"
           >
             <ChevronRight className="h-4 w-4 text-slate-400" />
@@ -221,7 +221,7 @@ const ModernLayout = ({
                   </div>
                   <button
                     onClick={onBottomToggle}
-                    className="p-1 hover:bg-slate-700 rounded transition-colors"
+                    className="p-2 hover:bg-slate-700 rounded-lg transition-colors"
                     title="Collapse panel"
                   >
                     <ChevronDown className="h-4 w-4 text-slate-400" />
@@ -241,7 +241,7 @@ const ModernLayout = ({
               <div className="absolute right-0 top-0 h-8 w-full bg-slate-750 border-t border-slate-700 flex items-center justify-center">
                 <button
                   onClick={onBottomToggle}
-                  className="p-1 hover:bg-slate-700 rounded transition-colors"
+                  className="p-2 hover:bg-slate-700 rounded-lg transition-colors"
                   title="Expand panel"
                 >
                   <ChevronUp className="h-4 w-4 text-slate-400" />
