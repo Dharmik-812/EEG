@@ -164,7 +164,6 @@ export default function Editor() {
   }
 
   const [wsError, setWsError] = useState(null)
-  const [showTutorial, setShowTutorial] = useState(false)
 
   if (isLoading) {
     return (
