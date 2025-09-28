@@ -555,14 +555,6 @@ export default function Landing() {
                       console.error('NASA 3D model failed to load:', e);
                     }}
                   />
-                  {/* Fallback content */}
-                  <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-emerald-50 to-sky-50 opacity-0 hover:opacity-100 transition-opacity duration-300">
-                    <div className="text-center p-6">
-                      <div className="text-6xl mb-4">🌍</div>
-                      <p className="text-emerald-700 font-medium">Interactive Earth 3D Model</p>
-                      <p className="text-sm text-emerald-600 mt-2">Powered by NASA</p>
-                    </div>
-                  </div>
                 </div>
 
                 {/* Floating elements */}
