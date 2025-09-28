@@ -154,13 +154,25 @@ export default function ModernEditor() {
         } else if (e.key === 'y') {
           e.preventDefault()
           useEditorStore.getState().redoAction?.()
+        } else if (e.key === 'b') {
+          e.preventDefault()
+          // Toggle all panels
+          const allCollapsed = leftCollapsed && rightCollapsed && bottomCollapsed
+          setLeftCollapsed(!allCollapsed)
+          setRightCollapsed(!allCollapsed)
+          setBottomCollapsed(!allCollapsed)
         }
+      } else if (e.key === 'Escape') {
+        // Escape key to expand all panels
+        setLeftCollapsed(false)
+        setRightCollapsed(false)
+        setBottomCollapsed(false)
       }
     }
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [mode, setMode])
+  }, [mode, setMode, leftCollapsed, rightCollapsed, bottomCollapsed])
 
   // Game runtime
   useEffect(() => {

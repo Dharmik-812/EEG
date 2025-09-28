@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronLeft, ChevronRight, ChevronUp, ChevronDown, GripVertical, Layers, Settings } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ChevronUp, ChevronDown, GripVertical, Layers, Settings, Terminal } from 'lucide-react'
 
 const ResizeHandle = ({ direction, onResize, className = '' }) => {
   const [isDragging, setIsDragging] = useState(false)
@@ -263,6 +263,81 @@ const ModernLayout = ({
           {rightPanel}
         </CollapsiblePanel>
       </div>
+
+      {/* Floating Expand Buttons - Only show when panels are collapsed */}
+      <AnimatePresence>
+        {(leftCollapsed || rightCollapsed || bottomCollapsed) && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            className="fixed top-4 right-4 z-50 flex flex-col gap-2"
+          >
+            {/* Show All Panels Button - Only show when multiple panels are collapsed */}
+            {(leftCollapsed && rightCollapsed) || (leftCollapsed && bottomCollapsed) || (rightCollapsed && bottomCollapsed) || (leftCollapsed && rightCollapsed && bottomCollapsed) ? (
+              <motion.button
+                initial={{ y: -20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: -20, opacity: 0 }}
+                onClick={() => {
+                  onLeftToggle()
+                  onRightToggle()
+                  onBottomToggle()
+                }}
+                className="flex items-center gap-2 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg shadow-lg border border-emerald-500 transition-all duration-200 hover:shadow-xl font-medium"
+                title="Show All Panels (Escape key)"
+              >
+                <Layers className="h-4 w-4" />
+                <span className="text-sm">Show All</span>
+              </motion.button>
+            ) : null}
+            {leftCollapsed && (
+              <motion.button
+                initial={{ x: -20, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                exit={{ x: -20, opacity: 0 }}
+                onClick={onLeftToggle}
+                className="flex items-center gap-2 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg shadow-lg border border-slate-600 transition-all duration-200 hover:shadow-xl"
+                title="Expand Hierarchy & Assets Panel"
+              >
+                <Layers className="h-4 w-4" />
+                <span className="text-sm font-medium">Hierarchy</span>
+                <ChevronRight className="h-4 w-4" />
+              </motion.button>
+            )}
+            
+            {rightCollapsed && (
+              <motion.button
+                initial={{ x: 20, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                exit={{ x: 20, opacity: 0 }}
+                onClick={onRightToggle}
+                className="flex items-center gap-2 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg shadow-lg border border-slate-600 transition-all duration-200 hover:shadow-xl"
+                title="Expand Inspector Panel"
+              >
+                <Settings className="h-4 w-4" />
+                <span className="text-sm font-medium">Inspector</span>
+                <ChevronLeft className="h-4 w-4" />
+              </motion.button>
+            )}
+            
+            {bottomCollapsed && (
+              <motion.button
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: 20, opacity: 0 }}
+                onClick={onBottomToggle}
+                className="flex items-center gap-2 px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg shadow-lg border border-slate-600 transition-all duration-200 hover:shadow-xl"
+                title="Expand Console & Script Panel"
+              >
+                <Terminal className="h-4 w-4" />
+                <span className="text-sm font-medium">Console</span>
+                <ChevronUp className="h-4 w-4" />
+              </motion.button>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
