@@ -13,7 +13,7 @@ import ScriptEditor from '../components/editor/ScriptEditor'
 import toast from 'react-hot-toast'
 import LoadingSpinner from '../components/LoadingSpinner.jsx'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Send, Layers, Package, Code, Settings, Play, Square, RotateCcw, Save, Upload, Download } from 'lucide-react'
+import { Send, Layers, Package, Code, Settings, Play, Square, RotateCcw, Save, Upload, Download, Grid3X3, Ruler } from 'lucide-react'
 import { useLogStore } from '../store/logStore'
 import SEO from '../components/SEO.jsx'
 import AchievementNotification from '../components/AchievementNotification'
@@ -84,6 +84,8 @@ export default function Editor() {
   const [showAchievement, setShowAchievement] = useState(false)
   const [achievementData, setAchievementData] = useState({})
   const [showTutorial, setShowTutorial] = useState(false)
+  const [showGrid, setShowGrid] = useState(true)
+  const [showRulers, setShowRulers] = useState(false)
 
   useEffect(() => {
     // Initialize editor loading
@@ -371,10 +373,50 @@ export default function Editor() {
           </div>
 
           {/* Center - Viewport */}
-          <div className="flex-1 flex flex-col">
-            <div className="flex-1 flex items-center justify-center">
-              <div className="relative" style={{ width: 960, height: 600 }}>
-                <EnhancedViewport mode={mode} canvasRef={canvasRef} />
+          <div className="flex-1 flex flex-col bg-slate-100 dark:bg-slate-900">
+            {/* Viewport Header */}
+            <div className="flex items-center justify-between px-4 py-2 bg-slate-200 dark:bg-slate-800 border-b border-slate-300 dark:border-slate-700">
+              <div className="flex items-center gap-4">
+                <h3 className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                  Scene: {project?.scenes?.[0]?.name || 'Main'} • {project?.scenes?.[0]?.width || 960} × {project?.scenes?.[0]?.height || 540}
+                </h3>
+                <div className="flex items-center gap-2">
+                  <button 
+                    className={`px-2 py-1 text-xs rounded ${mode === 'edit' ? 'bg-emerald-500 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}
+                    onClick={() => setMode('edit')}
+                  >
+                    Edit
+                  </button>
+                  <button 
+                    className={`px-2 py-1 text-xs rounded ${mode === 'play' ? 'bg-emerald-500 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'}`}
+                    onClick={() => setMode('play')}
+                  >
+                    Play
+                  </button>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <button 
+                  className="p-1 hover:bg-slate-300 dark:hover:bg-slate-600 rounded"
+                  title="Toggle Grid"
+                  onClick={() => setShowGrid(!showGrid)}
+                >
+                  <Grid3X3 className="h-4 w-4" />
+                </button>
+                <button 
+                  className="p-1 hover:bg-slate-300 dark:hover:bg-slate-600 rounded"
+                  title="Toggle Rulers"
+                  onClick={() => setShowRulers(!showRulers)}
+                >
+                  <Ruler className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+            
+            {/* Fixed Frame Viewport */}
+            <div className="flex-1 flex items-center justify-center p-4">
+              <div className="relative bg-slate-800 rounded-lg shadow-2xl border-2 border-slate-600 overflow-hidden" style={{ width: 960, height: 600 }}>
+                <EnhancedViewport mode={mode} canvasRef={canvasRef} showGrid={showGrid} showRulers={showRulers} />
               </div>
             </div>
             
