@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronLeft, ChevronRight, ChevronUp, ChevronDown, GripVertical } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ChevronUp, ChevronDown, GripVertical, Layers, Settings } from 'lucide-react'
 
 const ResizeHandle = ({ direction, onResize, className = '' }) => {
   const [isDragging, setIsDragging] = useState(false)

@@ -187,7 +187,7 @@ export default function ModernEditor() {
 
     try {
       await submitGame(project)
-      setShowAchievement({
+      setAchievementData({
         title: "Game Submitted! 🎮",
         description: "Your eco-game is now under review. Great work, eco-warrior!",
         icon: Send,
