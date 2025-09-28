@@ -1,7 +1,7 @@
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai';
 
 // Environment variables
-const API_KEY = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY;
+const API_KEY = process.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
 
 if (!API_KEY) {
     console.error('Missing GEMINI_API_KEY environment variable');
@@ -137,16 +137,36 @@ function categorizeError(error) {
 
 // Main API handler
 export default async function handler(req, res) {
-    // Set CORS headers
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  // Set CORS headers (restrict origins)
+  const ORIGINS = (process.env.ALLOWED_ORIGINS || 'http://localhost:5173').split(',').map(s => s.trim()).filter(Boolean)
+  const reqOrigin = req.headers?.origin || ''
+  const allowOrigin = ORIGINS.includes(reqOrigin) ? reqOrigin : ''
+  if (allowOrigin) res.setHeader('Access-Control-Allow-Origin', allowOrigin)
+  res.setHeader('Vary', 'Origin')
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
 
-    // Handle preflight requests
-    if (req.method === 'OPTIONS') {
-        res.status(200).end();
-        return;
-    }
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+      res.status(200).end();
+      return;
+  }
+
+  // Simple in-memory rate limiting per IP (serverless-safe best effort)
+  if (!global._chatRate) global._chatRate = new Map();
+  const ip = (req.headers['x-forwarded-for'] || '').toString().split(',')[0].trim() || req.socket?.remoteAddress || 'unknown'
+  const now = Date.now()
+  const windowMs = 60_000
+  const limit = 60 // 60 requests/minute per IP
+  const bucket = global._chatRate.get(ip) || []
+  // prune
+  while (bucket.length && (now - bucket[0]) > windowMs) bucket.shift()
+  if (bucket.length >= limit) {
+    res.status(429).json({ error: 'Too Many Requests', message: 'Rate limit exceeded. Try again later.' })
+    return;
+  }
+  bucket.push(now)
+  global._chatRate.set(ip, bucket)
 
     // Only allow POST requests
     if (req.method !== 'POST') {
@@ -164,7 +184,7 @@ export default async function handler(req, res) {
             return;
         }
 
-        const { contents, modelKey = 'fast', isVision = false } = req.body;
+        const { contents, modelKey = 'fast', isVision = false } = req.body || {};
 
         // Validate request
         if (!contents || !Array.isArray(contents)) {
@@ -173,6 +193,37 @@ export default async function handler(req, res) {
                 message: 'Contents array is required' 
             });
             return;
+        }
+
+        // Payload size/type validation
+        const MAX_ITEMS = 20
+        const MAX_TEXT_LEN = 4000
+        if (contents.length > MAX_ITEMS) {
+          res.status(413).json({ error: 'Payload too large', message: `Too many content items (>${MAX_ITEMS})` })
+          return
+        }
+        for (const item of contents) {
+          if (!item || typeof item !== 'object') {
+            res.status(400).json({ error: 'Invalid request', message: 'Each content must be an object' })
+            return
+          }
+          const parts = item.parts || []
+          if (!Array.isArray(parts)) {
+            res.status(400).json({ error: 'Invalid request', message: 'parts must be an array' })
+            return
+          }
+          for (const p of parts) {
+            if (p.text != null) {
+              if (typeof p.text !== 'string') {
+                res.status(400).json({ error: 'Invalid request', message: 'text must be a string' })
+                return
+              }
+              if (p.text.length > MAX_TEXT_LEN) {
+                res.status(413).json({ error: 'Payload too large', message: `text exceeds ${MAX_TEXT_LEN} characters` })
+                return
+              }
+            }
+          }
         }
 
         // Get appropriate model

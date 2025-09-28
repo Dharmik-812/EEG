@@ -4,7 +4,9 @@ export class ScriptSystem {
   _ensureCompiled(script) {
     if (script._fn && script._lastCode === script.code) return true
     try {
-      const compile = new Function(`"use strict";${script.code}; return {
+      // Lightweight sandbox: shadow common globals to reduce surface
+      const prelude = `const window=undefined, document=undefined, globalThis=undefined, Function=undefined, eval=undefined, XMLHttpRequest=undefined, WebSocket=undefined, Worker=undefined, fetch=undefined, localStorage=undefined, sessionStorage=undefined;\n`
+      const compile = new Function(`"use strict";${prelude}${script.code}; return {
         onStart: (typeof onStart==='function')?onStart:null,
         onUpdate: (typeof onUpdate==='function')?onUpdate:null,
         onClick: (typeof onClick==='function')?onClick:null,

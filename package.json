@@ -6,13 +6,15 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:analyze": "vite build && npx size-limit",
+    "size": "npx size-limit",
     "lint": "eslint .",
     "preview": "vite preview"
   },
   "dependencies": {
     "@barba/core": "^2.10.3",
-    "@studio-freight/lenis": "^1.0.42",
     "@google/generative-ai": "^0.11.3",
+    "@studio-freight/lenis": "^1.0.42",
     "animejs": "^4.1.4",
     "canvas-confetti": "^1.9.3",
     "clsx": "^2.1.1",
@@ -39,6 +41,8 @@
     "eslint-plugin-react-refresh": "^0.4.20",
     "globals": "^16.4.0",
     "postcss": "^8.4.47",
+    "rollup-plugin-visualizer": "^6.0.3",
+    "size-limit": "^11.2.0",
     "tailwindcss": "^3.4.13",
     "vite": "^7.1.7"
   },

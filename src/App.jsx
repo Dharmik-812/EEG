@@ -113,6 +113,12 @@ function PageWrapper({ children }) {
           tabIndex="-1"
           {...(rt || {})}
           className="relative min-h-[60vh]"
+          onAnimationComplete={() => {
+            try {
+              const main = document.getElementById('main')
+              if (main) main.focus({ preventScroll: true })
+            } catch {}
+          }}
         >
           <motion.div
             aria-hidden

@@ -20,6 +20,9 @@ export class Engine {
     this.project = project
     this.opts = opts
 
+    // Device pixel ratio for crisp rendering
+    this.dpr = Math.max(1, Math.floor((window.devicePixelRatio || 1) * 100) / 100)
+
     // Renderer mode: canvas (default) or webgl (stub)
     this.renderMode = opts.renderMode || project.render?.mode || 'canvas'
     if (this.renderMode === 'webgl') {
@@ -49,10 +52,21 @@ export class Engine {
 
     this.running = false
     this.paused = false
+    // Global time scaling (1 = real-time). Can be modified for slow-mo/pause hooks
+    this.timeScale = typeof opts.timeScale === 'number' ? Math.max(0, opts.timeScale) : 1
     this.lastTs = 0
     this.accumulator = 0
     this.fixedDt = 1 / 60 // physics step
     this.time = { elapsed: 0 }
+
+    // Optional FPS cap for battery savings (0 = uncapped)
+    this._targetFPS = Math.max(0, opts.targetFPS || 0)
+    this._minFrameSec = this._targetFPS > 0 ? (1 / this._targetFPS) : 0
+    this._lastDrawTs = 0
+
+    // Seeded RNG for deterministic gameplay when desired
+    const seedInput = opts.seed || project.seed || null
+    this._rng = this._createSeededRng(seedInput)
 
     // Message manager state (throttle/dedupe/once)
     this._messageOnce = new Set()
@@ -65,8 +79,7 @@ export class Engine {
     // Resize canvas to current scene
     const scene = this.scenes.current()
     if (scene) {
-      this.canvas.width = scene.width
-      this.canvas.height = scene.height
+      this._applyCanvasSize(scene)
       // Start BGM if configured
       if (scene.bgm) this.audio.playBGM(scene.bgm, { loop: true, volume: scene.bgmVolume ?? 0.6 })
     }
@@ -74,11 +87,24 @@ export class Engine {
     // Click/touch routing to UI/collidable entities
     this._onClick = (evt) => this.handlePointer(evt)
     this.canvas.addEventListener('click', this._onClick)
+
+    // Handle visibility (pause in background) and resize (re-apply DPR)
+    this._onVisibility = () => {
+      if (document.hidden) this.pause(); else this.resume()
+    }
+    this._onResize = () => {
+      const sc = this.scenes.current(); if (sc) this._applyCanvasSize(sc)
+    }
+    try { document.addEventListener('visibilitychange', this._onVisibility) } catch {}
+    try { window.addEventListener('resize', this._onResize) } catch {}
   }
 
   destroy() {
     this.running = false
     this.canvas.removeEventListener('click', this._onClick)
+    try { document.removeEventListener('visibilitychange', this._onVisibility) } catch {}
+    try { window.removeEventListener('resize', this._onResize) } catch {}
+    try { this.input?.destroy() } catch {}
     this.audio.stopBGM()
   }
 
@@ -110,6 +136,7 @@ export class Engine {
     if (hit) {
       // rudimentary UI handling
       if (hit.components?.ui) {
+        try { if (navigator.vibrate) navigator.vibrate(10) } catch {}
         const ui = hit.components.ui
         if (ui.type === 'checkbox') { ui.checked = !ui.checked }
         if (ui.type === 'slider') {
@@ -146,12 +173,15 @@ export class Engine {
             break
           }
           case 'gotoScene': {
+            const prevId = this.scenes.currentId
             this.scenes.goto(action.sceneId)
             const next = this.scenes.current()
             if (next) {
-              this.canvas.width = next.width; this.canvas.height = next.height
+              this._applyCanvasSize(next)
+              try { this.systems.find(s => typeof s.onSceneChange === 'function')?.onSceneChange() } catch {}
               this.audio.stopBGM()
               if (next.bgm) this.audio.playBGM(next.bgm, { loop: true, volume: next.bgmVolume ?? 0.6 })
+              try { this.opts.onSceneChange?.(next, prevId) } catch {}
             }
             break
           }
@@ -174,6 +204,22 @@ export class Engine {
     return {
       entity,
       input: engine.input,
+      // Deterministic RNG
+      random: () => engine.random(),
+      // Global time controls
+      time: {
+        get elapsed() { return engine.time.elapsed },
+        get scale() { return engine.timeScale },
+        set scale(v) { engine.timeScale = Math.max(0, Number(v) || 0) },
+        pause: () => engine.pause(),
+        resume: () => engine.resume(),
+      },
+      camera: {
+        set: (x, y) => { engine.camera = engine.camera || { x:0, y:0, zoom:1 }; engine.camera.x = x; engine.camera.y = y },
+        zoom: (z) => { engine.camera = engine.camera || { x:0, y:0, zoom:1 }; engine.camera.zoom = Math.max(0.25, Math.min(4, z)) },
+        follow: (id, lerp=0.15) => { engine.camera = engine.camera || { x:0, y:0, zoom:1 }; engine.camera.followId = typeof id === 'string' ? id : id?.id; engine.camera.lerp = lerp },
+        clearFollow: () => { if (engine.camera) engine.camera.followId = null },
+      },
       audio: {
         play: (assetId, opts) => engine.audio.playSFX(assetId, opts),
         tone: (opts) => engine.audio.playTone(opts || {}),
@@ -184,6 +230,10 @@ export class Engine {
           play: (assetId, opts) => engine.audio.playBGM(assetId, opts),
           stop: () => engine.audio.stopBGM(),
         },
+        get muted() { return engine.audio.muted },
+        mute: () => engine.audio.mute(),
+        unmute: () => engine.audio.unmute(),
+        setVolume: (v) => engine.audio.setVolume(v),
       },
       moveBy: (dx, dy) => {
         const t = entity.components?.transform
@@ -214,7 +264,7 @@ export class Engine {
       // Scene/entity helpers for gameplay scripts
       addEntity: (spec) => {
         const scene = engine.scenes.current()
-        const id = spec?.id || `e-${Date.now()}-${Math.floor(Math.random()*9999)}`
+        const id = spec?.id || `e-${Date.now()}-${Math.floor(engine.random()*9999)}`
         const ent = { id, name: spec?.name || 'Entity', components: spec?.components || {} }
         scene.entities.push(ent)
         return ent
@@ -238,26 +288,53 @@ export class Engine {
 
   _loop(ts) {
     if (!this.running) return
-    const dt = (ts - this.lastTs) / 1000
+    let dt = (ts - this.lastTs) / 1000
     this.lastTs = ts
+    // Clamp large dt spikes (tab restore, breakpoint) for stability
+    const maxDt = this.opts.maxDt || 1/15 // ~15 FPS upper dt bound
+    if (dt > maxDt) dt = maxDt
 
     // Fixed-step update for determinism in physics
     if (!this.paused) {
-      this.accumulator += dt
+      // Apply time scale to simulation
+      const scaled = dt * (this.timeScale || 0)
+      this.accumulator += scaled
       while (this.accumulator >= this.fixedDt) {
         this.update(this.fixedDt)
         this.time.elapsed += this.fixedDt
         this.accumulator -= this.fixedDt
       }
     }
-    // Render with the most recent state
-    this.draw()
+    // FPS cap on rendering if requested
+    if (this._minFrameSec > 0) {
+      const sinceDraw = (ts - (this._lastDrawTs || 0)) / 1000
+      if (sinceDraw >= this._minFrameSec) {
+        this.draw()
+        this._lastDrawTs = ts
+      }
+    } else {
+      this.draw()
+    }
     requestAnimationFrame(this._loop.bind(this))
   }
 
   update(dt) {
     const scene = this.scenes.current()
     if (!scene) return
+
+    // Camera follow (center on followed entity)
+    if (this.camera?.followId) {
+      const ent = scene.entities.find(e => e.id === this.camera.followId)
+      if (ent?.components?.transform) {
+        const t = ent.components.transform
+        const targetX = Math.max(0, t.x - (scene.width/2))
+        const targetY = Math.max(0, t.y - (scene.height/2))
+        const lerp = this.camera.lerp ?? 0.15
+        this.camera.x = (this.camera.x || 0) + (targetX - (this.camera.x || 0)) * lerp
+        this.camera.y = (this.camera.y || 0) + (targetY - (this.camera.y || 0)) * lerp
+      }
+    }
+
     // timers
     if (this._timers.length) {
       const now = this.time.elapsed + dt
@@ -286,9 +363,63 @@ export class Engine {
     await this.assets.preload(onProgress)
   }
 
+  _applyCanvasSize(scene) {
+    // Respect logical scene size; render at device pixel ratio for crispness
+    this.dpr = Math.max(1, Math.floor((window.devicePixelRatio || 1) * 100) / 100)
+    const w = scene.width || 960
+    const h = scene.height || 540
+    // Set internal buffer size and CSS size (CSS may be overridden by classes to scale responsively)
+    this.canvas.width = Math.round(w * this.dpr)
+    this.canvas.height = Math.round(h * this.dpr)
+    // Leave CSS sizing to Tailwind classes, but ensure fallback explicit size
+    if (!this.canvas.style.width) this.canvas.style.width = w + 'px'
+    if (!this.canvas.style.height) this.canvas.style.height = h + 'px'
+    // Apply nearest-neighbor scaling hints for pixel art mode
+    const pixelArt = this.opts.pixelArt || scene.render?.pixelArt || false
+    if (pixelArt) {
+      this.canvas.style.imageRendering = 'pixelated'
+      this.canvas.style.imageRendering = '-moz-crisp-edges'
+      this.canvas.style.imageRendering = 'crisp-edges'
+    } else {
+      this.canvas.style.imageRendering = 'auto'
+    }
+    // Reset any previous transforms
+    if (this.ctx?.setTransform) this.ctx.setTransform(1,0,0,1,0,0)
+  }
+
   pause() { this.paused = true }
   resume() { this.paused = false; this.lastTs = performance.now() }
   togglePause() { this.paused ? this.resume() : this.pause() }
+
+  // Seeded RNG helpers (xfnv1a + mulberry32)
+  _createSeededRng(seedLike) {
+    // If no seed provided, fall back to Math.random()
+    if (seedLike == null) {
+      return () => Math.random()
+    }
+    const seedStr = String(seedLike)
+    function xfnv1a(str){
+      let h = 2166136261 >>> 0
+      for (let i = 0; i < str.length; i++) {
+        h ^= str.charCodeAt(i)
+        h = Math.imul(h, 16777619)
+      }
+      return () => h >>> 0
+    }
+    function mulberry32(a){
+      return function(){
+        let t = a += 0x6D2B79F5
+        t = Math.imul(t ^ (t >>> 15), t | 1)
+        t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296
+      }
+    }
+    const seed = xfnv1a(seedStr)()
+    const rng = mulberry32(seed)
+    return rng
+  }
+
+  random() { return this._rng ? this._rng() : Math.random() }
 
   // Event/message/timer API for scripts
   on(name, cb) { const set = this._events.get(name) || new Set(); set.add(cb); this._events.set(name, set); return () => set.delete(cb) }

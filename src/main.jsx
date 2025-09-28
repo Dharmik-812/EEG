@@ -18,6 +18,26 @@ if (import.meta.env.PROD && 'serviceWorker' in navigator) {
   })
 }
 
+// Global accessibility: aria-live region for in-game toasts/messages
+try {
+  const existing = document.getElementById('aria-live-toasts')
+  if (!existing) {
+    const live = document.createElement('div')
+    live.id = 'aria-live-toasts'
+    live.setAttribute('role', 'status')
+    live.setAttribute('aria-live', 'polite')
+    live.style.position = 'fixed'
+    live.style.inset = '0 0 auto 0'
+    live.style.height = '1px'
+    live.style.overflow = 'hidden'
+    live.style.clip = 'rect(1px, 1px, 1px, 1px)'
+    live.style.whiteSpace = 'nowrap'
+    document.addEventListener('DOMContentLoaded', () => {
+      try { document.body.appendChild(live) } catch {}
+    })
+  }
+} catch {}
+
 // Global runtime error hooks to surface issues
 function formatReason(reason) {
   try {

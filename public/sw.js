@@ -3,6 +3,7 @@ const APP_SHELL = [
   '/',
   '/index.html',
   '/manifest.webmanifest',
+  '/offline.html',
   '/vite.svg'
 ];
 
@@ -26,6 +27,15 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   if (request.method !== 'GET') return;
 
+  // Bypass API requests
+  try {
+    const u = new URL(request.url);
+    if (u.pathname.startsWith('/api/')) {
+      event.respondWith(fetch(request));
+      return;
+    }
+  } catch {}
+
   // Network-first for same-origin navigation and HTML
   if (request.mode === 'navigate' || (request.headers.get('accept') || '').includes('text/html')) {
     event.respondWith(
@@ -35,7 +45,7 @@ self.addEventListener('fetch', (event) => {
           caches.open(CACHE_NAME).then((cache) => cache.put('/', copy));
           return response;
         })
-        .catch(() => caches.match('/') || caches.match('/index.html'))
+        .catch(() => caches.match('/offline.html') || caches.match('/') || caches.match('/index.html'))
     );
     return;
   }

@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react-swc'
 import { readFileSync } from 'fs'
+import { visualizer } from 'rollup-plugin-visualizer'
 
 // Load VITE_GEMINI_API_KEY from key.env so you don't have to rename it.
 // This does NOT expose the raw key anywhere in the source; it's injected at build-time only.
@@ -15,7 +16,17 @@ try {
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    // Build analysis and bundle visualization
+    visualizer({
+      filename: 'dist/bundle-analysis.html',
+      open: false,
+      gzipSize: true,
+      brotliSize: true,
+      template: 'treemap' // sunburst, treemap, network
+    })
+  ],
   define: {
     'import.meta.env.VITE_GEMINI_API_KEY': JSON.stringify(
       process.env.VITE_GEMINI_API_KEY || GEMINI_FROM_KEY_ENV || ''

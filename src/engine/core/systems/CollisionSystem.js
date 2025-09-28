@@ -111,14 +111,48 @@ export class CollisionSystem {
   }
 
   update(scene, dt) {
-    // naive n^2 for now
     const nowPairs = new Set()
-    for (let i=0;i<scene.entities.length;i++) {
-      const e = scene.entities[i]
-      if (!e.components?.collider) continue
-      for (let j=i+1;j<scene.entities.length;j++) {
-        const f = scene.entities[j]
-        if (!f.components?.collider) continue
+
+    // Broadphase: simple uniform grid to reduce pair checks
+    const cell = 96
+    const buckets = new Map()
+    const toCell = (x,y) => `${Math.floor(x/cell)},${Math.floor(y/cell)}`
+    const colliders = scene.entities.filter(e => e.components?.collider && e.components?.transform)
+    for (const e of colliders) {
+      const t = e.components.transform
+      const hw = (e.components.collider?.w || t.w)/2
+      const hh = (e.components.collider?.h || t.h)/2
+      const minCx = Math.floor((t.x - hw)/cell), maxCx = Math.floor((t.x + hw)/cell)
+      const minCy = Math.floor((t.y - hh)/cell), maxCy = Math.floor((t.y + hh)/cell)
+      for (let cy=minCy; cy<=maxCy; cy++) {
+        for (let cx=minCx; cx<=maxCx; cx++) {
+          const key = `${cx},${cy}`
+          const arr = buckets.get(key) || []
+          arr.push(e)
+          buckets.set(key, arr)
+        }
+      }
+    }
+
+    // Narrowphase within buckets + neighbors
+    const visited = new Set()
+    const neighbors = [[0,0],[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,1],[1,-1],[-1,-1]]
+    for (const [key, list] of buckets) {
+      const [cx, cy] = key.split(',').map(Number)
+      // Collect candidates from this and neighboring cells
+      const cand = new Set(list)
+      for (const [dx,dy] of neighbors) {
+        const nb = buckets.get(`${cx+dx},${cy+dy}`)
+        if (nb) for (const e of nb) cand.add(e)
+      }
+      const arr = Array.from(cand)
+      for (let i=0;i<arr.length;i++) {
+        const e = arr[i]
+        for (let j=i+1;j<arr.length;j++) {
+          const f = arr[j]
+          const pairId = this._pairKey(e,f)
+          if (visited.has(pairId)) continue
+          visited.add(pairId)
 
         const typeA = e.components.collider.type || 'aabb'
         const typeB = f.components.collider.type || 'aabb'

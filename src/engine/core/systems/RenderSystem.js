@@ -2,17 +2,38 @@
 export class RenderSystem {
   constructor(engine) {
     this.engine = engine
+    this._tileCache = new Map()
+  }
+
+  onSceneChange() {
+    // Flush cached tilemap surfaces to avoid stale memory across scenes
+    this._tileCache.clear()
+  }
+
+  _pixelSnap(scene) {
+    // Per-scene pixel snapping overrides global opt when present
+    const sceneSnap = scene?.render?.pixelSnap
+    if (typeof sceneSnap === 'boolean') return sceneSnap
+    return !!this.engine.opts?.pixelSnap
   }
 
   draw(scene, ctx) {
-    // Clear and draw background
+    // Clear entire pixel buffer with identity transform
+    ctx.save()
+    try { ctx.setTransform(1,0,0,1,0,0) } catch {}
     ctx.clearRect(0,0,this.engine.canvas.width,this.engine.canvas.height)
+    ctx.restore()
+
+    // Apply DPR scaling so logical coordinates map to scene units
+    if (typeof ctx.setTransform === 'function') ctx.setTransform(this.engine.dpr || 1, 0, 0, this.engine.dpr || 1, 0, 0)
+
+    // Draw background in logical scene space
     ctx.fillStyle = scene.background || '#fff'
     ctx.fillRect(0,0,scene.width, scene.height)
 
     // Draw by layer order; tilemaps first within a layer
     const layers = scene.layers && scene.layers.length ? scene.layers : [{ id: null }]
-    // Prepare tilemap cache once
+    // Ensure tilemap cache exists
     if (!this._tileCache) this._tileCache = new Map()
 
     // Camera support (pan/zoom)
@@ -32,8 +53,9 @@ export class RenderSystem {
         const t = e.components?.transform
         if (!t) continue
         ctx.save()
-        const px = this.engine.opts?.pixelSnap ? Math.round(t.x) : t.x
-        const py = this.engine.opts?.pixelSnap ? Math.round(t.y) : t.y
+        const snap = this._pixelSnap(scene)
+        const px = snap ? Math.round(t.x) : t.x
+        const py = snap ? Math.round(t.y) : t.y
         ctx.translate(px, py)
         const tm = e.components.tilemap
         const img = tm.tilesetAssetId ? this.engine.assets.getImage(tm.tilesetAssetId) : null
@@ -48,7 +70,9 @@ export class RenderSystem {
             const off = document.createElement('canvas')
             off.width = totalW; off.height = totalH
             const ox = off.getContext('2d')
-            ox.imageSmoothingEnabled = false
+            // Apply nearest-neighbor scaling for pixel art mode
+            const pixelArt = this.engine.opts.pixelArt || scene.render?.pixelArt || false
+            ox.imageSmoothingEnabled = !pixelArt
             const tilesPerRow = Math.max(1, Math.floor(img.width / tm.tileWidth))
             for (let r = 0; r < tm.rows; r++) {
               for (let c = 0; c < tm.cols; c++) {
@@ -92,12 +116,15 @@ export class RenderSystem {
           else if (ay === 'bottom') baseY = scene.height - t.h/2
           ctx.translate(baseX, baseY)
         } else {
-          const px = this.engine.opts?.pixelSnap ? Math.round(t.x) : t.x
-          const py = this.engine.opts?.pixelSnap ? Math.round(t.y) : t.y
+          const snap = this._pixelSnap(scene)
+          const px = snap ? Math.round(t.x) : t.x
+          const py = snap ? Math.round(t.y) : t.y
           ctx.translate(px, py)
         }
         ctx.rotate(((t.rotation || 0) * Math.PI) / 180)
-        ctx.imageSmoothingEnabled = false
+        // Apply nearest-neighbor scaling for pixel art mode
+        const pixelArt = this.engine.opts.pixelArt || scene.render?.pixelArt || false
+        ctx.imageSmoothingEnabled = !pixelArt
 
       // Sprite
       if (e.components?.sprite) {
