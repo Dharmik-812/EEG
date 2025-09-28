@@ -183,6 +183,7 @@ export class CollisionSystem {
         }
       }
     }
+  }
     // Exits = previously colliding but not in nowPairs
     for (const key of this._colliding) {
       if (!nowPairs.has(key)) {
