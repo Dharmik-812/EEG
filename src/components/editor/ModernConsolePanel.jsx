@@ -7,6 +7,8 @@ import {
 } from 'lucide-react'
 
 const LogEntry = ({ entry, index }) => {
+  if (!entry) return null
+
   const getIcon = (level) => {
     switch (level) {
       case 'error': return AlertCircle
@@ -27,7 +29,7 @@ const LogEntry = ({ entry, index }) => {
     }
   }
 
-  const Icon = getIcon(entry.level)
+  const Icon = getIcon(entry.level || 'info')
 
   return (
     <div className="flex items-start gap-3 py-2 px-3 hover:bg-slate-700/50 transition-colors">
@@ -35,14 +37,14 @@ const LogEntry = ({ entry, index }) => {
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-1">
           <span className="text-xs text-slate-500 font-mono">
-            {new Date(entry.timestamp).toLocaleTimeString()}
+            {entry.timestamp ? new Date(entry.timestamp).toLocaleTimeString() : 'Unknown time'}
           </span>
           <span className={`text-xs font-medium ${getColor(entry.level)}`}>
-            {entry.level.toUpperCase()}
+            {(entry.level || 'info').toUpperCase()}
           </span>
         </div>
         <div className="text-sm text-slate-200 font-mono whitespace-pre-wrap">
-          {entry.message}
+          {entry.message || 'No message'}
         </div>
         {entry.stack && (
           <details className="mt-2">

@@ -82,7 +82,13 @@ export default function ModernEditor() {
   }))
 
   // Get logs from store
-  const { logs, clearLogs } = useLogStore(s => ({ logs: s.logs, clearLogs: s.clearLogs }))
+  const { logs, clearLogs, add: addLog } = useLogStore(s => ({ logs: s.logs, clearLogs: s.clearLogs, add: s.add }))
+
+  // Add some sample logs for testing
+  useEffect(() => {
+    addLog('Game engine initialized successfully', 'success')
+    addLog('Ready to create your eco-game!', 'info')
+  }, [addLog])
 
   useEffect(() => {
     // Initialize editor loading
@@ -166,6 +172,7 @@ export default function ModernEditor() {
         setRunner(newRunner)
       } catch (error) {
         console.error('Failed to start game:', error)
+        addLog(`Failed to start game: ${error.message}`, 'error')
         toast.error('Failed to start game')
         setMode('edit')
       }
@@ -175,6 +182,7 @@ export default function ModernEditor() {
         setRunner(null)
       } catch (error) {
         console.error('Failed to stop game:', error)
+        addLog(`Failed to stop game: ${error.message}`, 'error')
       }
     }
   }, [mode, project])

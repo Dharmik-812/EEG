@@ -3,6 +3,13 @@ import { persist } from 'zustand/middleware'
 
 export const useLogStore = create(persist((set, get) => ({
   logs: [],
-  add: (msg) => set(state => ({ logs: [...state.logs, { time: new Date().toLocaleTimeString(), msg }] })),
-  clear: () => set({ logs: [] }),
+  add: (message, level = 'info', stack = null) => set(state => ({ 
+    logs: [...state.logs, { 
+      timestamp: Date.now(), 
+      message, 
+      level, 
+      stack 
+    }] 
+  })),
+  clearLogs: () => set({ logs: [] }),
 }), { name: 'aversoltix_logs' }))
