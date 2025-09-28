@@ -410,6 +410,30 @@ export default function Editor() {
                 >
                   <Ruler className="h-4 w-4" />
                 </button>
+                <div className="w-px h-5 bg-slate-300 dark:bg-slate-600 mx-2" />
+                <button
+                  className={`px-2 py-1 text-xs rounded border ${useEditorStore.getState().snapToGrid ? 'bg-emerald-500 text-white border-emerald-600' : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-600'}`}
+                  title="Snap to grid"
+                  onClick={() => useEditorStore.getState().toggleSnapToGrid?.()}
+                  aria-pressed={useEditorStore.getState().snapToGrid}
+                >
+                  Snap
+                </button>
+                <label className="text-xs text-slate-600 dark:text-slate-300 ml-2" htmlFor="grid-size">Grid</label>
+                <select
+                  id="grid-size"
+                  className="text-xs bg-transparent border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  value={useEditorStore.getState().gridSize}
+                  onChange={(e)=>useEditorStore.getState().setGridSize?.(parseInt(e.target.value)||32)}
+                  aria-label="Grid size"
+                >
+                  <option value={8}>8</option>
+                  <option value={16}>16</option>
+                  <option value={24}>24</option>
+                  <option value={32}>32</option>
+                  <option value={48}>48</option>
+                  <option value={64}>64</option>
+                </select>
               </div>
             </div>
             
