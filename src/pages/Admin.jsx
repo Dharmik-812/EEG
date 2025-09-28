@@ -5,6 +5,7 @@ import SEO from '../components/SEO.jsx'
 import Card from '../components/Card'
 import { useAuthStore } from '../store/authStore'
 import { useSubmissionsStore } from '../store/submissionsStore'
+import { useFeedbackStore } from '../store/feedbackStore'
 import toast from 'react-hot-toast'
 import {
   Users, School, GraduationCap, BookOpen, TrendingUp,
@@ -25,6 +26,7 @@ const ADMIN_TABS = [
   { id: 'users', label: 'User Management', icon: Users, description: 'Manage users and permissions' },
   { id: 'institutions', label: 'Institutions', icon: Building, description: 'School and college management' },
   { id: 'content', label: 'Content Moderation', icon: BookOpen, description: 'Review and approve content' },
+  { id: 'feedback', label: 'Feedback & Support', icon: MessageSquare, description: 'Manage user feedback and support requests' },
   { id: 'analytics', label: 'Advanced Analytics', icon: TrendingUp, description: 'Detailed platform metrics' },
   { id: 'system', label: 'System Health', icon: Server, description: 'Monitor system performance' },
   { id: 'settings', label: 'Platform Settings', icon: Settings, description: 'Configure platform settings' },
@@ -90,6 +92,24 @@ export default function Admin() {
     approvedQuizzes: s.approvedQuizzes,
     approveQuiz: s.approveQuiz,
     rejectQuiz: s.rejectQuiz,
+  }))
+
+  const {
+    feedbackSubmissions,
+    supportSubmissions,
+    updateFeedbackStatus,
+    updateSupportStatus,
+    deleteFeedback,
+    deleteSupport,
+    getFeedbackStats
+  } = useFeedbackStore(s => ({
+    feedbackSubmissions: s.feedbackSubmissions,
+    supportSubmissions: s.supportSubmissions,
+    updateFeedbackStatus: s.updateFeedbackStatus,
+    updateSupportStatus: s.updateSupportStatus,
+    deleteFeedback: s.deleteFeedback,
+    deleteSupport: s.deleteSupport,
+    getFeedbackStats: s.getFeedbackStats,
   }))
 
   const {
@@ -1637,6 +1657,269 @@ export default function Admin() {
     )
   }
 
+  const FeedbackTab = () => {
+    const [selectedType, setSelectedType] = useState('all')
+    const [selectedStatus, setSelectedStatus] = useState('all')
+    const [searchQuery, setSearchQuery] = useState('')
+    const [adminNotes, setAdminNotes] = useState({})
+    
+    const stats = getFeedbackStats()
+    
+    const allSubmissions = [...feedbackSubmissions, ...supportSubmissions]
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    
+    const filteredSubmissions = allSubmissions.filter(submission => {
+      const matchesType = selectedType === 'all' || submission.type === selectedType
+      const matchesStatus = selectedStatus === 'all' || submission.status === selectedStatus
+      const matchesSearch = searchQuery === '' || 
+        submission.message?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        submission.subject?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        submission.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        submission.email?.toLowerCase().includes(searchQuery.toLowerCase())
+      
+      return matchesType && matchesStatus && matchesSearch
+    })
+
+    const handleStatusUpdate = (id, type, status) => {
+      if (type === 'feedback') {
+        updateFeedbackStatus(id, status, adminNotes[id] || '')
+      } else {
+        updateSupportStatus(id, status, adminNotes[id] || '')
+      }
+      toast.success(`${type === 'feedback' ? 'Feedback' : 'Support'} request ${status}!`)
+    }
+
+    const handleDelete = (id, type) => {
+      if (type === 'feedback') {
+        deleteFeedback(id)
+      } else {
+        deleteSupport(id)
+      }
+      toast.success(`${type === 'feedback' ? 'Feedback' : 'Support'} request deleted!`)
+    }
+
+    return (
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+        {/* Header */}
+        <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-slate-800 dark:text-white">Feedback & Support Management</h2>
+            <p className="text-slate-600 dark:text-slate-400">Manage user feedback and support requests</p>
+          </div>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-100 dark:bg-blue-900 rounded-lg">
+                <MessageSquare className="h-5 w-5 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-sm text-slate-600 dark:text-slate-400">Total Feedback</p>
+                <p className="text-2xl font-bold text-slate-800 dark:text-white">{stats.totalFeedback}</p>
+              </div>
+            </div>
+          </Card>
+          
+          <Card className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-emerald-100 dark:bg-emerald-900 rounded-lg">
+                <HelpCircle className="h-5 w-5 text-emerald-600" />
+              </div>
+              <div>
+                <p className="text-sm text-slate-600 dark:text-slate-400">Total Support</p>
+                <p className="text-2xl font-bold text-slate-800 dark:text-white">{stats.totalSupport}</p>
+              </div>
+            </div>
+          </Card>
+          
+          <Card className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-amber-100 dark:bg-amber-900 rounded-lg">
+                <Clock className="h-5 w-5 text-amber-600" />
+              </div>
+              <div>
+                <p className="text-sm text-slate-600 dark:text-slate-400">Pending</p>
+                <p className="text-2xl font-bold text-slate-800 dark:text-white">{stats.pendingFeedback + stats.pendingSupport}</p>
+              </div>
+            </div>
+          </Card>
+          
+          <Card className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-green-100 dark:bg-green-900 rounded-lg">
+                <CheckCircle className="h-5 w-5 text-green-600" />
+              </div>
+              <div>
+                <p className="text-sm text-slate-600 dark:text-slate-400">Resolved</p>
+                <p className="text-2xl font-bold text-slate-800 dark:text-white">{stats.resolvedFeedback + stats.resolvedSupport}</p>
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        {/* Filters */}
+        <Card className="p-4">
+          <div className="flex flex-col lg:flex-row gap-4">
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                Search
+              </label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search by name, email, subject, or message..."
+                  className="w-full pl-10 pr-4 py-2 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
+                />
+              </div>
+            </div>
+            
+            <div className="lg:w-48">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                Type
+              </label>
+              <select
+                value={selectedType}
+                onChange={(e) => setSelectedType(e.target.value)}
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
+              >
+                <option value="all">All Types</option>
+                <option value="feedback">Feedback</option>
+                <option value="support">Support</option>
+              </select>
+            </div>
+            
+            <div className="lg:w-48">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                Status
+              </label>
+              <select
+                value={selectedStatus}
+                onChange={(e) => setSelectedStatus(e.target.value)}
+                className="w-full px-3 py-2 border border-slate-200 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
+              >
+                <option value="all">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="in_progress">In Progress</option>
+                <option value="resolved">Resolved</option>
+                <option value="closed">Closed</option>
+              </select>
+            </div>
+          </div>
+        </Card>
+
+        {/* Submissions List */}
+        <Card className="p-0">
+          <div className="p-4 border-b border-slate-200 dark:border-slate-700">
+            <h3 className="text-lg font-semibold text-slate-800 dark:text-white">
+              Submissions ({filteredSubmissions.length})
+            </h3>
+          </div>
+          
+          <div className="divide-y divide-slate-200 dark:divide-slate-700">
+            {filteredSubmissions.length === 0 ? (
+              <div className="p-8 text-center text-slate-500 dark:text-slate-400">
+                No submissions found matching your criteria.
+              </div>
+            ) : (
+              filteredSubmissions.map((submission) => (
+                <div key={submission.id} className="p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          submission.type === 'feedback' 
+                            ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                            : 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200'
+                        }`}>
+                          {submission.type === 'feedback' ? 'Feedback' : 'Support'}
+                        </span>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          submission.status === 'pending' 
+                            ? 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200'
+                            : submission.status === 'resolved'
+                            ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                            : 'bg-slate-100 text-slate-800 dark:bg-slate-700 dark:text-slate-200'
+                        }`}>
+                          {submission.status}
+                        </span>
+                        {submission.priority && (
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            submission.priority === 'high' 
+                              ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                              : submission.priority === 'medium'
+                              ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                              : 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                          }`}>
+                            {submission.priority}
+                          </span>
+                        )}
+                      </div>
+                      
+                      <h4 className="font-medium text-slate-800 dark:text-white mb-1">
+                        {submission.subject || submission.feedbackType || 'No Subject'}
+                      </h4>
+                      
+                      <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">
+                        {submission.message?.substring(0, 150)}
+                        {submission.message?.length > 150 && '...'}
+                      </p>
+                      
+                      <div className="flex items-center gap-4 text-xs text-slate-500 dark:text-slate-400">
+                        <span>{submission.name || 'Anonymous'}</span>
+                        <span>{submission.email}</span>
+                        <span>{new Date(submission.createdAt).toLocaleDateString()}</span>
+                        {submission.rating && (
+                          <div className="flex items-center gap-1">
+                            <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                            <span>{submission.rating}/5</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-2 ml-4">
+                      <select
+                        value={submission.status}
+                        onChange={(e) => handleStatusUpdate(submission.id, submission.type, e.target.value)}
+                        className="text-xs px-2 py-1 border border-slate-200 dark:border-slate-600 rounded focus:ring-1 focus:ring-emerald-500 bg-white dark:bg-slate-700"
+                      >
+                        <option value="pending">Pending</option>
+                        <option value="in_progress">In Progress</option>
+                        <option value="resolved">Resolved</option>
+                        <option value="closed">Closed</option>
+                      </select>
+                      
+                      <button
+                        onClick={() => handleDelete(submission.id, submission.type)}
+                        className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
+                        title="Delete"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  </div>
+                  
+                  {submission.adminNotes && (
+                    <div className="mt-3 p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
+                      <p className="text-sm text-slate-600 dark:text-slate-400">
+                        <strong>Admin Notes:</strong> {submission.adminNotes}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+        </Card>
+      </motion.div>
+    )
+  }
+
   const ContentTab = () => (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
       {/* Content Moderation Header */}
@@ -2168,6 +2451,14 @@ export default function Admin() {
               transition={{ duration: 0.2 }}
             >
               <ContentTab />
+            </motion.div>
+            <motion.div
+              initial={false}
+              animate={{ opacity: activeTab === 'feedback' ? 1 : 0 }}
+              style={{ display: activeTab === 'feedback' ? 'block' : 'none' }}
+              transition={{ duration: 0.2 }}
+            >
+              <FeedbackTab />
             </motion.div>
             <motion.div
               initial={false}

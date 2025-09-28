@@ -33,6 +33,10 @@ const CreateQuiz = lazy(() => import('./pages/CreateQuiz.jsx'))
 const HowItWorks = lazy(() => import('./pages/HowItWorks.jsx'))
 const Projects = lazy(() => import('./pages/Projects.jsx'))
 const ChatInterface = lazy(() => import('./components/ChatInterface.jsx'))
+const Privacy = lazy(() => import('./pages/Privacy.jsx'))
+const Terms = lazy(() => import('./pages/Terms.jsx'))
+import Feedback from './pages/Feedback.jsx'
+import Support from './pages/Support.jsx'
 
 // Suspense fallback
 function PageFallback() {
@@ -331,6 +335,10 @@ export default function App() {
                   <Route path="/admin" element={<PageWrapper><Admin /></PageWrapper>} />
                   <Route path="/how-it-works" element={<PageWrapper><HowItWorks /></PageWrapper>} />
                   <Route path="/chat" element={<PageWrapper><ChatInterface /></PageWrapper>} />
+                  <Route path="/privacy" element={<PageWrapper><Privacy /></PageWrapper>} />
+                  <Route path="/terms" element={<PageWrapper><Terms /></PageWrapper>} />
+                  <Route path="/feedback" element={<PageWrapper><Feedback /></PageWrapper>} />
+                  <Route path="/support" element={<PageWrapper><Support /></PageWrapper>} />
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
               </AnimatePresence>
