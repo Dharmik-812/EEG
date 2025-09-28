@@ -1,9 +1,9 @@
 /* Chat-specific styles: bubbles, typing indicator, scrollbars, spinners */
 
-/* Full screen chat layout */
+/* Full screen chat layout - respect navbar */
 .eco-chat-container {
-  height: 100vh;
-  height: 100dvh; /* Dynamic viewport height for mobile */
+  height: calc(100vh - 5rem); /* Subtract navbar height (5rem = 80px) */
+  height: calc(100dvh - 5rem); /* Dynamic viewport height for mobile */
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -13,6 +13,14 @@
   -moz-text-size-adjust: 100%;
   -ms-text-size-adjust: 100%;
   text-size-adjust: 100%;
+}
+
+/* Mobile adjustments for smaller navbar */
+@media (max-width: 640px) {
+  .eco-chat-container {
+    height: calc(100vh - 4rem); /* Smaller navbar on mobile */
+    height: calc(100dvh - 4rem);
+  }
 }
 
 .eco-chat-scroll {

@@ -226,11 +226,14 @@ export default function useClientChat() {
     useEffect(() => {
         const apiKey = import.meta.env.VITE_GEMINI_API_KEY
         
+        console.log('Environment variables:', import.meta.env)
         console.log('API Key available:', apiKey ? 'Yes' : 'No')
         console.log('API Key (first 20 chars):', apiKey ? apiKey.substring(0, 20) + '...' : 'None')
+        console.log('API Key length:', apiKey ? apiKey.length : 0)
         
         if (!apiKey) {
             console.error('Missing VITE_GEMINI_API_KEY environment variable')
+            console.error('Available env vars:', Object.keys(import.meta.env))
             setApiStatus('missing_key')
             return
         }

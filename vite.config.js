@@ -11,8 +11,13 @@ try {
   const m = txt.match(/^\s*VITE_GEMINI_API_KEY\s*=\s*(.+)\s*$/m)
   if (m && m[1]) {
     GEMINI_FROM_KEY_ENV = m[1].trim()
+    console.log('✅ Loaded API key from key.env file')
+  } else {
+    console.warn('⚠️ Could not find VITE_GEMINI_API_KEY in key.env file')
   }
-} catch {}
+} catch (error) {
+  console.warn('⚠️ Could not read key.env file:', error.message)
+}
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -32,6 +37,7 @@ export default defineConfig({
       process.env.VITE_GEMINI_API_KEY || GEMINI_FROM_KEY_ENV || ''
     ),
   },
+  envPrefix: ['VITE_', 'GEMINI_'],
   server: {
     proxy: {
       '/api/gemini': {
