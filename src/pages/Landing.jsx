@@ -467,17 +467,32 @@ export default function Landing() {
                 >
                   Learn. Play.
                 </motion.span>
-                <motion.span
-                  className="block relative"
-                  initial={{ opacity: 0, x: 50 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.7, duration: 0.6 }}
-                >
-                  <span className="font-black text-responsive-xl golden-shiny-text inline-block relative z-10">
-                    Save the Planet.
-                  </span>
-                </motion.span>
               </motion.h1>
+
+              {/* Golden text outside h1 structure */}
+              <motion.div
+                className="text-center lg:text-left mb-8 sm:mb-10 lg:mb-12"
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.8, duration: 0.8 }}
+              >
+                <div 
+                  className="font-black text-responsive-xl inline-block"
+                  style={{
+                    background: 'linear-gradient(90deg, #f6e27a, #f7c14b, #f6e27a)',
+                    backgroundClip: 'text',
+                    WebkitBackgroundClip: 'text',
+                    WebkitTextFillColor: 'transparent',
+                    textShadow: '0 0 8px rgba(247, 193, 75, 0.4)',
+                    filter: 'drop-shadow(0 0 4px rgba(247, 193, 75, 0.3))',
+                    letterSpacing: '0.02em',
+                    wordSpacing: '0.1em',
+                    display: 'inline-block'
+                  }}
+                >
+                  Save&nbsp;the&nbsp;Planet.
+                </div>
+              </motion.div>
 
               <motion.p
                 className="text-responsive-md text-slate-600 dark:text-slate-300 mb-8 sm:mb-10 lg:mb-12 max-w-2xl mx-auto lg:mx-0 leading-relaxed"
@@ -685,17 +700,45 @@ export default function Landing() {
       {/* Testimonials Section - Animated Slider */}
       <TestimonialSlider />
 
-      {/* Add CSS for golden shiny text */}
-      <style jsx>{`
-        .golden-shiny-text {
-          background: linear-gradient(45deg, #f6e27a 0%, #f7c14b 25%, #ffd700 50%, #f7c14b 75%, #f6e27a 100%);
-          background-clip: text;
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          text-shadow: 0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(247, 193, 75, 0.6), 0 0 60px rgba(255, 215, 0, 0.4);
-          filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.5));
-        }
-      `}</style>
+      {/* Custom CSS for golden text */}
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          .golden-text-custom {
+            background: linear-gradient(45deg, #f6e27a 0%, #f7c14b 25%, #ffd700 50%, #f7c14b 75%, #f6e27a 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-size: 200% 100%;
+            animation: golden-shimmer 3s ease-in-out infinite;
+            filter: drop-shadow(0 0 20px rgba(247, 193, 75, 0.6)) drop-shadow(0 0 10px rgba(255, 215, 0, 0.4));
+            text-shadow: 0 0 30px rgba(247, 193, 75, 0.8);
+            color: transparent !important;
+          }
+          
+          @keyframes golden-shimmer {
+            0% { 
+              background-position: 0% 50%;
+              filter: hue-rotate(0deg) saturate(1) brightness(1) drop-shadow(0 0 20px rgba(247, 193, 75, 0.6)) drop-shadow(0 0 10px rgba(255, 215, 0, 0.4));
+            }
+            25% {
+              background-position: 25% 50%;
+              filter: hue-rotate(10deg) saturate(1.1) brightness(1.1) drop-shadow(0 0 25px rgba(247, 193, 75, 0.7)) drop-shadow(0 0 15px rgba(255, 215, 0, 0.5));
+            }
+            50% { 
+              background-position: 100% 50%;
+              filter: hue-rotate(20deg) saturate(1.2) brightness(1.2) drop-shadow(0 0 30px rgba(247, 193, 75, 0.8)) drop-shadow(0 0 20px rgba(255, 215, 0, 0.6));
+            }
+            75% {
+              background-position: 75% 50%;
+              filter: hue-rotate(10deg) saturate(1.1) brightness(1.1) drop-shadow(0 0 25px rgba(247, 193, 75, 0.7)) drop-shadow(0 0 15px rgba(255, 215, 0, 0.5));
+            }
+            100% { 
+              background-position: 0% 50%;
+              filter: hue-rotate(0deg) saturate(1) brightness(1) drop-shadow(0 0 20px rgba(247, 193, 75, 0.6)) drop-shadow(0 0 10px rgba(255, 215, 0, 0.4));
+            }
+          }
+        `
+      }} />
     </>
   )
 }

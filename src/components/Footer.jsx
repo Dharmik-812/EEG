@@ -247,7 +247,8 @@ export default function Footer() {
     { icon: Linkedin, href: "https://linkedin.com/company/aversoltix", label: "LinkedIn" },
     { icon: Youtube, href: "https://youtube.com/aversoltix", label: "YouTube" },
     { icon: Instagram, href: "https://instagram.com/aversoltix", label: "Instagram" },
-    { icon: Facebook, href: "https://facebook.com/aversoltix", label: "Facebook" }
+    { icon: Facebook, href: "https://facebook.com/aversoltix", label: "Facebook" },
+    { icon: Gamepad2, href: "https://avesol-coral.vercel.app", label: "Gaming Platform" }
   ]
 
   return (
