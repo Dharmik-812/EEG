@@ -467,7 +467,7 @@ export default function EnhancedViewport({ mode, canvasRef, showGrid: propShowGr
                         )}
                       </div>
                     )}
-                  </div>
+                  </motion.div>
                 )
               })}
             </div>
