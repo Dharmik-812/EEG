@@ -111,3 +111,11 @@
   background: rgba(16, 185, 129, 0.3);
   color: inherit;
 }
+
+/* Pixel art rendering */
+.pixel-art {
+  image-rendering: -moz-crisp-edges;
+  image-rendering: -webkit-crisp-edges;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}

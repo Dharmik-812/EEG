@@ -138,6 +138,33 @@ function PageWrapper({ children }) {
   )
 }
 
+function FullscreenPageWrapper({ children }) {
+  const location = useLocation()
+
+  const rt = useFramerPreset('route.slideLeft')
+
+  return (
+    <ErrorBoundary>
+      <RouteGuard>
+        <motion.main
+          id="main"
+          tabIndex="-1"
+          {...(rt || {})}
+          className="relative h-screen w-screen"
+          onAnimationComplete={() => {
+            try {
+              const main = document.getElementById('main')
+              if (main) main.focus({ preventScroll: true })
+            } catch {}
+          }}
+        >
+          <Suspense fallback={<EnhancedPageFallback />}>{children}</Suspense>
+        </motion.main>
+      </RouteGuard>
+    </ErrorBoundary>
+  )
+}
+
 export default function App() {
   useTheme()
 
@@ -240,20 +267,26 @@ export default function App() {
     <ErrorBoundary>
       <GlobalLoadingWrapper>
         <motion.div
-          className="min-h-screen antialiased font-sans relative"
+          className={`${location.pathname.startsWith('/editor') ? 'h-screen w-screen' : 'min-h-screen'} antialiased font-sans relative`}
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.6, delay: showSplash ? 1.5 : 0 }}
         >
-          <AnimatedBackground />
+          {!location.pathname.startsWith('/editor') && <AnimatedBackground />}
           <AnimatePresence>
             {showSplash && <SplashScreen key="splash" />}
           </AnimatePresence>
 
-          {!adminMode && <Navbar />}
+          {!adminMode && !location.pathname.startsWith('/editor') && <Navbar />}
 
           <div
-            className={`${adminMode ? 'pt-6 px-4' : 'pt-16 sm:pt-20'} mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8 xl:px-12 relative`}
+            className={`${
+              adminMode ? 'pt-6 px-4' : 
+              location.pathname.startsWith('/editor') ? 'h-screen' :
+              'pt-16 sm:pt-20'
+            } ${
+              location.pathname.startsWith('/editor') ? '' : 'mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8 xl:px-12'
+            } relative`}
           >
             {isNavigating && (
               <motion.div
@@ -290,7 +323,7 @@ export default function App() {
                   <Route path="/badges" element={<PageWrapper><Badges /></PageWrapper>} />
                   <Route path="/community" element={<PageWrapper><Community /></PageWrapper>} />
                   <Route path="/projects" element={<PageWrapper><Projects /></PageWrapper>} />
-                  <Route path="/editor" element={<PageWrapper><Editor /></PageWrapper>} />
+                  <Route path="/editor" element={<FullscreenPageWrapper><Editor /></FullscreenPageWrapper>} />
                   <Route path="/play/:id" element={<PageWrapper><PlayGame /></PageWrapper>} />
                   <Route path="/login" element={<PageWrapper><Login /></PageWrapper>} />
                   <Route path="/register" element={<PageWrapper><Register /></PageWrapper>} />
@@ -304,7 +337,7 @@ export default function App() {
             </LayoutGroup>
           </div>
 
-          {!adminMode && <Footer />}
+          {!adminMode && !location.pathname.startsWith('/editor') && <Footer />}
         </motion.div>
       </GlobalLoadingWrapper>
     </ErrorBoundary>

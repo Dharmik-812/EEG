@@ -241,8 +241,17 @@ const AssetItem = ({ asset, onSelect, onDelete, onDragStart }) => {
         draggable
         onDragStart={handleDragStart}
       >
-        <div className={`w-24 h-24 bg-gradient-to-br ${colorClass} rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg group-hover:shadow-xl transition-all duration-200`}>
-          <Icon className="h-12 w-12 text-white" />
+        <div className={`w-24 h-24 bg-gradient-to-br ${colorClass} rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg group-hover:shadow-xl transition-all duration-200 relative overflow-hidden`}>
+          {asset.preview ? (
+            <img 
+              src={asset.preview} 
+              alt={asset.name}
+              className="w-full h-full object-cover pixel-art"
+              style={{ imageRendering: 'pixelated' }}
+            />
+          ) : (
+            <Icon className="h-12 w-12 text-white" />
+          )}
         </div>
         <div className="flex-1 min-w-0">
           <div className="text-base font-semibold text-slate-200 truncate">
@@ -272,140 +281,211 @@ const AssetItem = ({ asset, onSelect, onDelete, onDragStart }) => {
   )
 }
 
-// Premade Environmental Assets Library
+// Pixel Art Environmental Assets Library
 const PREMADE_ASSETS = [
-  // Environment Assets
+  // Pixel Art Backgrounds
   {
-    id: 'forest-bg-1',
-    name: 'Forest Background',
+    id: 'pixel-forest-bg',
+    name: 'Pixel Forest',
     type: 'image',
     category: 'environment',
-    description: 'Lush green forest with tall trees and natural lighting',
-    tags: ['background', 'forest', 'nature', 'environment']
+    description: '16x16 pixel art forest background with trees and grass',
+    tags: ['pixel', 'forest', 'background', 'nature'],
+    preview: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjE2IiBoZWlnaHQ9IjE2IiBmaWxsPSIjNDA4MDQwIi8+CjxyZWN0IHg9IjIiIHk9IjEyIiB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjMjA0MDIwIi8+CjxyZWN0IHg9IjEwIiB5PSIxMCIgd2lkdGg9IjQiIGhlaWdodD0iNiIgZmlsbD0iIzIwNDAyMCIvPgo8cmVjdCB4PSI2IiB5PSI4IiB3aWR0aD0iNCIgaGVpZ2h0PSI4IiBmaWxsPSIjMjA0MDIwIi8+Cjwvc3ZnPgo='
   },
   {
-    id: 'mountain-bg-1',
-    name: 'Mountain Landscape',
+    id: 'pixel-mountain-bg',
+    name: 'Pixel Mountains',
     type: 'image',
     category: 'environment',
-    description: 'Majestic mountain range with snow-capped peaks',
-    tags: ['background', 'mountain', 'landscape', 'environment']
+    description: 'Pixel art mountain landscape with snow peaks',
+    tags: ['pixel', 'mountain', 'background', 'landscape'],
+    preview: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjE2IiBoZWlnaHQ9IjE2IiBmaWxsPSIjODc0Q0VCIi8+CjxyZWN0IHg9IjAiIHk9IjEyIiB3aWR0aD0iNiIgaGVpZ2h0PSI0IiBmaWxsPSIjNjY2NjY2Ii8+CjxyZWN0IHg9IjQiIHk9IjEwIiB3aWR0aD0iOCIgaGVpZ2h0PSI2IiBmaWxsPSIjNjY2NjY2Ii8+CjxyZWN0IHg9IjEwIiB5PSI4IiB3aWR0aD0iNiIgaGVpZ2h0PSI4IiBmaWxsPSIjNjY2NjY2Ii8+CjxyZWN0IHg9IjQiIHk9IjgiIHdpZHRoPSI0IiBoZWlnaHQ9IjIiIGZpbGw9IiNmZmZmZmYiLz4KPC9zdmc+Cg=='
   },
   {
-    id: 'desert-bg-1',
-    name: 'Desert Scene',
+    id: 'pixel-desert-bg',
+    name: 'Pixel Desert',
     type: 'image',
     category: 'environment',
-    description: 'Vast desert with sand dunes and clear sky',
-    tags: ['background', 'desert', 'sand', 'environment']
+    description: 'Pixel art desert with sand dunes and sun',
+    tags: ['pixel', 'desert', 'background', 'sand'],
+    preview: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjE2IiBoZWlnaHQ9IjE2IiBmaWxsPSIjRkZENzAwIi8+CjxyZWN0IHg9IjAiIHk9IjEwIiB3aWR0aD0iMTYiIGhlaWdodD0iNiIgZmlsbD0iI0ZGRDcwMCIvPgo8cmVjdCB4PSIyIiB5PSIxMiIgd2lkdGg9IjQiIGhlaWdodD0iNCIgZmlsbD0iI0ZGRDcwMCIvPgo8cmVjdCB4PSI4IiB5PSIxMCIgd2lkdGg9IjYiIGhlaWdodD0iNiIgZmlsbD0iI0ZGRDcwMCIvPgo8cmVjdCB4PSIxMiIgeT0iMTIiIHdpZHRoPSI0IiBoZWlnaHQ9IjQiIGZpbGw9IiNGRkQ3MDAiLz4KPC9zdmc+Cg=='
   },
   {
-    id: 'ocean-bg-1',
-    name: 'Ocean View',
+    id: 'pixel-ocean-bg',
+    name: 'Pixel Ocean',
     type: 'image',
     category: 'environment',
-    description: 'Calm ocean with waves and horizon',
-    tags: ['background', 'ocean', 'water', 'environment']
+    description: 'Pixel art ocean with waves and horizon',
+    tags: ['pixel', 'ocean', 'background', 'water'],
+    preview: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjE2IiBoZWlnaHQ9IjE2IiBmaWxsPSIjODdDSUUiLz4KPHJlY3QgeD0iMCIgeT0iMTAiIHdpZHRoPSIxNiIgaGVpZ2h0PSI2IiBmaWxsPSIjMDA2NkZGIi8+CjxyZWN0IHg9IjAiIHk9IjEyIiB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjMDA2NkZGIi8+CjxyZWN0IHg9IjQiIHk9IjEwIiB3aWR0aD0iNCIgaGVpZ2h0PSI2IiBmaWxsPSIjMDA2NkZGIi8+CjxyZWN0IHg9IjgiIHk9IjEyIiB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjMDA2NkZGIi8+CjxyZWN0IHg9IjEyIiB5PSIxMCIgd2lkdGg9IjQiIGhlaWdodD0iNiIgZmlsbD0iIzAwNjZGRiIvPgo8L3N2Zz4K'
   },
   {
-    id: 'city-bg-1',
-    name: 'Urban Cityscape',
+    id: 'pixel-city-bg',
+    name: 'Pixel City',
     type: 'image',
     category: 'environment',
-    description: 'Modern city skyline with buildings and lights',
-    tags: ['background', 'city', 'urban', 'environment']
+    description: 'Pixel art city skyline with buildings',
+    tags: ['pixel', 'city', 'background', 'urban'],
+    preview: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjE2IiBoZWlnaHQ9IjE2IiBmaWxsPSIjMzMzMzMzIi8+CjxyZWN0IHg9IjAiIHk9IjEwIiB3aWR0aD0iNCIgaGVpZ2h0PSI2IiBmaWxsPSIjNjY2NjY2Ii8+CjxyZWN0IHg9IjQiIHk9IjgiIHdpZHRoPSI0IiBoZWlnaHQ9IjgiIGZpbGw9IiM2NjY2NjYiLz4KPHJlY3QgeD0iOCIgeT0iNiIgd2lkdGg9IjQiIGhlaWdodD0iMTAiIGZpbGw9IiM2NjY2NjYiLz4KPHJlY3QgeD0iMTIiIHk9IjEwIiB3aWR0aD0iNCIgaGVpZ2h0PSI2IiBmaWxsPSIjNjY2NjY2Ii8+CjxyZWN0IHg9IjYiIHk9IjQiIHdpZHRoPSIyIiBoZWlnaHQ9IjIiIGZpbGw9IiNGRkZGMDAiLz4KPC9zdmc+Cg=='
   },
+  
+  // Pixel Art Trees
   {
-    id: 'tree-1',
-    name: 'Oak Tree',
+    id: 'pixel-tree-oak',
+    name: 'Pixel Oak Tree',
     type: 'image',
     category: 'environment',
-    description: 'Large oak tree with detailed bark and leaves',
-    tags: ['tree', 'nature', 'decoration', 'environment']
+    description: '16x16 pixel art oak tree with detailed leaves',
+    tags: ['pixel', 'tree', 'oak', 'nature'],
+    preview: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3QgeD0iNiIgeT0iMTAiIHdpZHRoPSI0IiBoZWlnaHQ9IjYiIGZpbGw9IiM4QjQ1MTMiLz4KPHJlY3QgeD0iNCIgeT0iNCIgd2lkdGg9IjgiIGhlaWdodD0iOCIgZmlsbD0iIzIwNDAyMCIvPgo8cmVjdCB4PSI2IiB5PSIyIiB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjMjA0MDIwIi8+CjxyZWN0IHg9IjIiIHk9IjYiIHdpZHRoPSI0IiBoZWlnaHQ9IjQiIGZpbGw9IiMyMDQwMjAiLz4KPHJlY3QgeD0iMTAiIHk9IjYiIHdpZHRoPSI0IiBoZWlnaHQ9IjQiIGZpbGw9IiMyMDQwMjAiLz4KPC9zdmc+Cg=='
   },
   {
-    id: 'rock-1',
-    name: 'Stone Rock',
+    id: 'pixel-tree-pine',
+    name: 'Pixel Pine Tree',
     type: 'image',
     category: 'environment',
-    description: 'Natural stone rock formation',
-    tags: ['rock', 'stone', 'decoration', 'environment']
+    description: 'Pixel art pine tree with triangular shape',
+    tags: ['pixel', 'tree', 'pine', 'nature'],
+    preview: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3QgeD0iNiIgeT0iMTIiIHdpZHRoPSI0IiBoZWlnaHQ9IjQiIGZpbGw9IiM4QjQ1MTMiLz4KPHJlY3QgeD0iNiIgeT0iMTAiIHdpZHRoPSI0IiBoZWlnaHQ9IjIiIGZpbGw9IiMwMDgwMDAiLz4KPHJlY3QgeD0iNCIgeT0iOCIgd2lkdGg9IjgiIGhlaWdodD0iNCIgZmlsbD0iIzAwODAwMCIvPgo8cmVjdCB4PSI2IiB5PSI2IiB3aWR0aD0iNCIgaGVpZ2h0PSIyIiBmaWxsPSIjMDA4MDAwIi8+CjxyZWN0IHg9IjIiIHk9IjQiIHdpZHRoPSIxMiIgaGVpZ2h0PSI0IiBmaWxsPSIjMDA4MDAwIi8+CjxyZWN0IHg9IjQiIHk9IjIiIHdpZHRoPSI4IiBoZWlnaHQ9IjQiIGZpbGw9IiMwMDgwMDAiLz4KPHJlY3QgeD0iNiIgeT0iMCIgd2lkdGg9IjQiIGhlaWdodD0iNCIgZmlsbD0iIzAwODAwMCIvPgo8L3N2Zz4K'
   },
   {
-    id: 'grass-1',
-    name: 'Grass Patch',
+    id: 'pixel-tree-palm',
+    name: 'Pixel Palm Tree',
     type: 'image',
     category: 'environment',
-    description: 'Green grass texture for ground cover',
-    tags: ['grass', 'ground', 'texture', 'environment']
+    description: 'Pixel art palm tree for tropical scenes',
+    tags: ['pixel', 'tree', 'palm', 'tropical'],
+    preview: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3QgeD0iNiIgeT0iMTAiIHdpZHRoPSI0IiBoZWlnaHQ9IjYiIGZpbGw9IiM4QjQ1MTMiLz4KPHJlY3QgeD0iNCIgeT0iNCIgd2lkdGg9IjgiIGhlaWdodD0iMiIgZmlsbD0iIzAwODAwMCIvPgo8cmVjdCB4PSIyIiB5PSI2IiB3aWR0aD0iMTIiIGhlaWdodD0iMiIgZmlsbD0iIzAwODAwMCIvPgo8cmVjdCB4PSIwIiB5PSI4IiB3aWR0aD0iMTYiIGhlaWdodD0iMiIgZmlsbD0iIzAwODAwMCIvPgo8cmVjdCB4PSI2IiB5PSIwIiB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjMDA4MDAwIi8+Cjwvc3ZnPgo='
   },
-  // Character Assets
+
+  // Pixel Art Rocks & Stones
   {
-    id: 'player-char-1',
-    name: 'Adventure Hero',
+    id: 'pixel-rock-large',
+    name: 'Pixel Large Rock',
     type: 'image',
-    category: 'character',
-    description: 'Main character sprite for adventure games',
-    tags: ['character', 'player', 'hero', 'sprite']
+    category: 'environment',
+    description: 'Big pixel art stone rock formation',
+    tags: ['pixel', 'rock', 'stone', 'decoration'],
+    preview: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3QgeD0iNCIgeT0iOCIgd2lkdGg9IjgiIGhlaWdodD0iOCIgZmlsbD0iIzY2NjY2NiIvPgo8cmVjdCB4PSIyIiB5PSI2IiB3aWR0aD0iMTIiIGhlaWdodD0iMTAiIGZpbGw9IiM2NjY2NjYiLz4KPHJlY3QgeD0iMCIgeT0iMTAiIHdpZHRoPSIxNiIgaGVpZ2h0PSI2IiBmaWxsPSIjNjY2NjY2Ii8+CjxyZWN0IHg9IjYiIHk9IjQiIHdpZHRoPSI0IiBoZWlnaHQ9IjQiIGZpbGw9IiM4ODg4ODgiLz4KPC9zdmc+Cg=='
   },
   {
-    id: 'npc-1',
-    name: 'Friendly NPC',
+    id: 'pixel-rock-small',
+    name: 'Pixel Small Rock',
     type: 'image',
-    category: 'character',
-    description: 'Non-player character for interactions',
-    tags: ['character', 'npc', 'friendly', 'sprite']
+    category: 'environment',
+    description: 'Small pixel art stone for decoration',
+    tags: ['pixel', 'rock', 'stone', 'small'],
+    preview: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3QgeD0iNiIgeT0iMTAiIHdpZHRoPSI0IiBoZWlnaHQ9IjYiIGZpbGw9IiM2NjY2NjYiLz4KPHJlY3QgeD0iNCIgeT0iOCIgd2lkdGg9IjgiIGhlaWdodD0iOCIgZmlsbD0iIzY2NjY2NiIvPgo8cmVjdCB4PSI2IiB5PSI2IiB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjODg4ODg4Ii8+Cjwvc3ZnPgo='
   },
-  // UI Assets
+
+  // Pixel Art Grass & Ground
   {
-    id: 'button-ui-1',
-    name: 'Modern Button',
+    id: 'pixel-grass-tile',
+    name: 'Pixel Grass Tile',
     type: 'image',
-    category: 'ui',
-    description: 'Clean modern button design for UI',
-    tags: ['ui', 'button', 'interface', 'modern']
+    category: 'environment',
+    description: 'Pixel art grass texture tile for ground',
+    tags: ['pixel', 'grass', 'ground', 'tile'],
+    preview: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjE2IiBoZWlnaHQ9IjE2IiBmaWxsPSIjNDA4MDQwIi8+CjxyZWN0IHg9IjIiIHk9IjEyIiB3aWR0aD0iMiIgaGVpZ2h0PSI0IiBmaWxsPSIjMjA0MDIwIi8+CjxyZWN0IHg9IjYiIHk9IjEwIiB3aWR0aD0iMiIgaGVpZ2h0PSI2IiBmaWxsPSIjMjA0MDIwIi8+CjxyZWN0IHg9IjEwIiB5PSIxMiIgd2lkdGg9IjIiIGhlaWdodD0iNCIgZmlsbD0iIzIwNDAyMCIvPgo8cmVjdCB4PSIxNCIgeT0iMTAiIHdpZHRoPSIyIiBoZWlnaHQ9IjYiIGZpbGw9IiMyMDQwMjAiLz4KPC9zdmc+Cg=='
   },
   {
-    id: 'panel-ui-1',
-    name: 'Info Panel',
+    id: 'pixel-dirt-tile',
+    name: 'Pixel Dirt Tile',
     type: 'image',
-    category: 'ui',
-    description: 'Information display panel',
-    tags: ['ui', 'panel', 'info', 'interface']
+    category: 'environment',
+    description: 'Pixel art dirt ground texture',
+    tags: ['pixel', 'dirt', 'ground', 'tile'],
+    preview: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjE2IiBoZWlnaHQ9IjE2IiBmaWxsPSIjOEE2NTQwIi8+CjxyZWN0IHg9IjIiIHk9IjIiIHdpZHRoPSI0IiBoZWlnaHQ9IjQiIGZpbGw9IiM2QjQwMjAiLz4KPHJlY3QgeD0iMTAiIHk9IjQiIHdpZHRoPSI0IiBoZWlnaHQ9IjQiIGZpbGw9IiM2QjQwMjAiLz4KPHJlY3QgeD0iNiIgeT0iMTAiIHdpZHRoPSI0IiBoZWlnaHQ9IjQiIGZpbGw9IiM2QjQwMjAiLz4KPC9zdmc+Cg=='
   },
-  // Decoration Assets
+
+  // Pixel Art Flowers & Plants
   {
-    id: 'flower-1',
-    name: 'Wild Flower',
+    id: 'pixel-flower-red',
+    name: 'Pixel Red Flower',
     type: 'image',
     category: 'decoration',
-    description: 'Colorful wild flower for decoration',
-    tags: ['flower', 'decoration', 'colorful', 'nature']
+    description: 'Small pixel art red flower',
+    tags: ['pixel', 'flower', 'red', 'decoration'],
+    preview: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3QgeD0iNiIgeT0iMTIiIHdpZHRoPSI0IiBoZWlnaHQ9IjQiIGZpbGw9IiM0MDgwNDAiLz4KPHJlY3QgeD0iNiIgeT0iMTAiIHdpZHRoPSI0IiBoZWlnaHQ9IjIiIGZpbGw9IiM0MDgwNDAiLz4KPHJlY3QgeD0iNiIgeT0iOCIgd2lkdGg9IjQiIGhlaWdodD0iNCIgZmlsbD0iI0ZGMDAwMCIvPgo8cmVjdCB4PSI0IiB5PSI4IiB3aWR0aD0iMiIgaGVpZ2h0PSIyIiBmaWxsPSIjRkZGMDAwIi8+CjxyZWN0IHg9IjEwIiB5PSI4IiB3aWR0aD0iMiIgaGVpZ2h0PSIyIiBmaWxsPSIjRkZGMDAwIi8+Cjwvc3ZnPgo='
   },
   {
-    id: 'gem-1',
-    name: 'Magic Gem',
+    id: 'pixel-flower-blue',
+    name: 'Pixel Blue Flower',
     type: 'image',
     category: 'decoration',
-    description: 'Shining magical gem for collectibles',
-    tags: ['gem', 'magic', 'collectible', 'decoration']
+    description: 'Small pixel art blue flower',
+    tags: ['pixel', 'flower', 'blue', 'decoration'],
+    preview: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3QgeD0iNiIgeT0iMTIiIHdpZHRoPSI0IiBoZWlnaHQ9IjQiIGZpbGw9IiM0MDgwNDAiLz4KPHJlY3QgeD0iNiIgeT0iMTAiIHdpZHRoPSI0IiBoZWlnaHQ9IjIiIGZpbGw9IiM0MDgwNDAiLz4KPHJlY3QgeD0iNiIgeT0iOCIgd2lkdGg9IjQiIGhlaWdodD0iNCIgZmlsbD0iIzAwMDBGRiIvPgo8cmVjdCB4PSI0IiB5PSI4IiB3aWR0aD0iMiIgaGVpZ2h0PSIyIiBmaWxsPSIjMDA4MEZGIi8+CjxyZWN0IHg9IjEwIiB5PSI4IiB3aWR0aD0iMiIgaGVpZ2h0PSIyIiBmaWxsPSIjMDA4MEZGIi8+Cjwvc3ZnPgo='
   },
-  // Audio Assets
   {
-    id: 'ambient-forest',
-    name: 'Forest Ambience',
-    type: 'audio',
+    id: 'pixel-bush',
+    name: 'Pixel Bush',
+    type: 'image',
     category: 'environment',
-    description: 'Peaceful forest sounds with birds and wind',
-    tags: ['audio', 'ambient', 'forest', 'nature']
+    description: 'Pixel art green bush for decoration',
+    tags: ['pixel', 'bush', 'green', 'decoration'],
+    preview: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3QgeD0iNCIgeT0iMTAiIHdpZHRoPSI4IiBoZWlnaHQ9IjYiIGZpbGw9IiMwMDgwMDAiLz4KPHJlY3QgeD0iMiIgeT0iOCIgd2lkdGg9IjEyIiBoZWlnaHQ9IjgiIGZpbGw9IiMwMDgwMDAiLz4KPHJlY3QgeD0iNiIgeT0iNiIgd2lkdGg9IjQiIGhlaWdodD0iNCIgZmlsbD0iIzAwODAwMCIvPgo8cmVjdCB4PSI0IiB5PSI0IiB3aWR0aD0iOCIgaGVpZ2h0PSI0IiBmaWxsPSIjMDA4MDAwIi8+Cjwvc3ZnPgo='
+  },
+
+  // Pixel Art Water Features
+  {
+    id: 'pixel-water-tile',
+    name: 'Pixel Water Tile',
+    type: 'image',
+    category: 'environment',
+    description: 'Pixel art water texture tile',
+    tags: ['pixel', 'water', 'tile', 'liquid'],
+    preview: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjE2IiBoZWlnaHQ9IjE2IiBmaWxsPSIjMDA2NkZGIi8+CjxyZWN0IHg9IjIiIHk9IjIiIHdpZHRoPSI0IiBoZWlnaHQ9IjIiIGZpbGw9IiMwMDQ0Q0MiLz4KPHJlY3QgeD0iMTAiIHk9IjQiIHdpZHRoPSI0IiBoZWlnaHQ9IjIiIGZpbGw9IiMwMDQ0Q0MiLz4KPHJlY3QgeD0iNiIgeT0iNiIgd2lkdGg9IjQiIGhlaWdodD0iMiIgZmlsbD0iIzAwNDRDQyIvPgo8cmVjdCB4PSIyIiB5PSI4IiB3aWR0aD0iNCIgaGVpZ2h0PSIyIiBmaWxsPSIjMDA0NENDIi8+CjxyZWN0IHg9IjEwIiB5PSIxMCIgd2lkdGg9IjQiIGhlaWdodD0iMiIgZmlsbD0iIzAwNDRDQyIvPgo8L3N2Zz4K'
   },
   {
-    id: 'pickup-sound',
-    name: 'Item Pickup',
-    type: 'audio',
-    category: 'ui',
-    description: 'Satisfying pickup sound effect',
-    tags: ['audio', 'sfx', 'pickup', 'item']
+    id: 'pixel-lake',
+    name: 'Pixel Lake',
+    type: 'image',
+    category: 'environment',
+    description: 'Pixel art lake with ripples',
+    tags: ['pixel', 'lake', 'water', 'ripples'],
+    preview: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3QgeD0iMiIgeT0iNCIgd2lkdGg9IjEyIiBoZWlnaHQ9IjgiIGZpbGw9IiMwMDY2RkYiLz4KPHJlY3QgeD0iNCIgeT0iNiIgd2lkdGg9IjgiIGhlaWdodD0iNCIgZmlsbD0iIzAwNDRDQyIvPgo8cmVjdCB4PSI2IiB5PSI4IiB3aWR0aD0iNCIgaGVpZ2h0PSIyIiBmaWxsPSIjMDA0NENDIi8+Cjwvc3ZnPgo='
+  },
+
+  // Pixel Art Characters
+  {
+    id: 'pixel-player',
+    name: 'Pixel Player',
+    type: 'image',
+    category: 'character',
+    description: '16x16 pixel art player character',
+    tags: ['pixel', 'player', 'character', 'hero'],
+    preview: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3QgeD0iNiIgeT0iMTIiIHdpZHRoPSI0IiBoZWlnaHQ9IjQiIGZpbGw9IiM4QjQ1MTMiLz4KPHJlY3QgeD0iNCIgeT0iMTAiIHdpZHRoPSI4IiBoZWlnaHQ9IjYiIGZpbGw9IiMwMDAwRkYiLz4KPHJlY3QgeD0iNiIgeT0iOCIgd2lkdGg9IjQiIGhlaWdodD0iNCIgZmlsbD0iI0ZGRkZGRiIvPgo8cmVjdCB4PSI2IiB5PSI0IiB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjRkZENzAwIi8+CjxyZWN0IHg9IjYiIHk9IjIiIHdpZHRoPSI0IiBoZWlnaHQ9IjIiIGZpbGw9IiNGRkQ3MDAiLz4KPC9zdmc+Cg=='
+  },
+  {
+    id: 'pixel-npc',
+    name: 'Pixel NPC',
+    type: 'image',
+    category: 'character',
+    description: 'Pixel art non-player character',
+    tags: ['pixel', 'npc', 'character', 'friendly'],
+    preview: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3QgeD0iNiIgeT0iMTIiIHdpZHRoPSI0IiBoZWlnaHQ9IjQiIGZpbGw9IiM4QjQ1MTMiLz4KPHJlY3QgeD0iNCIgeT0iMTAiIHdpZHRoPSI4IiBoZWlnaHQ9IjYiIGZpbGw9IiNGRjAwRkYiLz4KPHJlY3QgeD0iNiIgeT0iOCIgd2lkdGg9IjQiIGhlaWdodD0iNCIgZmlsbD0iI0ZGRkZGRiIvPgo8cmVjdCB4PSI2IiB5PSI0IiB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjRkZENzAwIi8+CjxyZWN0IHg9IjYiIHk9IjIiIHdpZHRoPSI0IiBoZWlnaHQ9IjIiIGZpbGw9IiNGRkQ3MDAiLz4KPC9zdmc+Cg=='
+  },
+
+  // Pixel Art Collectibles
+  {
+    id: 'pixel-gem',
+    name: 'Pixel Gem',
+    type: 'image',
+    category: 'decoration',
+    description: 'Shining pixel art gem for collectibles',
+    tags: ['pixel', 'gem', 'collectible', 'shiny'],
+    preview: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3QgeD0iNiIgeT0iMTIiIHdpZHRoPSI0IiBoZWlnaHQ9IjQiIGZpbGw9IiNGRkZGMDAiLz4KPHJlY3QgeD0iNCIgeT0iMTAiIHdpZHRoPSI4IiBoZWlnaHQ9IjYiIGZpbGw9IiNGRkZGMDAiLz4KPHJlY3QgeD0iNiIgeT0iOCIgd2lkdGg9IjQiIGhlaWdodD0iNCIgZmlsbD0iI0ZGMDAwMCIvPgo8cmVjdCB4PSI2IiB5PSI2IiB3aWR0aD0iNCIgaGVpZ2h0PSIyIiBmaWxsPSIjRkZGRkZGIi8+Cjwvc3ZnPgo='
+  },
+  {
+    id: 'pixel-coin',
+    name: 'Pixel Coin',
+    type: 'image',
+    category: 'decoration',
+    description: 'Pixel art gold coin for currency',
+    tags: ['pixel', 'coin', 'gold', 'currency'],
+    preview: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3QgeD0iNCIgeT0iNCIgd2lkdGg9IjgiIGhlaWdodD0iOCIgZmlsbD0iI0ZGRkYwMCIvPgo8cmVjdCB4PSI2IiB5PSI2IiB3aWR0aD0iNCIgaGVpZ2h0PSI0IiBmaWxsPSIjRkZENzAwIi8+CjxyZWN0IHg9IjYiIHk9IjIiIHdpZHRoPSI0IiBoZWlnaHQ9IjIiIGZpbGw9IiNGRkZGMDAiLz4KPHJlY3QgeD0iNiIgeT0iMTIiIHdpZHRoPSI0IiBoZWlnaHQ9IjIiIGZpbGw9IiNGRkZGMDAiLz4KPC9zdmc+Cg=='
   }
 ]
 
