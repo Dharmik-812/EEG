@@ -492,27 +492,110 @@ export default function Dashboard() {
         </motion.div>
       )}
 
-      <Card>
-        <div className="flex items-center justify-between mb-4">
-          <div className="font-semibold">XP Earned (last 7 days)</div>
-        </div>
-        <div style={{ width: '100%', height: 220 }}>
-          <ResponsiveContainer>
-            <AreaChart data={last7days}>
-              <defs>
-                <linearGradient id="xpGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#22c55e" stopOpacity={0.7}/>
-                  <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0.1}/>
-                </linearGradient>
-              </defs>
-              <XAxis dataKey="day" />
-              <YAxis />
-              <Tooltip />
-              <Area type="monotone" dataKey="xp" stroke="#22c55e" fillOpacity={1} fill="url(#xpGrad)" />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-      </Card>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5 }}
+        whileHover={{ y: -2 }}
+      >
+        <Card className="hover-lift">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <BarChart3 className="h-5 w-5 text-emerald-500" />
+              <div className="font-semibold">XP Earned (last 7 days)</div>
+            </div>
+            <div className="text-sm text-slate-500">
+              Total: {last7days.reduce((sum, day) => sum + day.xp, 0).toLocaleString()} XP
+            </div>
+          </div>
+          <div className="relative">
+            <div style={{ width: '100%', height: 280 }}>
+              <ResponsiveContainer>
+                <AreaChart data={last7days} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="xpGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#22c55e" stopOpacity={0.8}/>
+                      <stop offset="50%" stopColor="#16a34a" stopOpacity={0.6}/>
+                      <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0.2}/>
+                    </linearGradient>
+                    <linearGradient id="xpStroke" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%" stopColor="#22c55e"/>
+                      <stop offset="50%" stopColor="#16a34a"/>
+                      <stop offset="100%" stopColor="#0ea5e9"/>
+                    </linearGradient>
+                  </defs>
+                  <XAxis 
+                    dataKey="day" 
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fontSize: 12, fill: '#64748b' }}
+                    tickMargin={8}
+                  />
+                  <YAxis 
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fontSize: 12, fill: '#64748b' }}
+                    tickMargin={8}
+                    tickFormatter={(value) => value.toLocaleString()}
+                  />
+                  <Tooltip 
+                    content={({ active, payload, label }) => {
+                      if (active && payload && payload.length) {
+                        return (
+                          <div className="bg-white dark:bg-slate-800 p-3 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700">
+                            <p className="font-semibold text-slate-800 dark:text-white">{label}</p>
+                            <p className="text-emerald-600 font-medium">
+                              {payload[0].value.toLocaleString()} XP
+                            </p>
+                          </div>
+                        )
+                      }
+                      return null
+                    }}
+                  />
+                  <Area 
+                    type="monotone" 
+                    dataKey="xp" 
+                    stroke="url(#xpStroke)" 
+                    strokeWidth={3}
+                    fillOpacity={1} 
+                    fill="url(#xpGrad)"
+                    dot={{ fill: '#22c55e', stroke: '#fff', strokeWidth: 2, r: 4 }}
+                    activeDot={{ r: 6, stroke: '#22c55e', strokeWidth: 2, fill: '#fff' }}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+            
+            {/* Animated background pattern */}
+            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/5 via-transparent to-sky-500/5 animate-pulse"></div>
+            </div>
+          </div>
+          
+          {/* Interactive stats */}
+          <div className="mt-4 grid grid-cols-3 gap-4 pt-4 border-t border-slate-200 dark:border-slate-700">
+            <div className="text-center">
+              <div className="text-lg font-bold text-emerald-600">
+                {Math.max(...last7days.map(d => d.xp)).toLocaleString()}
+              </div>
+              <div className="text-xs text-slate-500">Peak Day</div>
+            </div>
+            <div className="text-center">
+              <div className="text-lg font-bold text-blue-600">
+                {Math.round(last7days.reduce((sum, day) => sum + day.xp, 0) / 7).toLocaleString()}
+              </div>
+              <div className="text-xs text-slate-500">Daily Avg</div>
+            </div>
+            <div className="text-center">
+              <div className="text-lg font-bold text-purple-600">
+                {last7days.filter(d => d.xp > 0).length}
+              </div>
+              <div className="text-xs text-slate-500">Active Days</div>
+            </div>
+          </div>
+        </Card>
+      </motion.div>
 
       <Card>
         <div className="font-semibold mb-4">Badges</div>

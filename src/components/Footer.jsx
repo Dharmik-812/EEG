@@ -3,13 +3,12 @@ import { useState, useEffect } from 'react'
 import { 
   Github, Heart, Mail, MessageCircle, HelpCircle, 
   Globe, ChevronUp, ExternalLink, Twitter, Linkedin,
-  Youtube, Instagram, Facebook, Rss, Download,
-  BookOpen, Users, Award, Shield, Lock, Eye,
-  ArrowRight, CheckCircle, Star, Zap, Leaf,
-  MapPin, Phone, Clock, Send, Bell
+  Youtube, Instagram, Facebook, BookOpen, Users, 
+  Award, Shield, ArrowRight, Star, 
+  Zap, Leaf, PlayCircle, Trophy,
+  BarChart3, Gamepad2, Brain, Target
 } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import toast from 'react-hot-toast'
 
 const FooterLink = ({ href, children, icon: Icon, external = false, className = "" }) => {
   const [isHovered, setIsHovered] = useState(false)
@@ -54,29 +53,60 @@ const FooterLink = ({ href, children, icon: Icon, external = false, className = 
   }
 
   return (
-    <Link to={href} className="block">
+    <Link 
+      to={href} 
+      className="block"
+      onClick={(e) => {
+        // Prevent default navigation temporarily
+        e.preventDefault()
+        
+        // Scroll to top first to prevent blank page issues
+        window.scrollTo({ top: 0, behavior: 'instant' })
+        
+        // Use a small delay to ensure scroll completes before navigation
+        setTimeout(() => {
+          // Force navigation using window.location for more reliable routing
+          window.location.href = href
+        }, 50)
+      }}
+    >
       {content}
     </Link>
   )
 }
 
-const ScrollToTop = () => {
+const ScrollToTop = ({ isScrolling }) => {
   const [isVisible, setIsVisible] = useState(false)
 
   useEffect(() => {
+    let timeoutId
+    
     const toggleVisibility = () => {
-      if (window.pageYOffset > 300) {
+      // Clear any existing timeout
+      clearTimeout(timeoutId)
+      
+      // Set a small delay to prevent flickering
+      timeoutId = setTimeout(() => {
+        // Only show if user is not actively scrolling and has scrolled enough
+        if (window.pageYOffset > 800 && !isScrolling) { // Increased threshold and check scrolling state
         setIsVisible(true)
       } else {
         setIsVisible(false)
       }
+      }, 200) // Increased delay
     }
 
-    window.addEventListener('scroll', toggleVisibility)
-    return () => window.removeEventListener('scroll', toggleVisibility)
-  }, [])
+    // Use passive listener for better performance
+    window.addEventListener('scroll', toggleVisibility, { passive: true })
+    
+    return () => {
+      window.removeEventListener('scroll', toggleVisibility)
+      clearTimeout(timeoutId)
+    }
+  }, [isScrolling])
 
   const scrollToTop = () => {
+    // Use a more reliable scroll method
     window.scrollTo({
       top: 0,
       behavior: 'smooth'
@@ -94,6 +124,7 @@ const ScrollToTop = () => {
           className="fixed bottom-6 right-6 z-50 p-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
+          aria-label="Scroll to top"
         >
           <ChevronUp className="h-5 w-5" />
         </motion.button>
@@ -102,78 +133,6 @@ const ScrollToTop = () => {
   )
 }
 
-const NewsletterSignup = () => {
-  const [email, setEmail] = useState('')
-  const [isSubscribed, setIsSubscribed] = useState(false)
-
-  const handleSubscribe = (e) => {
-    e.preventDefault()
-    if (email) {
-      setIsSubscribed(true)
-      toast.success('Thank you for subscribing! 🌱')
-      setEmail('')
-      setTimeout(() => setIsSubscribed(false), 3000)
-    }
-  }
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.6, delay: 0.2 }}
-      className="bg-gradient-to-r from-emerald-500 to-blue-600 rounded-2xl p-8 text-white"
-    >
-      <div className="max-w-md mx-auto text-center">
-        <motion.div
-          initial={{ scale: 0 }}
-          whileInView={{ scale: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-          className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4"
-        >
-          <Bell className="h-8 w-8" />
-        </motion.div>
-        
-        <h3 className="text-2xl font-bold mb-2">Stay Updated</h3>
-        <p className="text-emerald-100 mb-6">
-          Get the latest environmental education tips, platform updates, and exclusive content delivered to your inbox.
-        </p>
-        
-        <form onSubmit={handleSubscribe} className="flex gap-2">
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Enter your email"
-            className="flex-1 px-4 py-3 rounded-lg text-slate-900 placeholder-slate-500 focus:ring-2 focus:ring-white/50 focus:outline-none"
-            required
-          />
-          <motion.button
-            type="submit"
-            className="px-6 py-3 bg-white text-emerald-600 rounded-lg font-medium hover:bg-emerald-50 transition-colors flex items-center gap-2"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <Send className="h-4 w-4" />
-            Subscribe
-          </motion.button>
-        </form>
-        
-        {isSubscribed && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mt-4 flex items-center justify-center gap-2 text-emerald-100"
-          >
-            <CheckCircle className="h-4 w-4" />
-            <span className="text-sm">Successfully subscribed!</span>
-          </motion.div>
-        )}
-      </div>
-    </motion.div>
-  )
-}
 
 const EarthHeart = () => {
   const [isBeating, setIsBeating] = useState(false)
@@ -230,42 +189,55 @@ const EarthHeart = () => {
 export default function Footer() {
   const [currentYear] = useState(new Date().getFullYear())
   const [isHovered, setIsHovered] = useState(false)
+  const [isScrolling, setIsScrolling] = useState(false)
 
+  // Prevent automatic scrolling issues
+  useEffect(() => {
+    let scrollTimeout
+    
+    const handleScroll = () => {
+      setIsScrolling(true)
+      clearTimeout(scrollTimeout)
+      
+      // Reset scrolling state after user stops scrolling
+      scrollTimeout = setTimeout(() => {
+        setIsScrolling(false)
+      }, 150)
+    }
+
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+      clearTimeout(scrollTimeout)
+    }
+  }, [])
+
+  // Only use pages that actually exist on the AverSoltix website
   const footerSections = {
     product: [
-      { label: "Features", href: "/features" },
-      { label: "Pricing", href: "/pricing" },
-      { label: "How it Works", href: "/how-it-works" },
-      { label: "Demo", href: "/demo" },
-      { label: "API", href: "/api" }
+      { label: "How it Works", href: "/how-it-works", icon: BookOpen },
+      { label: "Projects", href: "/projects", icon: Gamepad2 },
+      { label: "Editor", href: "/editor", icon: Zap },
+      { label: "Create Quiz", href: "/create-quiz", icon: Target }
     ],
     education: [
-      { label: "Courses", href: "/courses" },
-      { label: "Quizzes", href: "/quizzes" },
-      { label: "Challenges", href: "/challenges" },
-      { label: "Resources", href: "/resources" },
-      { label: "Certificates", href: "/certificates" }
+      { label: "Dashboard", href: "/dashboard", icon: BarChart3 },
+      { label: "Leaderboard", href: "/leaderboard", icon: Trophy },
+      { label: "Badges", href: "/badges", icon: Award },
+      { label: "Chatbot", href: "/chat", icon: Brain }
     ],
     support: [
-      { label: "Help Center", href: "/support" },
-      { label: "Documentation", href: "/docs" },
-      { label: "Community", href: "/community" },
-      { label: "Contact Us", href: "/contact" },
-      { label: "Status", href: "/status" }
+      { label: "Support", href: "/support", icon: HelpCircle },
+      { label: "Feedback", href: "/feedback", icon: MessageCircle },
+      { label: "Community", href: "/community", icon: Users },
+      { label: "Privacy", href: "/privacy", icon: Shield }
     ],
     company: [
-      { label: "About Us", href: "/about" },
-      { label: "Blog", href: "/blog" },
-      { label: "Careers", href: "/careers" },
-      { label: "Partners", href: "/partners" },
-      { label: "Press", href: "/press" }
-    ],
-    legal: [
-      { label: "Privacy Policy", href: "/privacy" },
-      { label: "Terms of Service", href: "/terms" },
-      { label: "Cookie Policy", href: "/cookies" },
-      { label: "GDPR", href: "/gdpr" },
-      { label: "Accessibility", href: "/accessibility" }
+      { label: "About", href: "/about", icon: Globe },
+      { label: "Login", href: "/login", icon: Heart },
+      { label: "Register", href: "/register", icon: Star },
+      { label: "Admin", href: "/admin", icon: PlayCircle }
     ]
   }
 
@@ -278,13 +250,6 @@ export default function Footer() {
     { icon: Facebook, href: "https://facebook.com/aversoltix", label: "Facebook" }
   ]
 
-  const stats = [
-    { icon: Users, value: "50K+", label: "Students" },
-    { icon: BookOpen, value: "500+", label: "Courses" },
-    { icon: Award, value: "98%", label: "Satisfaction" },
-    { icon: Globe, value: "150+", label: "Countries" }
-  ]
-
   return (
     <>
       <motion.footer 
@@ -294,11 +259,6 @@ export default function Footer() {
         viewport={{ once: true }}
         transition={{ duration: 0.6 }}
       >
-        {/* Newsletter Section */}
-        <div className="container mx-auto px-4 py-12">
-          <NewsletterSignup />
-        </div>
-
         {/* Animated gradient line */}
         <motion.div 
           className="h-px w-full bg-gradient-to-r from-transparent via-emerald-400/60 to-transparent mb-8"
@@ -309,150 +269,230 @@ export default function Footer() {
         />
         
         <div className="container mx-auto px-4 py-12">
-          {/* Main footer content */}
-          <div className="grid grid-cols-1 lg:grid-cols-6 gap-8 mb-12">
-            {/* Brand section */}
+          {/* Main footer content - 4 column layout */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+            {/* Column 1 - Product */}
             <motion.div 
-              className="lg:col-span-2"
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.1 }}
             >
-              <motion.div 
-                className="flex items-center gap-3 mb-4"
-                whileHover={{ scale: 1.05 }}
-                transition={{ duration: 0.2 }}
-              >
-                <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
-                  <Globe className="h-6 w-6 text-white" />
-                </div>
-                <span className="text-2xl font-bold text-slate-800 dark:text-slate-200">AverSoltix</span>
-              </motion.div>
-              
-              <p className="text-slate-600 dark:text-slate-400 mb-6 max-w-md">
-                Empowering the next generation through interactive environmental education. 
-                Learn, play, and make a difference for our planet.
-              </p>
-
-              {/* Stats */}
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                {stats.map((stat, index) => (
-                  <motion.div
-                    key={stat.label}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
+              <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-6 font-display">
+                Product
+              </h3>
+              <ul className="space-y-4">
+                {footerSections.product.map((link, index) => (
+                  <motion.li
+                    key={link.label}
+                    initial={{ opacity: 0, x: -10 }}
+                    whileInView={{ opacity: 1, x: 0 }}
                     viewport={{ once: true }}
-                    transition={{ duration: 0.5, delay: 0.2 + index * 0.1 }}
-                    className="text-center p-3 bg-white dark:bg-slate-800 rounded-lg shadow-sm"
+                    transition={{ duration: 0.3, delay: 0.2 + index * 0.1 }}
                   >
-                    <stat.icon className="h-5 w-5 text-emerald-500 mx-auto mb-1" />
-                    <div className="text-lg font-bold text-slate-800 dark:text-slate-200">{stat.value}</div>
-                    <div className="text-xs text-slate-600 dark:text-slate-400">{stat.label}</div>
-                  </motion.div>
+                    <Link
+                      to={link.href}
+                      className="text-slate-600 dark:text-slate-400 hover:text-emerald-500 transition-colors duration-200 flex items-center gap-3 group"
+                    >
+                      <link.icon className="h-4 w-4" />
+                      <span>{link.label}</span>
+                      <ArrowRight className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </Link>
+                  </motion.li>
                 ))}
-              </div>
-
-              {/* Social Links */}
-              <div className="flex flex-wrap gap-3">
-                {socialLinks.map((social, index) => (
-                  <motion.a
-                    key={social.label}
-                    href={social.href}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-3 bg-slate-200 dark:bg-slate-700 rounded-lg hover:bg-emerald-500 hover:text-white transition-all duration-200 group"
-                    whileHover={{ scale: 1.1, rotate: 5 }}
-                    whileTap={{ scale: 0.95 }}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.5, delay: 0.3 + index * 0.05 }}
-                  >
-                    <social.icon className="h-4 w-4" />
-                  </motion.a>
-                ))}
-              </div>
+              </ul>
             </motion.div>
 
-            {/* Footer Links */}
-            {Object.entries(footerSections).map(([sectionName, links], sectionIndex) => (
-              <motion.div
-                key={sectionName}
-                className="lg:col-span-1"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.6, delay: 0.2 + sectionIndex * 0.1 }}
-              >
-                <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-4 capitalize">
-                  {sectionName}
-                </h3>
-                <ul className="space-y-3">
-                  {links.map((link, index) => (
-                    <motion.li
-                      key={link.label}
-                      initial={{ opacity: 0, x: -10 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      viewport={{ once: true }}
-                      transition={{ duration: 0.3, delay: 0.3 + sectionIndex * 0.1 + index * 0.05 }}
+            {/* Column 2 - Education */}
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+            >
+              <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-6 font-display">
+                Education
+              </h3>
+              <ul className="space-y-4">
+                {footerSections.education.map((link, index) => (
+                  <motion.li
+                    key={link.label}
+                    initial={{ opacity: 0, x: -10 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.3, delay: 0.3 + index * 0.1 }}
+                  >
+                    <Link
+                      to={link.href}
+                      className="text-slate-600 dark:text-slate-400 hover:text-emerald-500 transition-colors duration-200 flex items-center gap-3 group"
                     >
-                      <Link
-                        to={link.href}
-                        className="text-slate-600 dark:text-slate-400 hover:text-emerald-500 transition-colors duration-200 flex items-center gap-2 group"
-                      >
-                        <span>{link.label}</span>
-                        <ArrowRight className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
-                      </Link>
-                    </motion.li>
-                  ))}
-                </ul>
-              </motion.div>
-            ))}
+                      <link.icon className="h-4 w-4" />
+                      <span>{link.label}</span>
+                      <ArrowRight className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </Link>
+                  </motion.li>
+                ))}
+              </ul>
+            </motion.div>
+
+            {/* Column 3 - Support */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+            >
+              <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-6 font-display">
+                Support
+              </h3>
+              <ul className="space-y-4">
+                {footerSections.support.map((link, index) => (
+                  <motion.li
+                  key={link.label}
+                    initial={{ opacity: 0, x: -10 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.3, delay: 0.4 + index * 0.1 }}
+                  >
+                    <Link
+                      to={link.href}
+                      className="text-slate-600 dark:text-slate-400 hover:text-emerald-500 transition-colors duration-200 flex items-center gap-3 group"
+                    >
+                      <link.icon className="h-4 w-4" />
+                      <span>{link.label}</span>
+                      <ArrowRight className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </Link>
+                  </motion.li>
+                ))}
+              </ul>
+            </motion.div>
+
+            {/* Column 4 - Company */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+            >
+              <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-6 font-display">
+                Company
+              </h3>
+              <ul className="space-y-4">
+                {footerSections.company.map((link, index) => (
+                  <motion.li
+                    key={link.label}
+                    initial={{ opacity: 0, x: -10 }}
+                    whileInView={{ opacity: 1, x: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.3, delay: 0.5 + index * 0.1 }}
+                  >
+                    <Link
+                      to={link.href}
+                      className="text-slate-600 dark:text-slate-400 hover:text-emerald-500 transition-colors duration-200 flex items-center gap-3 group"
+                    >
+                      <link.icon className="h-4 w-4" />
+                      <span>{link.label}</span>
+                      <ArrowRight className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </Link>
+                  </motion.li>
+                ))}
+              </ul>
+            </motion.div>
           </div>
 
-          {/* Bottom section */}
+          {/* Brand section with social links */}
           <motion.div 
             className="pt-8 border-t border-slate-200 dark:border-slate-700"
             initial={{ opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.4 }}
+            transition={{ duration: 0.6, delay: 0.5 }}
           >
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-              <div className="flex flex-col lg:flex-row lg:items-center gap-6 text-sm text-slate-600 dark:text-slate-400">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8">
+              {/* Brand */}
+              <motion.div 
+                className="flex items-center gap-4"
+                initial={{ opacity: 0, x: -20 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: 0.6 }}
+              >
+                <motion.div 
+                  className="flex items-center gap-3"
+                  whileHover={{ scale: 1.05 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-sky-500 rounded-xl flex items-center justify-center shadow-glow">
+                    <Globe className="h-6 w-6 text-white" />
+                  </div>
+                  <span className="text-2xl font-bold text-slate-800 dark:text-slate-200 font-display">AverSoltix</span>
+                </motion.div>
+                <span className="text-slate-400 hidden lg:block">•</span>
+                <p className="text-slate-600 dark:text-slate-400 text-sm hidden lg:block">
+                  Empowering environmental education
+                </p>
+            </motion.div>
+
+            {/* Social Links */}
+            <motion.div 
+              className="flex items-center gap-4"
+              initial={{ opacity: 0, x: 20 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+                transition={{ duration: 0.6, delay: 0.7 }}
+            >
+                {socialLinks.map((social, index) => (
+              <motion.a
+                    key={social.label}
+                    href={social.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                    className="p-3 bg-slate-200 dark:bg-slate-700 rounded-lg hover:bg-emerald-500 hover:text-white transition-all duration-200 group"
+                whileHover={{ scale: 1.1, rotate: 5 }}
+                whileTap={{ scale: 0.95 }}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.5, delay: 0.8 + index * 0.05 }}
+              >
+                    <social.icon className="h-4 w-4" />
+              </motion.a>
+                ))}
+            </motion.div>
+          </div>
+          </motion.div>
+
+          {/* Bottom bar */}
+          <motion.div 
+            className="pt-6 border-t border-slate-200 dark:border-slate-700 mt-8"
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.8 }}
+          >
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-sm">
+              <div className="flex items-center gap-4 text-slate-600 dark:text-slate-400">
                 <p>© {currentYear} AverSoltix. All rights reserved.</p>
-                <div className="flex items-center gap-6">
-                  <Link to="/privacy" className="hover:text-emerald-500 transition-colors">
-                    Privacy Policy
-                  </Link>
-                  <Link to="/terms" className="hover:text-emerald-500 transition-colors">
-                    Terms of Service
-                  </Link>
-                  <Link to="/cookies" className="hover:text-emerald-500 transition-colors">
-                    Cookie Policy
-                  </Link>
-                </div>
               </div>
               
-              <motion.div
-                onHoverStart={() => setIsHovered(true)}
-                onHoverEnd={() => setIsHovered(false)}
-                className="flex items-center gap-4"
-              >
-                <EarthHeart />
-                <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
-                  <Shield className="h-4 w-4" />
-                  <span>Secure & Trusted</span>
-                </div>
-              </motion.div>
+              <div className="flex items-center gap-6">
+                  <Link to="/privacy" className="hover:text-emerald-500 transition-colors">
+                  Privacy Policy
+                  </Link>
+                  <Link to="/terms" className="hover:text-emerald-500 transition-colors">
+                  Terms of Service
+                </Link>
+                <Link to="/privacy" className="hover:text-emerald-500 transition-colors">
+                  Cookie Policy
+                  </Link>
+              </div>
             </div>
           </motion.div>
         </div>
 
         {/* Floating particles effect */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          {[...Array(8)].map((_, i) => (
+          {[...Array(6)].map((_, i) => (
             <motion.div
               key={i}
               className="absolute w-1 h-1 bg-emerald-400/20 rounded-full"
@@ -461,22 +501,21 @@ export default function Footer() {
                 top: `${Math.random() * 100}%`,
               }}
               animate={{
-                y: [0, -30, 0],
+                y: [0, -20, 0],
                 opacity: [0, 1, 0],
-                scale: [1, 1.5, 1],
               }}
               transition={{
-                duration: 4 + Math.random() * 2,
+                duration: 3 + Math.random() * 2,
                 repeat: Infinity,
-                delay: Math.random() * 3,
+                delay: Math.random() * 2,
               }}
             />
           ))}
-        </div>
-      </motion.footer>
+      </div>
+    </motion.footer>
 
       {/* Scroll to top button */}
-      <ScrollToTop />
+      <ScrollToTop isScrolling={isScrolling} />
     </>
   )
 }

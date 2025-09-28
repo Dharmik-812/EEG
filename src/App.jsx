@@ -1,4 +1,4 @@
-import { useEffect, useState, Suspense, lazy } from 'react'
+import { useEffect, useState } from 'react'
 import { Routes, Route, useLocation, Navigate } from 'react-router-dom'
 // eslint-disable-next-line no-unused-vars
 import { AnimatePresence, motion, LayoutGroup } from 'framer-motion'
@@ -17,24 +17,24 @@ import { useLenis } from './animations/hooks/useLenis'
 import { useAnimationStore } from './store/animationStore'
 import { useFramerPreset, useBarbaTransitions } from './animations'
 
-// Lazy load pages
-const Landing = lazy(() => import('./pages/Landing.jsx'))
-const About = lazy(() => import('./pages/About.jsx'))
-const Dashboard = lazy(() => import('./pages/Dashboard.jsx'))
-const Leaderboard = lazy(() => import('./pages/Leaderboard.jsx'))
-const Badges = lazy(() => import('./pages/Badges.jsx'))
-const Community = lazy(() => import('./pages/Community.jsx'))
-const Editor = lazy(() => import('./pages/ModernEditor.jsx'))
-const PlayGame = lazy(() => import('./pages/PlayGame.jsx'))
-const Login = lazy(() => import('./pages/Login.jsx'))
-const Register = lazy(() => import('./pages/Register.jsx'))
-const Admin = lazy(() => import('./pages/Admin.jsx'))
-const CreateQuiz = lazy(() => import('./pages/CreateQuiz.jsx'))
-const HowItWorks = lazy(() => import('./pages/HowItWorks.jsx'))
-const Projects = lazy(() => import('./pages/Projects.jsx'))
-const ChatInterface = lazy(() => import('./components/ChatInterface.jsx'))
-const Privacy = lazy(() => import('./pages/Privacy.jsx'))
-const Terms = lazy(() => import('./pages/Terms.jsx'))
+// Import pages directly to prevent blank page issues on first navigation
+import Landing from './pages/Landing.jsx'
+import About from './pages/About.jsx'
+import Dashboard from './pages/Dashboard.jsx'
+import Leaderboard from './pages/Leaderboard.jsx'
+import Badges from './pages/Badges.jsx'
+import Community from './pages/Community.jsx'
+import Editor from './pages/ModernEditor.jsx'
+import PlayGame from './pages/PlayGame.jsx'
+import Login from './pages/Login.jsx'
+import Register from './pages/Register.jsx'
+import Admin from './pages/Admin.jsx'
+import CreateQuiz from './pages/CreateQuiz.jsx'
+import HowItWorks from './pages/HowItWorks.jsx'
+import Projects from './pages/Projects.jsx'
+import ChatInterface from './components/ChatInterface.jsx'
+import Privacy from './pages/Privacy.jsx'
+import Terms from './pages/Terms.jsx'
 import Feedback from './pages/Feedback.jsx'
 import Support from './pages/Support.jsx'
 
@@ -135,7 +135,7 @@ function PageWrapper({ children }) {
           >
             <div className="absolute inset-0 bg-gradient-to-b from-emerald-500/0 via-emerald-500/5 to-sky-500/0" />
           </motion.div>
-          <Suspense fallback={<EnhancedPageFallback />}>{children}</Suspense>
+          {children}
         </motion.main>
       </RouteGuard>
     </ErrorBoundary>
@@ -162,7 +162,7 @@ function FullscreenPageWrapper({ children }) {
             } catch {}
           }}
         >
-          <Suspense fallback={<EnhancedPageFallback />}>{children}</Suspense>
+          {children}
         </motion.main>
       </RouteGuard>
     </ErrorBoundary>
@@ -186,9 +186,15 @@ export default function App() {
   useEffect(() => {
     setIsNavigating(true)
     setRouteOverlay(true)
-    const timer = setTimeout(() => setIsNavigating(false), 300)
-    const hide = setTimeout(() => setRouteOverlay(false), 500)
-    return () => { clearTimeout(timer); clearTimeout(hide) }
+    
+    // Shorter delays for better responsiveness
+    const timer = setTimeout(() => setIsNavigating(false), 150)
+    const hide = setTimeout(() => setRouteOverlay(false), 300)
+    
+    return () => { 
+      clearTimeout(timer)
+      clearTimeout(hide) 
+    }
   }, [location.pathname])
 
   // Ensure proper initialization for new tabs
@@ -198,7 +204,7 @@ export default function App() {
       window.lastUserInteraction = Date.now()
     }
 
-    // Force a small delay to ensure all stores are initialized
+    // Minimal delay to ensure stores are initialized
     const initTimer = setTimeout(() => {
       // This helps with new tab navigation by ensuring stores are ready
       if (typeof window !== 'undefined') {
@@ -207,7 +213,7 @@ export default function App() {
         window.lastUserInteraction = Date.now()
       }
       setIsAppReady(true)
-    }, 200) // Slightly longer delay for new tabs
+    }, 100) // Reduced delay for faster loading
     return () => clearTimeout(initTimer)
   }, [])
 
@@ -322,7 +328,6 @@ export default function App() {
                   <Route path="/" element={<PageWrapper><Landing /></PageWrapper>} />
                   <Route path="/about" element={<PageWrapper><About /></PageWrapper>} />
                   <Route path="/dashboard" element={<PageWrapper><Dashboard /></PageWrapper>} />
-                  {/* challenges route removed */}
                   <Route path="/leaderboard" element={<PageWrapper><Leaderboard /></PageWrapper>} />
                   <Route path="/badges" element={<PageWrapper><Badges /></PageWrapper>} />
                   <Route path="/community" element={<PageWrapper><Community /></PageWrapper>} />

@@ -54,6 +54,17 @@
   .card-vintage { box-shadow: inset 0 0 0 1px rgba(212,175,55,.25), inset 0 0 0 4px rgba(255,255,255,.05); }
   .font-display { font-family: 'Playfair Display', serif; }
   .text-gold { @apply bg-clip-text text-transparent bg-gradient-to-r from-amber-400 to-yellow-200; }
+  .text-golden-shiny {
+    background: linear-gradient(45deg, #f6e27a 0%, #f7c14b 25%, #ffd700 50%, #f7c14b 75%, #f6e27a 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    background-size: 200% 100%;
+    animation: gradient-golden 3s ease-in-out infinite;
+    filter: drop-shadow(0 0 20px rgba(247, 193, 75, 0.6)) drop-shadow(0 0 10px rgba(255, 215, 0, 0.4));
+    text-shadow: 0 0 30px rgba(247, 193, 75, 0.8);
+    -webkit-text-fill-color: transparent;
+  }
   .btn-gold { @apply inline-flex items-center gap-2 rounded-lg px-5 py-3 text-slate-900 shadow-lg transition-all active:scale-[0.98]; background: linear-gradient(90deg,#f6e27a,#f7c14b,#f6e27a); background-size:200% 100%; animation: gradient-x 6s ease infinite; box-shadow: 0 10px 30px rgba(247,193,75,.25); }
   .nav-link {
     @apply px-3 py-2 rounded-md hover:text-emerald-500 dark:hover:text-emerald-400 transition-colors;
@@ -121,9 +132,17 @@
       filter: hue-rotate(0deg) saturate(1) brightness(1);
     }
   }
+  
   @keyframes shimmer {
-    0% { transform: translateX(-100%) skewX(-15deg); }
-    100% { transform: translateX(100%) skewX(-15deg); }
+    0% {
+      transform: translateX(-100%) skewX(-15deg);
+    }
+    50% {
+      transform: translateX(0%) skewX(-15deg);
+    }
+    100% {
+      transform: translateX(100%) skewX(-15deg);
+    }
   }
   @keyframes glow-pulse {
     0%, 100% { 

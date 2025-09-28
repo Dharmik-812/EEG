@@ -473,18 +473,7 @@ export default function Landing() {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.7, duration: 0.6 }}
                 >
-                  <span
-                    className="relative z-10 font-black"
-                    style={{
-                      background: 'linear-gradient(90deg, #f6e27a 0%, #f7c14b 25%, #ffd700 50%, #f7c14b 75%, #f6e27a 100%)',
-                      backgroundClip: 'text',
-                      WebkitBackgroundClip: 'text',
-                      color: 'transparent',
-                      backgroundSize: '200% 100%',
-                      animation: 'gradient-golden 4s ease-in-out infinite',
-                      filter: 'drop-shadow(0 0 22px rgba(247, 193, 75, 0.45)) drop-shadow(0 0 8px rgba(247, 193, 75, 0.35))'
-                    }}
-                  >
+                  <span className="font-black text-responsive-xl golden-shiny-text inline-block relative z-10">
                     Save the Planet.
                   </span>
                 </motion.span>
@@ -695,6 +684,18 @@ export default function Landing() {
 
       {/* Testimonials Section - Animated Slider */}
       <TestimonialSlider />
+
+      {/* Add CSS for golden shiny text */}
+      <style jsx>{`
+        .golden-shiny-text {
+          background: linear-gradient(45deg, #f6e27a 0%, #f7c14b 25%, #ffd700 50%, #f7c14b 75%, #f6e27a 100%);
+          background-clip: text;
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          text-shadow: 0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(247, 193, 75, 0.6), 0 0 60px rgba(255, 215, 0, 0.4);
+          filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.5));
+        }
+      `}</style>
     </>
   )
 }
