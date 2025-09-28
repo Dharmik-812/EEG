@@ -191,7 +191,7 @@ const HierarchyTab = ({
   )
 }
 
-const AssetItem = ({ asset, onSelect, onDelete }) => {
+const AssetItem = ({ asset, onSelect, onDelete, onDragStart }) => {
   const getAssetIcon = (type, category) => {
     // Enhanced icon selection based on type and category
     if (type === 'image') {
@@ -224,14 +224,25 @@ const AssetItem = ({ asset, onSelect, onDelete }) => {
   const Icon = getAssetIcon(asset.type, asset.category)
   const colorClass = getAssetColor(asset.type, asset.category)
 
+  const handleDragStart = (e) => {
+    e.dataTransfer.setData('application/json', JSON.stringify({
+      type: 'asset',
+      asset: asset
+    }))
+    e.dataTransfer.effectAllowed = 'copy'
+    onDragStart?.(asset)
+  }
+
   return (
     <div className="group relative">
       <div
-        className="flex items-center gap-4 p-4 hover:bg-slate-700 cursor-pointer transition-all duration-200 rounded-lg interactive-hover"
+        className="flex items-center gap-4 p-4 hover:bg-slate-700 cursor-grab active:cursor-grabbing transition-all duration-200 rounded-lg interactive-hover"
         onClick={() => onSelect?.(asset.id)}
+        draggable
+        onDragStart={handleDragStart}
       >
-        <div className={`w-16 h-16 bg-gradient-to-br ${colorClass} rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg group-hover:shadow-xl transition-all duration-200`}>
-          <Icon className="h-8 w-8 text-white" />
+        <div className={`w-24 h-24 bg-gradient-to-br ${colorClass} rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg group-hover:shadow-xl transition-all duration-200`}>
+          <Icon className="h-12 w-12 text-white" />
         </div>
         <div className="flex-1 min-w-0">
           <div className="text-base font-semibold text-slate-200 truncate">
@@ -407,6 +418,7 @@ const AssetsTab = ({
   const [searchQuery, setSearchQuery] = useState('')
   const [category, setCategory] = useState('all')
   const [showPremade, setShowPremade] = useState(true)
+  const [isDragOver, setIsDragOver] = useState(false)
 
   // Combine project assets with premade assets
   const allAssets = [
@@ -430,8 +442,40 @@ const AssetsTab = ({
     e.target.value = ''
   }
 
+  const handleDragOver = (e) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'copy'
+    setIsDragOver(true)
+  }
+
+  const handleDragLeave = (e) => {
+    e.preventDefault()
+    setIsDragOver(false)
+  }
+
+  const handleDrop = (e) => {
+    e.preventDefault()
+    setIsDragOver(false)
+    
+    const files = Array.from(e.dataTransfer.files)
+    files.forEach(file => {
+      if (file.type.startsWith('image/') || file.type.startsWith('audio/')) {
+        onImportAsset(file)
+      }
+    })
+  }
+
+  const handleAssetDragStart = (asset) => {
+    console.log('Dragging asset:', asset.name)
+  }
+
   return (
-    <div className="h-full flex flex-col">
+    <div 
+      className={`h-full flex flex-col ${isDragOver ? 'bg-emerald-500/10 border-2 border-dashed border-emerald-500' : ''}`}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
       <SearchBar
         value={searchQuery}
         onChange={setSearchQuery}
@@ -484,6 +528,11 @@ const AssetsTab = ({
             📚 Asset Library: {PREMADE_ASSETS.length} premade assets available
           </div>
         )}
+        {isDragOver && (
+          <div className="text-center py-4 text-emerald-500 font-medium">
+            📁 Drop files here to import
+          </div>
+        )}
       </div>
       
       <div className="flex-1 overflow-auto">
@@ -516,6 +565,7 @@ const AssetsTab = ({
                 asset={asset}
                 onSelect={onSelectAsset}
                 onDelete={onDeleteAsset}
+                onDragStart={handleAssetDragStart}
               />
             ))}
           </div>

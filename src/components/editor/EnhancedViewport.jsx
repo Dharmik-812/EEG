@@ -27,6 +27,7 @@ export default function EnhancedViewport({ mode, canvasRef, showGrid: propShowGr
   const [cameraPos, setCameraPos] = useState({ x: 0, y: 0 })
   const [viewportSize, setViewportSize] = useState({ width: 800, height: 600 })
   const [showZoomUI, setShowZoomUI] = useState(true)
+  const [isDragOver, setIsDragOver] = useState(false)
 
   const {
     project, zoom, setZoom, transformMode, setTransformMode, 
@@ -132,6 +133,62 @@ export default function EnhancedViewport({ mode, canvasRef, showGrid: propShowGr
     setIsDragging(false)
     setDragStart(null)
   }, [])
+
+  // Handle drag & drop for assets
+  const handleViewportDragOver = useCallback((e) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'copy'
+    setIsDragOver(true)
+  }, [])
+
+  const handleViewportDragLeave = useCallback((e) => {
+    e.preventDefault()
+    setIsDragOver(false)
+  }, [])
+
+  const handleViewportDrop = useCallback((e) => {
+    e.preventDefault()
+    setIsDragOver(false)
+    
+    try {
+      const data = JSON.parse(e.dataTransfer.getData('application/json'))
+      if (data.type === 'asset' && data.asset) {
+        const rect = canvasViewRef.current?.getBoundingClientRect()
+        if (!rect) return
+
+        const x = (e.clientX - rect.left - cameraPos.x) / zoom
+        const y = (e.clientY - rect.top - cameraPos.y) / zoom
+
+        // Create new entity with the asset
+        const newEntity = {
+          id: `entity-${Date.now()}`,
+          name: data.asset.name,
+          components: {
+            transform: {
+              x: x,
+              y: y,
+              w: 64,
+              h: 64,
+              rotation: 0,
+              scale: 1
+            },
+            sprite: {
+              assetId: data.asset.id,
+              tint: '#ffffff',
+              opacity: 1,
+              flipX: false,
+              flipY: false
+            }
+          }
+        }
+
+        addEntity?.(newEntity)
+        setSelectedEntity?.(newEntity.id)
+      }
+    } catch (error) {
+      console.error('Error handling asset drop:', error)
+    }
+  }, [cameraPos, zoom, addEntity, setSelectedEntity])
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -253,7 +310,11 @@ export default function EnhancedViewport({ mode, canvasRef, showGrid: propShowGr
         }}>
           <div 
             ref={canvasViewRef}
-            className="relative bg-white dark:bg-slate-900 rounded-lg shadow-2xl border-2 border-slate-300 dark:border-slate-600 overflow-hidden cursor-smooth"
+            className={`relative bg-white dark:bg-slate-900 rounded-lg shadow-2xl border-2 overflow-hidden cursor-smooth ${
+              isDragOver 
+                ? 'border-emerald-500 border-dashed bg-emerald-50 dark:bg-emerald-900/20' 
+                : 'border-slate-300 dark:border-slate-600'
+            }`}
             style={{
               width: (800 * zoom) + 'px',
               height: (600 * zoom) + 'px',
@@ -269,6 +330,9 @@ export default function EnhancedViewport({ mode, canvasRef, showGrid: propShowGr
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
             onMouseLeave={handleMouseUp}
+            onDragOver={handleViewportDragOver}
+            onDragLeave={handleViewportDragLeave}
+            onDrop={handleViewportDrop}
           >
             {/* Zoom controls overlay */}
             <div className="absolute top-3 right-3 z-30 flex items-center gap-3 bg-white/90 dark:bg-slate-800/90 backdrop-blur rounded-lg px-4 py-3 border border-slate-200 dark:border-slate-700 shadow-lg">
@@ -291,6 +355,21 @@ export default function EnhancedViewport({ mode, canvasRef, showGrid: propShowGr
             <div className="absolute inset-0" style={{
               background: project?.scenes?.[0]?.bg || '#87CEEB'
             }} />
+            
+            {/* Drag & Drop Overlay */}
+            {isDragOver && (
+              <div className="absolute inset-0 bg-emerald-500/20 border-2 border-dashed border-emerald-500 flex items-center justify-center z-50">
+                <div className="text-center">
+                  <div className="text-4xl mb-2">🎯</div>
+                  <div className="text-lg font-semibold text-emerald-700 dark:text-emerald-300">
+                    Drop Asset Here
+                  </div>
+                  <div className="text-sm text-emerald-600 dark:text-emerald-400">
+                    Release to add to scene
+                  </div>
+                </div>
+              </div>
+            )}
             
             {/* Grid */}
             {showGrid && (

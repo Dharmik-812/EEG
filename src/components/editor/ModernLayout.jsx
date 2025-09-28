@@ -73,9 +73,9 @@ const CollapsiblePanel = ({
   isCollapsed, 
   onToggle, 
   className = '',
-  defaultWidth = 300,
-  minWidth = 200,
-  maxWidth = 500,
+  defaultWidth = 350,
+  minWidth = 250,
+  maxWidth = 600,
   side = 'left'
 }) => {
   const [width, setWidth] = useState(defaultWidth)
@@ -167,24 +167,24 @@ const ModernLayout = ({
   onRightToggle,
   onBottomToggle
 }) => {
-  const [leftWidth, setLeftWidth] = useState(300)
-  const [rightWidth, setRightWidth] = useState(300)
-  const [bottomHeight, setBottomHeight] = useState(200)
+  const [leftWidth, setLeftWidth] = useState(350)
+  const [rightWidth, setRightWidth] = useState(350)
+  const [bottomHeight, setBottomHeight] = useState(250)
 
   const handleLeftResize = ({ deltaX }) => {
-    setLeftWidth(prev => Math.max(200, Math.min(500, prev + deltaX)))
+    setLeftWidth(prev => Math.max(250, Math.min(600, prev + deltaX)))
   }
 
   const handleRightResize = ({ deltaX }) => {
-    setRightWidth(prev => Math.max(200, Math.min(500, prev - deltaX)))
+    setRightWidth(prev => Math.max(250, Math.min(600, prev - deltaX)))
   }
 
   const handleBottomResize = ({ deltaY }) => {
-    setBottomHeight(prev => Math.max(150, Math.min(400, prev - deltaY)))
+    setBottomHeight(prev => Math.max(200, Math.min(500, prev - deltaY)))
   }
 
   return (
-    <div className="h-screen bg-slate-900 flex flex-col overflow-hidden">
+    <div className="h-screen w-screen bg-slate-900 flex flex-col overflow-hidden">
       {/* Main Content Area */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left Panel */}
