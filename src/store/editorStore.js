@@ -75,7 +75,33 @@ export const useEditorStore = create(
       redo: [],
 
       newProject: () => set({ project: defaultProject(), selectedEntityId: null, selectedSceneId: 'scene-1', history: [], redo: [] }),
-      loadProject: (proj) => set({ project: { ...proj, version: proj.version || 1, updatedAt: Date.now() }, selectedEntityId: null, selectedSceneId: proj.startSceneId || proj.scenes[0]?.id, history: [], redo: [] }),
+      loadProject: (proj) => set(state => {
+        try {
+          // basic schema validation mirroring the runtime exporter constraints
+          if (typeof proj !== 'object' || !proj) throw new Error('Invalid project')
+          if (!Array.isArray(proj.scenes) || proj.scenes.length === 0) throw new Error('No scenes')
+          for (const s of proj.scenes) {
+            if (typeof s.id !== 'string') throw new Error('Invalid scene id')
+            if (!Array.isArray(s.entities)) throw new Error('Invalid scene entities')
+            for (const e of s.entities) {
+              if (!e || typeof e.id !== 'string' || typeof e.components !== 'object') throw new Error('Invalid entity')
+              const allowed = new Set(['transform','sprite','text','ui','rigidbody','collider','tilemap','script','emitter','audioSource'])
+              for (const k of Object.keys(e.components)) if (!allowed.has(k)) throw new Error('Unsupported component: '+k)
+            }
+          }
+          if (proj.assets && !Array.isArray(proj.assets)) throw new Error('Invalid assets')
+          if (Array.isArray(proj.assets)) {
+            for (const a of proj.assets) {
+              if (typeof a.id !== 'string' || typeof a.src !== 'string') throw new Error('Invalid asset')
+              if (a.type !== 'image' && a.type !== 'audio') throw new Error('Unsupported asset type: '+a.type)
+            }
+          }
+          return { project: { ...proj, version: proj.version || 1, updatedAt: Date.now() }, selectedEntityId: null, selectedSceneId: proj.startSceneId || proj.scenes[0]?.id, history: [], redo: [] }
+        } catch (e) {
+          console.error('Rejected project during load:', e)
+          return {}
+        }
+      }),
       exportProject: () => JSON.stringify({ ...get().project, updatedAt: Date.now() }, null, 2),
 
       setZoom: (z) => set({ zoom: Math.min(3, Math.max(0.25, z)) }),
@@ -316,7 +342,11 @@ export const useEditorStore = create(
           }
           // choose read method
           if (file.type.startsWith('image/') || file.type.startsWith('audio/')) reader.readAsDataURL(file)
-          else reader.readAsText(file)
+          else {
+            console.warn('Unsupported asset type on import; only images and audio are allowed')
+            resolve(null)
+            return
+          }
         })
       },
       addAssetFromLibrary: (asset) => set(state => {

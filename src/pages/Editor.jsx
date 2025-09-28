@@ -18,6 +18,38 @@ import { useLogStore } from '../store/logStore'
 import SEO from '../components/SEO.jsx'
 import AchievementNotification from '../components/AchievementNotification'
 
+// Minimal runtime schema validation to ensure only supported editor projects are loaded
+function validateProjectSchema(data){
+  try{
+    if(typeof data !== 'object' || !data) return false
+    if(!Array.isArray(data.scenes) || data.scenes.length === 0) return false
+    for(const s of data.scenes){
+      if(typeof s.id !== 'string') return false
+      if(!Array.isArray(s.entities)) return false
+      for(const e of s.entities){
+        if(typeof e !== 'object' || !e) return false
+        if(typeof e.id !== 'string') return false
+        if(typeof e.components !== 'object' || !e.components) return false
+        // only allow known component keys
+        const allowed = new Set(['transform','sprite','text','ui','rigidbody','collider','tilemap','script','emitter','audioSource'])
+        for(const k of Object.keys(e.components)){
+          if(!allowed.has(k)) return false
+        }
+      }
+    }
+    // assets must be images or audio only
+    if(data.assets && !Array.isArray(data.assets)) return false
+    if(Array.isArray(data.assets)){
+      for(const a of data.assets){
+        if(typeof a.id !== 'string') return false
+        if(a.type !== 'image' && a.type !== 'audio') return false
+        if(typeof a.src !== 'string') return false
+      }
+    }
+    return true
+  }catch{ return false }
+}
+
 const PANEL_TYPES = {
   HIERARCHY: 'hierarchy',
   INSPECTOR: 'inspector',
@@ -51,11 +83,48 @@ export default function Editor() {
   const [isLoading, setIsLoading] = useState(true)
   const [showAchievement, setShowAchievement] = useState(false)
   const [achievementData, setAchievementData] = useState({})
+  const [showTutorial, setShowTutorial] = useState(false)
 
   useEffect(() => {
     // Initialize editor loading
     const timer = setTimeout(() => setIsLoading(false), 1200)
     return () => clearTimeout(timer)
+  }, [])
+
+  // Autosave & restore
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('eeg/editor/autosave')
+      if (saved) {
+        const should = confirm('Restore last autosave?')
+        if (should) {
+          const data = JSON.parse(saved)
+          if (validateProjectSchema(data)) useEditorStore.getState().loadProject(data)
+        }
+      }
+    } catch {}
+  }, [])
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      try {
+        const json = useEditorStore.getState().exportProject()
+        localStorage.setItem('eeg/editor/autosave', json)
+      } catch {}
+    }, 3000)
+    return () => clearInterval(id)
+  }, [])
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    function onKey(e){
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase()==='s') { e.preventDefault(); try{ const json=useEditorStore.getState().exportProject(); localStorage.setItem('eeg/editor/manualsave', json); toast.success('Project saved locally') }catch{} }
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase()==='p') { e.preventDefault(); togglePlay() }
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase()==='z') { e.preventDefault(); useEditorStore.getState().undo() }
+      if ((e.ctrlKey || e.metaKey) && (e.key.toLowerCase()==='y' || (e.shiftKey && e.key.toLowerCase()==='z'))) { e.preventDefault(); useEditorStore.getState().redoAction() }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
   }, [])
 
   useEffect(() => {
@@ -203,10 +272,55 @@ export default function Editor() {
                 <button className="p-2 hover:bg-slate-700 rounded-lg transition-colors" title="Save">
                   <Save className="h-4 w-4" />
                 </button>
-                <button className="p-2 hover:bg-slate-700 rounded-lg transition-colors" title="Load">
+                <label className="p-2 hover:bg-slate-700 rounded-lg transition-colors cursor-pointer" title="Load">
                   <Upload className="h-4 w-4" />
-                </button>
-                <button className="p-2 hover:bg-slate-700 rounded-lg transition-colors" title="Export">
+                  <input
+                    type="file"
+                    accept="application/json"
+                    className="hidden"
+                    onChange={(e)=>{
+                      const file = e.target.files && e.target.files[0]
+                      if(!file) return
+                      const reader = new FileReader()
+                      reader.onload = () => {
+                        try {
+                          const data = JSON.parse(reader.result)
+                          // basic schema validation to only allow supported projects
+                          const ok = validateProjectSchema(data)
+                          if (!ok) {
+                            alert('Invalid project file. Only supported EEG editor projects can be loaded.')
+                            return
+                          }
+                          useEditorStore.getState().loadProject(data)
+                          toast.success('Project loaded')
+                        } catch (err) {
+                          console.error(err)
+                          alert('Failed to load project JSON')
+                        }
+                      }
+                      reader.readAsText(file)
+                      e.target.value = ''
+                    }}
+                  />
+                </label>
+                <button
+                  className="p-2 hover:bg-slate-700 rounded-lg transition-colors"
+                  title="Export"
+                  onClick={()=>{
+                    try{
+                      const { project } = useEditorStore.getState()
+                      const { buildWebHTML } = require('../engine/exporter')
+                      const html = buildWebHTML(project)
+                      const blob = new Blob([html], { type: 'text/html' })
+                      const url = URL.createObjectURL(blob)
+                      const a = document.createElement('a')
+                      a.href = url; a.download = (project?.name || 'game') + '.html'
+                      document.body.appendChild(a); a.click(); a.remove()
+                      URL.revokeObjectURL(url)
+                      toast.success('Exported web build (.html)')
+                    }catch(err){ console.error(err); toast.error('Export failed') }
+                  }}
+                >
                   <Download className="h-4 w-4" />
                 </button>
               </div>
@@ -259,8 +373,10 @@ export default function Editor() {
 
           {/* Center - Viewport */}
           <div className="flex-1 flex flex-col">
-            <div className="flex-1">
-              <EnhancedViewport mode={mode} canvasRef={canvasRef} />
+            <div className="flex-1 flex items-center justify-center">
+              <div className="relative" style={{ width: 960, height: 600 }}>
+                <EnhancedViewport mode={mode} canvasRef={canvasRef} />
+              </div>
             </div>
             
             {/* Bottom Panel */}

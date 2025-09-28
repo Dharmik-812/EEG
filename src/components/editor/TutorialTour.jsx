@@ -3,16 +3,13 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 // Lightweight guided tour overlay. Highlights targets by CSS ring and shows a floating card.
 export default function TutorialTour({ open, onClose }) {
   const steps = useMemo(() => ([
-    { key: 'toolbar', title: 'Top Toolbar', body: 'Create new projects, undo/redo, toggle grid, play your scene, and export your build from here.', sel: '[data-tour="toolbar"]' },
-    { key: 'scenes', title: 'Scenes & Layers', body: 'Manage scenes and layers. Set the start scene, duplicate, and reorder layers.', sel: '[data-tour="scenes"]' },
-    { key: 'hierarchy', title: 'Hierarchy', body: 'All objects in your scene. Drag to reorder or parent objects.', sel: '[data-tour="hierarchy"]' },
-    { key: 'viewport', title: 'Viewport', body: 'Place and manipulate objects. Pan with Alt+drag or Middle mouse. Use grid for precision.', sel: '[data-tour="viewport"]' },
-    { key: 'inspector', title: 'Inspector', body: 'Edit properties: transform, sprite, physics, colliders, UI, scripts, and more.', sel: '[data-tour="inspector"]' },
-    { key: 'assets', title: 'Assets', body: 'Import images and audio. Drag assets into the scene or assign to selected objects.', sel: '[data-tour="assets"]' },
-    { key: 'timeline', title: 'Timeline', body: 'Animate object transforms and sprites. Add keyframes and test blends.', sel: '[data-tour="timeline"]' },
-    { key: 'console', title: 'Console', body: 'Runtime messages and errors appear here during Play. Useful for debugging.', sel: '[data-tour="console"]' },
-    { key: 'script-editor', title: 'Script Editor', body: 'Write onUpdate/onClick/onCollision with live-highlighted preview.', sel: '[data-tour="script-editor"]' },
-    { key: 'help', title: 'Help & Docs', body: 'Quick reference, tips, and examples. Great starting point for beginners.', sel: '[data-tour="help"]' },
+    { key: 'toolbar', title: 'Top Toolbar', body: 'New (Ctrl+N), Save (Ctrl+S), Play/Stop (Ctrl+P), Undo/Redo (Ctrl+Z / Ctrl+Y), Export web build.', sel: '[data-tour="toolbar"]' },
+    { key: 'assets', title: 'Assets', body: 'Upload Images/Audio only. Filter by type, search, and drag onto the scene or Assign to selected.', sel: '[data-tour="assets"]' },
+    { key: 'hierarchy', title: 'Hierarchy', body: 'All objects in your scene. Click to select. Use layers for ordering.', sel: '[data-tour="hierarchy"]' },
+    { key: 'viewport', title: 'Viewport', body: 'Zoom (+/− or mousewheel), Fit, Pan (Space drag). Place and transform entities precisely with the grid.', sel: '[data-tour="viewport"]' },
+    { key: 'inspector', title: 'Inspector', body: 'Edit Transform, Sprite, UI, Physics, Colliders. Changes auto-save every few seconds.', sel: '[data-tour="inspector"]' },
+    { key: 'script-editor', title: 'Script Editor', body: 'Add logic using onUpdate/onClick/onCollision. Errors appear in Console.', sel: '[data-tour="script-editor"]' },
+    { key: 'console', title: 'Console', body: 'Runtime messages and errors appear during Play mode for quick debugging.', sel: '[data-tour="console"]' },
   ]), [])
 
   const [i, setI] = useState(0)

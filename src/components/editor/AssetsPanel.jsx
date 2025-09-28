@@ -20,7 +20,15 @@ export default function AssetsPanel() {
 
   async function onUpload(e) {
     const file = e.target.files?.[0]
-    if (file) await importAsset(file)
+    if (!file) return
+    // Restrict uploads to images and audio only
+    if (!file.type.startsWith('image/') && !file.type.startsWith('audio/')) {
+      alert('Only image and audio files are supported as assets.')
+      e.target.value = ''
+      return
+    }
+    await importAsset(file)
+    e.target.value = ''
   }
 
   function assignToSelected(asset) {
@@ -66,7 +74,7 @@ export default function AssetsPanel() {
         const item = items[i]
         if (item.kind === 'file') {
           const file = item.getAsFile()
-          if (file && file.type.startsWith('image/')) importAsset(file)
+          if (file && (file.type.startsWith('image/') || file.type.startsWith('audio/'))) importAsset(file)
         }
       }
     }
@@ -79,6 +87,11 @@ export default function AssetsPanel() {
           <div className="text-xs uppercase text-slate-500">Project Assets</div>
           <div className="flex items-center gap-2">
             <input className="rounded border bg-transparent px-2 py-1 text-sm" placeholder="Search assets…" value={query} onChange={e=>setQuery(e.target.value)} />
+            <select className="rounded border bg-transparent px-2 py-1 text-sm" value={category} onChange={e=>setCategory(e.target.value)}>
+              <option value="all">All</option>
+              <option value="image">Images</option>
+              <option value="audio">Audio</option>
+            </select>
             <select className="rounded border bg-transparent px-2 py-1 text-sm" value={view} onChange={e=>setView(e.target.value)}>
               <option value="grid">Grid</option>
               <option value="list">List</option>
@@ -89,7 +102,10 @@ export default function AssetsPanel() {
           </div>
         </div>
         <div className={`${view==='grid' ? 'mt-2 grid grid-cols-3 md:grid-cols-5 lg:grid-cols-8 gap-2' : 'mt-2 divide-y divide-slate-200 dark:divide-slate-800'}`}>
-          {project.assets.filter(a => a.name?.toLowerCase().includes(query.toLowerCase())).map(a => (
+          {project.assets
+            .filter(a => a.name?.toLowerCase().includes(query.toLowerCase()))
+            .filter(a => category==='all' ? true : a.type===category)
+            .map(a => (
             view==='grid' ? (
               <div key={a.id} className="border rounded overflow-hidden hover:shadow">
                 {a.type === 'image' ? (
@@ -105,13 +121,13 @@ export default function AssetsPanel() {
                     </div>
                   </div>
                 ) : (
-                  <div className="p-2 text-xs">{a.name}</div>
+                  null
                 )}
               </div>
             ) : (
               <div key={a.id} className="flex items-center justify-between px-2 py-2">
                 <div className="flex items-center gap-2">
-                  {a.type==='image' ? <img src={a.src} alt="" className="w-8 h-8 object-cover rounded" /> : <span>🔊</span>}
+                  {a.type==='image' ? <img src={a.src} alt="" className="w-8 h-8 object-cover rounded" /> : a.type==='audio' ? <span>🔊</span> : null}
                   <div className="text-sm">{a.name}</div>
                 </div>
                 <div className="flex gap-1">
@@ -119,7 +135,12 @@ export default function AssetsPanel() {
                 </div>
               </div>
             )
-          ))}
+            ))}
+          {project.assets.filter(a=>a.name?.toLowerCase().includes(query.toLowerCase())).filter(a=>category==='all'?true:a.type===category).length===0 && (
+            <div className="col-span-full text-center text-sm text-slate-500 py-6">
+              No assets found. Drag & drop images or audio here, or use Upload.
+            </div>
+          )}
         </div>
       </div>
 
