@@ -8,7 +8,7 @@ import {
 } from 'lucide-react'
 import gsap from 'gsap'
 import { useAnimationStore } from '../store/animationStore'
-import useClientChat from '../hooks/useClientChat'
+import useServerChat from '../hooks/useServerChat'
 import '../styles/chatbot.css'
 
 // Enhanced typing indicator component
@@ -40,7 +40,7 @@ function TypingIndicator({ message = "AversoAI is thinking..." }) {
 }
 
 // Enhanced avatar component with status indicators
-function Avatar({ role, status = 'online', size = 'md' }) {
+function Avatar({ role, status = 'online', size = 'md', className = '' }) {
     const sizeClasses = {
         sm: 'w-6 h-6',
         md: 'w-8 h-8',
@@ -48,7 +48,7 @@ function Avatar({ role, status = 'online', size = 'md' }) {
     }
 
     return (
-        <div className="relative">
+        <div className={clsx('relative', className)}>
             <div className={clsx(
                 'rounded-lg flex items-center justify-center shrink-0 transition-all duration-200',
                 sizeClasses[size],
@@ -444,6 +444,7 @@ export default function ChatInterface() {
         isStreaming,
         streamingText,
         error,
+        clearError,
         sendMessage,
         sendMessageWithImage,
         regenerateLastResponse,
@@ -463,7 +464,7 @@ export default function ChatInterface() {
         apiStatus,
         canSendMessage,
         rateLimitInfo
-    } = useClientChat()
+    } = useServerChat()
 
     // UI State
     const [input, setInput] = useState('')
@@ -958,7 +959,7 @@ export default function ChatInterface() {
                                 onRetry={() => {
                                     // Could implement retry logic here
                                 }}
-                                onDismiss={() => setError(null)}
+                                onDismiss={clearError}
                             />
                         )}
 
@@ -968,7 +969,7 @@ export default function ChatInterface() {
                 </div>
 
                 {/* Input Area */}
-                <div className="flex-shrink-0 p-3 sm:p-4 border-t border-emerald-200/70 dark:border-emerald-900/40 bg-white/90 dark:bg-slate-950/90 backdrop-blur">
+                <div className="flex-shrink-0 eco-input-area p-3 sm:p-4 border-t border-emerald-200/70 dark:border-emerald-900/40 bg-white/90 dark:bg-slate-950/90 backdrop-blur">
                     <form onSubmit={handleSubmit} className="space-y-3 max-w-4xl mx-auto">
                         {/* Image preview */}
                         <AnimatePresence>

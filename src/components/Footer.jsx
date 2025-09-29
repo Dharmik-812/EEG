@@ -56,19 +56,6 @@ const FooterLink = ({ href, children, icon: Icon, external = false, className = 
     <Link 
       to={href} 
       className="block"
-      onClick={(e) => {
-        // Prevent default navigation temporarily
-        e.preventDefault()
-        
-        // Scroll to top first to prevent blank page issues
-        window.scrollTo({ top: 0, behavior: 'instant' })
-        
-        // Use a small delay to ensure scroll completes before navigation
-        setTimeout(() => {
-          // Force navigation using window.location for more reliable routing
-          window.location.href = href
-        }, 50)
-      }}
     >
       {content}
     </Link>
@@ -436,7 +423,7 @@ export default function Footer() {
 
             {/* Social Links */}
             <motion.div 
-              className="flex items-center gap-4"
+              className="flex flex-wrap items-center gap-4"
               initial={{ opacity: 0, x: 20 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}

@@ -1,26 +1,384 @@
 import { motion, AnimatePresence } from 'framer-motion'
-import { useEffect, useState, useRef, useMemo } from 'react'
+import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react'
 import { useGSAP } from '../animations/hooks/useGSAP'
 import confetti from 'canvas-confetti'
+
+// Constants for better maintainability
+const ANIMATION_DURATIONS = {
+  PHASE_1: 1000,
+  PHASE_2: 2000,
+  PHASE_3: 2500,
+  COMPLETE: 3000,
+  EXIT: 500,
+  MIN_SCREEN: 5000
+}
+
+const COLORS = {
+  primary: {
+    emerald: '#10b981',
+    teal: '#0ea5e9',
+    green: '#22c55e',
+    cyan: '#06b6d4',
+    lightGreen: '#84cc16'
+  },
+  gradients: {
+    trunk: ['#0ea5a3', '#10b981'],
+    brand: ['from-emerald-400', 'via-teal-300', 'to-sky-400']
+  }
+}
+
+const LOADING_MESSAGES = [
+  '🌱 Planting seeds of knowledge...',
+  '🌍 Building your eco-adventure...',
+  '✨ Preparing amazing experiences...',
+  '🚀 Almost ready to save the planet!'
+]
+
+// Decorative, responsive SVG that grows from roots to canopy.
+// Purely visual; does not affect existing phases or particle logic.
+const TreeGrow = React.memo(() => {
+  const pollen = Array.from({ length: 10 }, (_, i) => ({
+    key: i,
+    x: 90 + Math.random() * 20,
+    delay: 0.8 + Math.random() * 1.5,
+    dur: 2 + Math.random() * 2.5,
+    size: 1 + Math.random() * 1.5,
+    hue: Math.random() > 0.5 ? '#a7f3d0' : '#bae6fd'
+  }))
+
+  return (
+    <div className="w-[340px] sm:w-[420px] md:w-[480px] mx-auto">
+      <motion.svg
+        viewBox="0 0 200 200"
+        xmlns="http://www.w3.org/2000/svg"
+        className="w-full h-auto drop-shadow-[0_8px_24px_rgba(16,185,129,.25)]"
+        initial="hidden"
+        animate="visible"
+      >
+        {/* Roots */}
+        <motion.path
+          d="M100 150c-8 4-12 10-18 15m18-15c8 4 12 10 18 15m-18-15c-6 2-10 6-15 10m15-10c6 2 10 6 15 10"
+          fill="none"
+          stroke="#059669"
+          strokeWidth="3"
+          strokeLinecap="round"
+          variants={{ hidden: { pathLength: 0 }, visible: { pathLength: 1 } }}
+          transition={{ duration: 0.9, ease: 'easeInOut' }}
+        />
+        {/* Trunk */}
+        <motion.path
+          d="M100 150 L100 95"
+          fill="none"
+          stroke="url(#trunkGrad)"
+          strokeWidth="6"
+          strokeLinecap="round"
+          variants={{ hidden: { pathLength: 0 }, visible: { pathLength: 1 } }}
+          transition={{ duration: 1.0, ease: 'easeInOut', delay: 0.2 }}
+        />
+        {/* Sap flow along trunk (thin dashed overlay) */}
+        <motion.path
+          d="M100 150 L100 95"
+          fill="none"
+          stroke="#ccfbf1"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeDasharray="4 8"
+          initial={{ opacity: 0.0, pathLength: 0, strokeDashoffset: 0 }}
+          animate={{ opacity: [0, 0.85, 0.6], pathLength: 1, strokeDashoffset: [-40, -140] }}
+          transition={{ duration: 3.0, ease: 'easeInOut', delay: 1.0, repeat: Infinity, repeatType: 'mirror' }}
+        />
+        {/* Branches */}
+        <motion.path
+          d="M100 115 C92 108, 84 104, 76 102 M100 110 C108 104, 116 100, 124 98"
+          fill="none"
+          stroke="#10b981"
+          strokeWidth="4"
+          strokeLinecap="round"
+          variants={{ hidden: { pathLength: 0 }, visible: { pathLength: 1 } }}
+          transition={{ duration: 0.9, ease: 'easeInOut', delay: 0.6 }}
+        />
+        {/* Sap flow along branches */}
+        <motion.path
+          d="M100 115 C92 108, 84 104, 76 102 M100 110 C108 104, 116 100, 124 98"
+          fill="none"
+          stroke="#d1fae5"
+          strokeWidth="1.25"
+          strokeLinecap="round"
+          strokeDasharray="3 7"
+          initial={{ opacity: 0.0, pathLength: 0, strokeDashoffset: 0 }}
+          animate={{ opacity: [0, 0.7, 0.5], pathLength: 1, strokeDashoffset: [-30, -120] }}
+          transition={{ duration: 2.6, ease: 'easeInOut', delay: 1.5, repeat: Infinity, repeatType: 'mirror' }}
+        />
+
+        {/* Additional branch network for richness */}
+        <motion.g>
+          {/* Upper left branch */}
+          <motion.path
+            d="M100 108 C92 102, 85 94, 78 88"
+            fill="none"
+            stroke="#10b981"
+            strokeWidth="3"
+            strokeLinecap="round"
+            variants={{ hidden: { pathLength: 0 }, visible: { pathLength: 1 } }}
+            transition={{ duration: 0.8, ease: 'easeInOut', delay: 0.7 }}
+          />
+          {/* Upper right branch */}
+          <motion.path
+            d="M100 108 C108 100, 116 92, 124 86"
+            fill="none"
+            stroke="#10b981"
+            strokeWidth="3"
+            strokeLinecap="round"
+            variants={{ hidden: { pathLength: 0 }, visible: { pathLength: 1 } }}
+            transition={{ duration: 0.8, ease: 'easeInOut', delay: 0.75 }}
+          />
+          {/* Lower left branch */}
+          <motion.path
+            d="M100 120 C94 118, 88 116, 82 114"
+            fill="none"
+            stroke="#10b981"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            variants={{ hidden: { pathLength: 0 }, visible: { pathLength: 1 } }}
+            transition={{ duration: 0.7, ease: 'easeInOut', delay: 0.8 }}
+          />
+          {/* Lower right branch */}
+          <motion.path
+            d="M100 120 C106 118, 112 116, 118 114"
+            fill="none"
+            stroke="#10b981"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            variants={{ hidden: { pathLength: 0 }, visible: { pathLength: 1 } }}
+            transition={{ duration: 0.7, ease: 'easeInOut', delay: 0.85 }}
+          />
+          {/* Sap overlays on select branches */}
+          <motion.path
+            d="M100 108 C92 102, 85 94, 78 88"
+            fill="none"
+            stroke="#befae6"
+            strokeWidth="1"
+            strokeDasharray="3 6"
+            initial={{ opacity: 0, pathLength: 0, strokeDashoffset: 0 }}
+            animate={{ opacity: [0, 0.6, 0.4], pathLength: 1, strokeDashoffset: [-24, -90] }}
+            transition={{ duration: 2.2, ease: 'easeInOut', delay: 1.0, repeat: Infinity, repeatType: 'mirror' }}
+          />
+          <motion.path
+            d="M100 108 C108 100, 116 92, 124 86"
+            fill="none"
+            stroke="#befae6"
+            strokeWidth="1"
+            strokeDasharray="3 6"
+            initial={{ opacity: 0, pathLength: 0, strokeDashoffset: 0 }}
+            animate={{ opacity: [0, 0.6, 0.4], pathLength: 1, strokeDashoffset: [-24, -90] }}
+            transition={{ duration: 2.2, ease: 'easeInOut', delay: 1.1, repeat: Infinity, repeatType: 'mirror' }}
+          />
+        </motion.g>
+        {/* Canopy blobs (leaves) with wind sway */}
+        <motion.g
+          initial={{ scale: 0.75, opacity: 0 }}
+          animate={{ scale: [0.75, 1, 1.03, 1], opacity: 1 }}
+          transition={{ duration: 1.4, ease: 'easeOut', delay: 1.3 }}
+          filter="url(#glow)"
+        >
+          <motion.g
+            initial={{ rotate: 0, x: 0 }}
+            animate={{ rotate: [-1.2, 0.8, -0.6, 0], x: [0, 0.6, -0.4, 0] }}
+            transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+            style={{ transformOrigin: '102px 85px' }}
+          >
+            <motion.circle cx="92" cy="78" r="20" fill="#34d399" />
+            <motion.circle cx="112" cy="80" r="22" fill="#22c55e" />
+            <motion.circle cx="102" cy="66" r="18" fill="#06b6d4" opacity="0.9" />
+          </motion.g>
+        </motion.g>
+
+        {/* Secondary inner canopy that blooms later */}
+        <motion.g
+          initial={{ scale: 0.6, opacity: 0 }}
+          animate={{ scale: [0.6, 0.9, 1], opacity: [0, 0.6, 0.9] }}
+          transition={{ duration: 1.0, delay: 1.3, ease: 'easeOut' }}
+          filter="url(#glow)"
+        >
+          <motion.g
+            initial={{ rotate: 0 }}
+            animate={{ rotate: [0.5, -0.8, 0.3, 0] }}
+            transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
+            style={{ transformOrigin: '102px 85px' }}
+          >
+            <motion.circle cx="100" cy="82" r="12" fill="#86efac" opacity="0.9" />
+            <motion.circle cx="108" cy="74" r="10" fill="#7dd3fc" opacity="0.85" />
+            <motion.circle cx="94" cy="72" r="9" fill="#34d399" opacity="0.8" />
+          </motion.g>
+        </motion.g>
+
+        {/* Leaf clusters on distal branches */}
+        <motion.g initial={{ opacity: 0 }} animate={{ opacity: [0, 1] }} transition={{ delay: 1.1, duration: 0.6 }}>
+          {/* Left cluster */}
+          <motion.circle cx="78" cy="88" r="6" fill="#34d399" />
+          <motion.circle cx="82" cy="84" r="4.5" fill="#22c55e" />
+          <motion.circle cx="86" cy="90" r="4" fill="#059669" opacity="0.7" />
+          {/* Right cluster */}
+          <motion.circle cx="124" cy="86" r="6" fill="#7dd3fc" />
+          <motion.circle cx="120" cy="82" r="4.5" fill="#22c55e" />
+          <motion.circle cx="118" cy="90" r="4" fill="#06b6d4" opacity="0.7" />
+          {/* Lower clusters */}
+          <motion.circle cx="82" cy="114" r="3.5" fill="#86efac" />
+          <motion.circle cx="118" cy="114" r="3.5" fill="#86efac" />
+        </motion.g>
+
+        {/* Pollen sparkles rising through canopy */}
+        <g>
+          {pollen.map(p => (
+            <motion.circle
+              key={p.key}
+              cx={p.x}
+              cy={85}
+              r={p.size}
+              fill={p.hue}
+              initial={{ opacity: 0, y: 0 }}
+              animate={{ opacity: [0, 1, 0], y: [-6, -22, -32] }}
+              transition={{ duration: p.dur + 0.6, delay: p.delay + 0.2, repeat: Infinity, ease: 'easeOut' }}
+            />
+          ))}
+        </g>
+
+        {/* Ground shadow with subtle parallax */}
+        <motion.ellipse
+          cx="100"
+          cy="158"
+          rx="28"
+          ry="6"
+          fill="rgba(0,0,0,0.25)"
+          initial={{ scaleX: 0.8, opacity: 0 }}
+          animate={{ scaleX: [0.9, 1.05, 0.95], opacity: 1 }}
+          transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+        />
+        <defs>
+          <linearGradient id="trunkGrad" x1="0" x2="0" y1="1" y2="0">
+            <stop offset="0%" stopColor={COLORS.gradients.trunk[0]} />
+            <stop offset="100%" stopColor={COLORS.gradients.trunk[1]} />
+          </linearGradient>
+          <filter id="glow">
+            <feGaussianBlur stdDeviation="2.5" result="coloredBlur" />
+            <feMerge>
+              <feMergeNode in="coloredBlur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+      </motion.svg>
+    </div>
+  )
+})
+
+TreeGrow.displayName = 'TreeGrow'
+
+// Optimized hook for particle animation
+const useParticleAnimation = (particles) => {
+  const canvasRef = useRef(null)
+  const animationRef = useRef(null)
+
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    const resizeCanvas = () => {
+      const { innerWidth, innerHeight } = window
+      const dpr = window.devicePixelRatio || 1
+      canvas.width = innerWidth * dpr
+      canvas.height = innerHeight * dpr
+      canvas.style.width = `${innerWidth}px`
+      canvas.style.height = `${innerHeight}px`
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+    }
+
+    resizeCanvas()
+    window.addEventListener('resize', resizeCanvas)
+
+    const animate = () => {
+      const { width, height } = canvas
+      ctx.clearRect(0, 0, width, height)
+
+      particles.forEach((particle) => {
+        const time = Date.now() * 0.001
+        const x = ((particle.x + Math.sin(time * particle.speed) * 20) / 100) * width
+        const y = ((particle.y + Math.cos(time * 1.5 * particle.speed) * 15) / 100) * height
+
+        ctx.shadowColor = particle.color
+        ctx.shadowBlur = 10
+        ctx.beginPath()
+        ctx.arc(x, y, particle.size, 0, Math.PI * 2)
+        ctx.fillStyle = particle.color
+        ctx.fill()
+
+        ctx.shadowBlur = 0
+        ctx.beginPath()
+        ctx.arc(x, y, particle.size * 0.6, 0, Math.PI * 2)
+        ctx.fillStyle = particle.color + 'CC'
+        ctx.fill()
+      })
+
+      animationRef.current = requestAnimationFrame(animate)
+    }
+
+    animate()
+
+    return () => {
+      if (animationRef.current) cancelAnimationFrame(animationRef.current)
+      window.removeEventListener('resize', resizeCanvas)
+    }
+  }, [particles])
+
+  return canvasRef
+}
+
+// Confetti hook
+const useConfetti = () => {
+  return useCallback(() => {
+    try {
+      const colors = Object.values(COLORS.primary)
+      confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 }, colors, startVelocity: 30, gravity: 0.8 })
+      setTimeout(() => {
+        confetti({ particleCount: 50, angle: 60, spread: 55, origin: { x: 0 }, colors, startVelocity: 25 })
+        confetti({ particleCount: 50, angle: 120, spread: 55, origin: { x: 1 }, colors, startVelocity: 25 })
+      }, 200)
+    } catch (e) {
+      console.warn('Confetti animation error:', e)
+    }
+  }, [])
+}
 
 const AnimatedLoadingScreen = ({ onComplete }) => {
   const [currentPhase, setCurrentPhase] = useState(0)
   const [isComplete, setIsComplete] = useState(false)
+  const [animDone, setAnimDone] = useState(false)
+  const [minTimePassed, setMinTimePassed] = useState(false)
   const containerRef = useRef(null)
-  const canvasRef = useRef(null)
-  const particleCanvasRef = useRef(null)
 
   // Generate particle positions
   const particles = useMemo(() =>
-    Array.from({ length: 50 }, (_, i) => ({
+    Array.from({ length: 30 }, (_, i) => ({
       id: i,
       x: Math.random() * 100,
       y: Math.random() * 100,
-      size: Math.random() * 4 + 1,
-      speed: Math.random() * 2 + 1,
-      color: Math.random() > 0.5 ? '#10b981' : '#0ea5e9'
+      size: Math.random() * 3 + 1,
+      speed: Math.random() * 2 + 0.5,
+      color: Math.random() > 0.5 ? COLORS.primary.emerald : COLORS.primary.teal
     }))
     , [])
+
+  const particleCanvasRef = useParticleAnimation(particles)
+  const triggerConfetti = useConfetti()
+
+  // Ensure a minimum display time of 5s
+  useEffect(() => {
+    const t = setTimeout(() => setMinTimePassed(true), ANIMATION_DURATIONS.MIN_SCREEN)
+    return () => clearTimeout(t)
+  }, [])
 
   // GSAP animations for complex effects
   useGSAP((gsap) => {
@@ -74,7 +432,7 @@ const AnimatedLoadingScreen = ({ onComplete }) => {
         setCurrentPhase(3)
         triggerConfetti()
       }, [], "2.5")
-      tl.call(() => setIsComplete(true), [], "3")
+      tl.call(() => setAnimDone(true), [], "3")
 
     } catch (error) {
       console.warn('GSAP animation error:', error)
@@ -85,129 +443,47 @@ const AnimatedLoadingScreen = ({ onComplete }) => {
         setCurrentPhase(3)
         triggerConfetti()
       }, 2500)
-      setTimeout(() => setIsComplete(true), 3000)
+      setTimeout(() => setAnimDone(true), 3000)
     }
 
-  }, [])
+  }, [triggerConfetti])
 
-  // Canvas particle animation
+  // Canvas particle animation handled by useParticleAnimation hook
+
+  // Confetti handled by hook: triggerConfetti()
+
+  // Gate completion on both animation finish and minimum time
   useEffect(() => {
-    if (!particleCanvasRef.current) return
-
-    const canvas = particleCanvasRef.current
-    const ctx = canvas.getContext('2d')
-    const resizeCanvas = () => {
-      canvas.width = window.innerWidth
-      canvas.height = window.innerHeight
-    }
-
-    resizeCanvas()
-    window.addEventListener('resize', resizeCanvas)
-
-    let animationId
-    const animate = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height)
-
-      particles.forEach(particle => {
-        const x = (particle.x + Math.sin(Date.now() * 0.001 * particle.speed) * 20) / 100 * canvas.width
-        const y = (particle.y + Math.cos(Date.now() * 0.0015 * particle.speed) * 15) / 100 * canvas.height
-
-        ctx.beginPath()
-        ctx.arc(x, y, particle.size, 0, Math.PI * 2)
-        ctx.fillStyle = particle.color + '66'
-        ctx.fill()
-
-        // Add glow effect
-        ctx.shadowColor = particle.color
-        ctx.shadowBlur = 10
-        ctx.beginPath()
-        ctx.arc(x, y, particle.size * 0.5, 0, Math.PI * 2)
-        ctx.fillStyle = particle.color
-        ctx.fill()
-        ctx.shadowBlur = 0
-      })
-
-      animationId = requestAnimationFrame(animate)
-    }
-
-    animate()
-
-    return () => {
-      cancelAnimationFrame(animationId)
-      window.removeEventListener('resize', resizeCanvas)
-    }
-  }, [particles])
-
-  const triggerConfetti = () => {
-    try {
-      // Multi-burst confetti effect
-      const colors = ['#10b981', '#0ea5e9', '#22c55e', '#06b6d4', '#84cc16']
-
-      // Center burst
-      confetti({
-        particleCount: 100,
-        spread: 70,
-        origin: { y: 0.6 },
-        colors
-      })
-
-      // Side bursts
-      setTimeout(() => {
-        confetti({
-          particleCount: 50,
-          angle: 60,
-          spread: 55,
-          origin: { x: 0 },
-          colors
-        })
-        confetti({
-          particleCount: 50,
-          angle: 120,
-          spread: 55,
-          origin: { x: 1 },
-          colors
-        })
-      }, 200)
-    } catch (error) {
-      console.warn('Confetti animation error:', error)
-    }
-  }
+    if (animDone && minTimePassed) setIsComplete(true)
+  }, [animDone, minTimePassed])
 
   useEffect(() => {
     if (isComplete) {
       const timer = setTimeout(() => {
         onComplete?.()
-      }, 500)
+      }, ANIMATION_DURATIONS.EXIT)
       return () => clearTimeout(timer)
     }
   }, [isComplete, onComplete])
 
-  const loadingMessages = [
-    "🌱 Planting seeds of knowledge...",
-    "🌍 Building your eco-adventure...",
-    "✨ Preparing amazing experiences...",
-    "🚀 Almost ready to save the planet!"
-  ]
 
   return (
     <AnimatePresence>
       {!isComplete && (
         <motion.div
           ref={containerRef}
-          className="fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden animate-gradient-x"
+          className="fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden"
           style={{
-            background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 25%, #0f766e 50%, #065f46 75%, #1f2937 100%)',
+            background: 'linear-gradient(135deg, #0b1220 0%, #0f172a 25%, #0a3d38 50%, #064e3b 75%, #0b1220 100%)',
             backgroundSize: '400% 400%'
           }}
           initial={{ opacity: 1 }}
-          exit={{
-            opacity: 0,
-            scale: 0.8,
-            filter: 'blur(10px)'
-          }}
+          exit={{ opacity: 0, scale: 0.8, filter: 'blur(10px)' }}
+          animate={{ backgroundPosition: ['0% 0%', '100% 100%'] }}
           transition={{
             duration: 0.8,
-            ease: "easeInOut"
+            ease: 'easeInOut',
+            backgroundPosition: { duration: 15, repeat: Infinity, ease: 'linear' }
           }}
         >
           {/* Particle canvas background */}
@@ -218,97 +494,61 @@ const AnimatedLoadingScreen = ({ onComplete }) => {
           />
 
           {/* Radial gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-radial from-transparent via-transparent to-black/20" />
+          <div className="absolute inset-0 bg-gradient-radial from-transparent via-transparent to-black/35" />
 
           {/* Main content container */}
           <div className="relative z-10 flex flex-col items-center justify-center w-full h-full px-4">
-
-            {/* Central logo area */}
-            <div className="relative flex items-center justify-center mb-8 sm:mb-12">
-              {/* Rotating rings */}
-              <motion.div
-                className="absolute inset-0"
-                animate={{ rotate: 360 }}
-                transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-              >
-                <div className="w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 lg:w-56 lg:h-56 border-2 border-emerald-400/30 rounded-full" />
-              </motion.div>
-
-              <motion.div
-                className="absolute inset-0"
-                animate={{ rotate: -360 }}
-                transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
-              >
-                <div className="w-28 h-28 sm:w-36 sm:h-36 md:w-44 md:h-44 lg:w-52 lg:h-52 border border-sky-400/30 rounded-full" />
-              </motion.div>
-
-              {/* Center logo */}
-              <motion.div className="center-logo relative z-10">
-                <div className="flex items-center justify-center w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 lg:w-36 lg:h-36 rounded-full bg-gradient-to-br from-emerald-400 via-teal-500 to-sky-500 shadow-2xl">
-
-                  {/* Logo parts that animate in */}
-                  <div className="relative">
-                    <motion.div
-                      className="logo-part absolute inset-0 flex items-center justify-center"
-                      style={{ fontSize: '2.5rem' }}
-                    >
-                      🌍
-                    </motion.div>
-
-                    <motion.div
-                      className="logo-part absolute -top-2 -right-2 text-2xl"
-                      animate={{
-                        y: [-2, 2, -2],
-                        rotate: [0, 5, -5, 0]
-                      }}
-                      transition={{
-                        duration: 2,
-                        repeat: Infinity,
-                        ease: "easeInOut"
-                      }}
-                    >
-                      ✨
-                    </motion.div>
-
-                    <motion.div
-                      className="logo-part absolute -bottom-1 -left-2 text-xl"
-                      animate={{
-                        scale: [1, 1.1, 1],
-                        rotate: [0, -5, 5, 0]
-                      }}
-                      transition={{
-                        duration: 1.5,
-                        repeat: Infinity,
-                        ease: "easeInOut",
-                        delay: 0.5
-                      }}
-                    >
-                      🌱
-                    </motion.div>
-                  </div>
-                </div>
-              </motion.div>
-            </div>
-
-            {/* Brand name */}
+            {/* Brand name (kept subtle, sits above the tree) */}
             <motion.div
-              className="text-center mb-6 sm:mb-8"
-              initial={{ opacity: 0, y: 20 }}
+              className="text-center mb-3 sm:mb-4"
+              initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.8, duration: 0.6 }}
+              transition={{ delay: 0.6, duration: 0.5 }}
             >
               <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold bg-gradient-to-r from-emerald-400 via-teal-300 to-sky-400 bg-clip-text text-transparent tracking-wide">
                 AverSoltix
               </h1>
               <motion.p
-                className="text-emerald-200/80 text-sm sm:text-base mt-2 font-medium tracking-wider"
+                className="text-emerald-100/90 text-xs sm:text-sm mt-1 font-medium"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ delay: 1.2 }}
+                transition={{ delay: 0.9 }}
               >
                 Learn • Play • Save the Planet
               </motion.p>
             </motion.div>
+
+            {/* Central logo area (now: tree at center with orbital rings) */}
+            <div className="relative flex items-center justify-center mb-6 sm:mb-8 h-[420px] sm:h-[500px] md:h-[560px]">
+            {/* Rotating rings orbiting around the tree (centered wrappers) */}
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+                <motion.div
+                  style={{ width: '19rem', height: '19rem', filter: 'drop-shadow(0 0 12px rgba(16,185,129,0.25))' }}
+                  animate={{ rotate: 360, x: [0, 2, 0, -2, 0], y: [0, -1.5, 0, 1.5, 0] }}
+                  transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
+                >
+                  <div className="w-full h-full rounded-full" style={{ borderWidth: '3px', borderColor: 'rgba(52, 211, 153, 0.38)', borderStyle: 'solid' }} />
+                </motion.div>
+              </div>
+
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+                <motion.div
+                  style={{ width: '16rem', height: '16rem', filter: 'drop-shadow(0 0 10px rgba(56,189,248,0.24))' }}
+                  animate={{ rotate: -360, x: [0, -1.5, 0, 1.5, 0], y: [0, 1.5, 0, -1.5, 0] }}
+                  transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+                >
+                  <div className="w-full h-full rounded-full" style={{ borderWidth: '2.5px', borderColor: 'rgba(125, 211, 252, 0.38)', borderStyle: 'solid' }} />
+                </motion.div>
+              </div>
+
+              {/* Center content: Tree */}
+              <motion.div className="center-logo relative z-10 flex items-center justify-center">
+                {/* Soft halo behind tree */}
+                <div className="absolute w-[320px] h-[320px] sm:w-[360px] sm:h-[360px] rounded-full bg-emerald-400/10 blur-3xl" aria-hidden />
+                <TreeGrow />
+              </motion.div>
+            </div>
+
 
             {/* Environmental floating elements */}
             <div className="absolute inset-0 pointer-events-none">
@@ -408,11 +648,30 @@ const AnimatedLoadingScreen = ({ onComplete }) => {
               </motion.div>
             </div>
 
+            {/* Completion message between tree and progress */}
+            <AnimatePresence>
+              {currentPhase === 3 && (
+                <motion.div
+                  key="ready"
+                  className="relative z-20 w-full flex items-center justify-center mb-4 sm:mb-6"
+                  initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -6 }}
+                  transition={{ duration: 0.35, ease: 'easeOut' }}
+                >
+                  <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-slate-900/40 border border-emerald-400/30 backdrop-blur text-emerald-200 shadow-glow">
+                    <span className="text-2xl">🎉</span>
+                    <span className="font-semibold">Ready to Go!</span>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             {/* Loading progress and messages */}
-            <div className="relative z-20 w-full max-w-md px-4">
+            <div className="relative z-20 w-full max-w-xl px-4">
               {/* Loading message */}
               <motion.div
-                className="text-center mb-4 h-6"
+                className="text-center mb-3 h-6"
                 key={currentPhase}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -420,12 +679,12 @@ const AnimatedLoadingScreen = ({ onComplete }) => {
                 transition={{ duration: 0.3 }}
               >
                 <p className="text-emerald-300 text-sm sm:text-base font-medium">
-                  {loadingMessages[currentPhase]}
+                  {LOADING_MESSAGES[currentPhase]}
                 </p>
               </motion.div>
 
               {/* Progress bar */}
-              <div className="relative h-1.5 sm:h-2 bg-slate-800/50 rounded-full overflow-hidden backdrop-blur-sm">
+              <div className="relative mx-auto max-w-xl h-1.5 sm:h-2 bg-slate-800/50 rounded-full overflow-hidden backdrop-blur-sm">
                 <motion.div
                   className="absolute inset-y-0 left-0 bg-gradient-to-r from-emerald-400 via-teal-400 to-sky-400 rounded-full"
                   initial={{ width: "0%" }}
@@ -466,32 +725,6 @@ const AnimatedLoadingScreen = ({ onComplete }) => {
               </div>
             </div>
 
-            {/* Completion effect */}
-            <AnimatePresence>
-              {currentPhase === 3 && (
-                <motion.div
-                  className="absolute inset-0 pointer-events-none"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                >
-                  {/* Success message */}
-                  <motion.div
-                    className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center"
-                    initial={{ scale: 0, y: 20 }}
-                    animate={{ scale: 1, y: 0 }}
-                    transition={{
-                      type: "spring",
-                      stiffness: 200,
-                      damping: 10
-                    }}
-                  >
-                    <div className="text-4xl sm:text-5xl md:text-6xl mb-2">🎉</div>
-                    <p className="text-emerald-300 font-bold text-lg sm:text-xl">Ready to Go!</p>
-                  </motion.div>
-                </motion.div>
-              )}
-            </AnimatePresence>
           </div>
 
           {/* Subtle vignette */}

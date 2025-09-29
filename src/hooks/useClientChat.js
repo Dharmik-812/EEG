@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai'
 import {
     addPlayfulEmojis,
-    buildGeminiContents,
     isEnvironmentalTopic,
     limitToSentences,
     sanitizeInput,
@@ -186,134 +185,24 @@ export default function useClientChat() {
     const abortControllerRef = useRef(null)
     const retryTimeoutRef = useRef(null)
 
-    // List available models
-    const listAvailableModels = useCallback(async (ai) => {
-        try {
-            console.log('Listing available models...')
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1/models?key=${import.meta.env.VITE_GEMINI_API_KEY}`)
-            const data = await response.json()
-            console.log('Available models:', data.models?.map(m => ({ name: m.name, supportedMethods: m.supportedGenerationMethods })))
-            return data.models?.filter(m => m.supportedGenerationMethods?.includes('generateContent')) || []
-        } catch (error) {
-            console.error('Failed to list models:', error)
-            return []
-        }
-    }, [])
-
-    // Test API connection
-    const testAPIConnection = useCallback(async (ai, apiKey, modelName = 'gemini-1.5-flash-latest') => {
-        try {
-            console.log(`Testing API connection with model: ${modelName}...`)
-            const model = ai.getGenerativeModel(
-                {
-                    model: modelName,
-                    generationConfig: { maxOutputTokens: 50 }
-                },
-                { apiVersion: 'v1' }
-            )
-            
-            const result = await model.generateContent('Hello')
-            const response = await result.response
-            console.log('API test successful:', response.text())
-            return { success: true, modelName }
-        } catch (error) {
-            console.error(`API test failed for model ${modelName}:`, error)
-            return { success: false, error: error.message }
-        }
-    }, [])
-
     // Initialize Gemini AI
     useEffect(() => {
         const apiKey = import.meta.env.VITE_GEMINI_API_KEY
-        
-        console.log('Environment variables:', import.meta.env)
-        console.log('API Key available:', apiKey ? 'Yes' : 'No')
-        console.log('API Key (first 20 chars):', apiKey ? apiKey.substring(0, 20) + '...' : 'None')
-        console.log('API Key length:', apiKey ? apiKey.length : 0)
-        
+
         if (!apiKey) {
             console.error('Missing VITE_GEMINI_API_KEY environment variable')
-            console.error('Available env vars:', Object.keys(import.meta.env))
             setApiStatus('missing_key')
             return
         }
 
-        async function initializeAPI() {
-            try {
-                const ai = new GoogleGenerativeAI(apiKey)
-                
-                // First, list available models
-                const availableModels = await listAvailableModels(ai)
-                
-                // Build candidate list from API response (v1) and prefer 1.5 pro/flash
-                const availableNames = (availableModels || [])
-                    .map(m => (m.name || '').replace(/^models\//, ''))
-                    .filter(Boolean)
-
-                const prefer = (prefix) => {
-                    return availableNames
-                        .filter(n => n.startsWith(prefix))
-                        .sort() // lexicographically puts -002 above -001 above no suffix
-                        .reverse()
-                }
-
-                const modelsToTry = [
-                    ...prefer('gemini-1.5-pro'),
-                    ...prefer('gemini-1.5-flash'),
-                    ...prefer('gemini-pro'),
-                ].filter((v, i, a) => a.indexOf(v) === i)
-
-                // Fallback to whatever the API listed if nothing matched the preferred prefixes
-                let finalModelsToTry = modelsToTry.length ? modelsToTry : availableNames
-
-                // If the list endpoint failed or returned nothing, try a safe fallback set
-                if (!finalModelsToTry.length) {
-                    finalModelsToTry = [
-                        'gemini-1.5-pro-002',
-                        'gemini-1.5-flash-002',
-                        'gemini-1.5-pro-001',
-                        'gemini-1.5-flash-001',
-                        'gemini-1.0-pro',
-                        'gemini-pro'
-                    ]
-                }
-
-                console.log('Models supporting generateContent (v1):', availableNames)
-                console.log('Model test order:', finalModelsToTry)
-
-                let workingModel = null
-                for (const modelName of finalModelsToTry) {
-                    const testResult = await testAPIConnection(ai, apiKey, modelName)
-                    if (testResult.success) {
-                        workingModel = modelName
-                        console.log(`Found working model: ${modelName}`)
-                        break
-                    }
-                }
-                
-                if (workingModel) {
-                    // Update model variants to use the working model
-                    MODEL_VARIANTS.fast.primary = workingModel
-                    MODEL_VARIANTS.fast.fallback = workingModel
-                    MODEL_VARIANTS.balanced.primary = workingModel
-                    MODEL_VARIANTS.balanced.fallback = workingModel
-                    MODEL_VARIANTS.normal.primary = workingModel
-                    MODEL_VARIANTS.normal.fallback = workingModel
-                    
-                    setGenAI(ai)
-                    setApiStatus('ready')
-                    console.log('Gemini AI initialized and tested successfully')
-                } else {
-                    setApiStatus('error')
-                    console.error('No working models found')
-                }
-            } catch (error) {
-                console.error('Failed to initialize GoogleGenerativeAI:', error)
-                setApiStatus('error')
-            }
+        try {
+            const ai = new GoogleGenerativeAI(apiKey)
+            setGenAI(ai)
+            setApiStatus('ready')
+        } catch (error) {
+            console.error('Failed to initialize GoogleGenerativeAI:', error)
+            setApiStatus('error')
         }
-
-        initializeAPI()
     }, [])
 
     // Get model with fallbacks
@@ -759,6 +648,11 @@ export default function useClientChat() {
         }
     }, [])
 
+    // Clear error
+    const clearError = useCallback(() => {
+        setError(null)
+    }, [])
+
     // Auto-save messages when they change
     useEffect(() => {
         if (messages.length > 0) {
@@ -788,6 +682,7 @@ export default function useClientChat() {
         isStreaming,
         streamingText,
         error,
+        clearError,
 
         // Message operations
         sendMessage,

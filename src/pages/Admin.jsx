@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo, useCallback, useDeferredValue } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import SEO from '../components/SEO.jsx'
@@ -13,7 +13,7 @@ import {
   Eye, CheckCircle, XCircle, Activity, Plus, Edit, Trash2,
   Building, MapPin, Calendar, Search, Filter, Download,
   Server, Cpu, HardDrive, Wifi, Globe, RefreshCw, MoreHorizontal,
-  Database, Award, UserPlus, UserMinus, MessageSquare,
+  Database, Award, UserPlus, UserMinus, MessageSquare, HelpCircle,
   FileText, Image, Volume2, Video, Package, Clock, Star,
   ThumbsUp, ThumbsDown, Flag, ChevronDown, ChevronRight,
   Layers, Bell, AlertTriangle, Shield, Lock, Upload
@@ -37,6 +37,7 @@ export default function Admin() {
   const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState('overview')
   const [searchTerm, setSearchTerm] = useState('')
+  const deferredSearch = useDeferredValue(searchTerm)
   const [selectedUsers, setSelectedUsers] = useState([])
   const [newInstitution, setNewInstitution] = useState({
     name: '',
@@ -157,27 +158,28 @@ export default function Admin() {
   useEffect(() => {
     const interval = setInterval(() => {
       setSystemMetrics(prev => ({
-        ...prev,
-        cpu: Math.max(20, Math.min(90, prev.cpu + (Math.random() - 0.5) * 10)),
-        memory: Math.max(30, Math.min(95, prev.memory + (Math.random() - 0.5) * 8)),
-        storage: Math.max(10, Math.min(80, prev.storage + (Math.random() - 0.5) * 5)),
-        bandwidth: Math.max(40, Math.min(100, prev.bandwidth + (Math.random() - 0.5) * 15)),
-        activeUsers: Math.max(100, Math.min(500, prev.activeUsers + Math.floor((Math.random() - 0.5) * 20))),
-        totalRequests: prev.totalRequests + Math.floor(Math.random() * 50),
-        avgResponseTime: Math.max(50, Math.min(300, prev.avgResponseTime + (Math.random() - 0.5) * 40)),
-        errorRate: Math.max(0, Math.min(5, prev.errorRate + (Math.random() - 0.5) * 0.5)),
-        uptime: Math.max(95, Math.min(100, prev.uptime + (Math.random() - 0.5) * 0.1))
-      }))
-    }, 3000)
+          ...prev,
+          cpu: Math.max(20, Math.min(90, prev.cpu + (Math.random() - 0.5) * 6)),
+          memory: Math.max(30, Math.min(95, prev.memory + (Math.random() - 0.5) * 5)),
+          storage: Math.max(10, Math.min(80, prev.storage + (Math.random() - 0.5) * 3)),
+          bandwidth: Math.max(40, Math.min(100, prev.bandwidth + (Math.random() - 0.5) * 10)),
+          activeUsers: Math.max(100, Math.min(500, prev.activeUsers + Math.floor((Math.random() - 0.5) * 10))),
+          totalRequests: prev.totalRequests + Math.floor(Math.random() * 30),
+          avgResponseTime: Math.max(50, Math.min(300, prev.avgResponseTime + (Math.random() - 0.5) * 25)),
+          errorRate: Math.max(0, Math.min(5, prev.errorRate + (Math.random() - 0.5) * 0.3)),
+          uptime: Math.max(95, Math.min(100, prev.uptime + (Math.random() - 0.5) * 0.05))
+        }))
+    }, 8000)
     return () => clearInterval(interval)
   }, [])
 
+
   // Filter and sort users
-  const filteredUsers = (users || []).filter(user => {
+  const filteredUsers = useMemo(() => (users || []).filter(user => {
     const matchesSearch = !searchTerm ||
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.role.toLowerCase().includes(searchTerm.toLowerCase())
+      user.name.toLowerCase().includes(deferredSearch.toLowerCase()) ||
+      user.email.toLowerCase().includes(deferredSearch.toLowerCase()) ||
+      user.role.toLowerCase().includes(deferredSearch.toLowerCase())
 
     const matchesFilter = userFilter === 'all' ||
       (userFilter === 'students' && user.role.includes('student')) ||
@@ -210,21 +212,23 @@ export default function Admin() {
     } else {
       return aValue > bValue ? -1 : aValue < bValue ? 1 : 0
     }
-  })
+  }), [users, deferredSearch, userFilter, sortBy, sortOrder])
 
   // Pagination
-  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage)
-  const startIndex = (currentPage - 1) * itemsPerPage
-  const paginatedUsers = filteredUsers.slice(startIndex, startIndex + itemsPerPage)
+  const totalPages = useMemo(() => Math.ceil(filteredUsers.length / itemsPerPage), [filteredUsers.length, itemsPerPage])
+  const startIndex = useMemo(() => (currentPage - 1) * itemsPerPage, [currentPage, itemsPerPage])
+  const paginatedUsers = useMemo(() => filteredUsers.slice(startIndex, startIndex + itemsPerPage), [filteredUsers, startIndex, itemsPerPage])
 
-  const StatCard = ({ title, value, change, icon: Icon, color, trend, isLive, onClick }) => (
-    <motion.div
-      initial={false}
-      animate={{ opacity: 1, scale: 1 }}
-      whileHover={{ scale: 1.02, y: -2 }}
-      className={`relative p-6 bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-lg overflow-hidden group ${onClick ? 'cursor-pointer' : ''}`}
-      onClick={onClick}
-    >
+  const StatCard = React.memo(function StatCard({ title, value, change, icon: Icon, color, trend, isLive, onClick }) {
+    const handleClick = useCallback(() => onClick?.(), [onClick])
+    return (
+      <motion.div
+        initial={false}
+        animate={{ opacity: 1, scale: 1 }}
+        whileHover={{ scale: 1.02, y: -2 }}
+        className={`relative p-6 bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-lg overflow-hidden group ${onClick ? 'cursor-pointer' : ''}`}
+        onClick={handleClick}
+      >
       <div className={`absolute inset-0 bg-gradient-to-br ${color} opacity-0 group-hover:opacity-5 transition-opacity duration-300`} />
       <div className="flex items-start justify-between mb-4">
         <div className={`p-3 rounded-xl bg-gradient-to-br ${color} text-white shadow-lg relative`}>
@@ -233,10 +237,7 @@ export default function Admin() {
             <div className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-400 rounded-full animate-pulse" />
           )}
         </div>
-        <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${trend === 'up' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400' :
-            trend === 'down' ? 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400' :
-              'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'
-          }`}>
+        <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${trend === 'up' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400' : trend === 'down' ? 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400' : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400'}`}>
           {change}
         </div>
       </div>
@@ -247,16 +248,15 @@ export default function Admin() {
     </motion.div>
   )
 
-  const NotificationCard = ({ notification, onDismiss }) => (
-    <motion.div
-      initial={false}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: 20 }}
-      className={`p-4 rounded-lg border-l-4 ${notification.type === 'warning' ? 'bg-amber-50 border-amber-500 text-amber-800' :
-          notification.type === 'error' ? 'bg-red-50 border-red-500 text-red-800' :
-            notification.type === 'success' ? 'bg-green-50 border-green-500 text-green-800' :
-              'bg-blue-50 border-blue-500 text-blue-800'
-        } dark:bg-opacity-10`}
+  })
+  const NotificationCard = React.memo(function NotificationCard({ notification, onDismiss }) {
+    const handleDismiss = useCallback(() => onDismiss(notification.id), [onDismiss, notification.id])
+    return (
+      <motion.div
+        initial={false}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: 20 }}
+        className={`p-4 rounded-lg border-l-4 ${notification.type === 'warning' ? 'bg-amber-50 border-amber-500 text-amber-800' : notification.type === 'error' ? 'bg-red-50 border-red-500 text-red-800' : notification.type === 'success' ? 'bg-green-50 border-green-500 text-green-800' : 'bg-blue-50 border-blue-500 text-blue-800'} dark:bg-opacity-10`}
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -270,7 +270,7 @@ export default function Admin() {
           </div>
         </div>
         <button
-          onClick={() => onDismiss(notification.id)}
+          onClick={handleDismiss}
           className="p-1 hover:bg-black/10 rounded"
         >
           <XCircle className="h-4 w-4" />
@@ -278,6 +278,7 @@ export default function Admin() {
       </div>
     </motion.div>
   )
+  })
 
   const OverviewTab = () => (
     <motion.div
@@ -317,7 +318,7 @@ export default function Admin() {
                 <div className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 rounded-full shadow-md border border-slate-200 dark:border-slate-700">
                   <Clock className="h-4 w-4 text-slate-600 dark:text-slate-400" />
                   <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                    System Uptime: {systemMetrics.uptime.toFixed(1)}%
+                System Uptime: {systemMetrics.uptime.toFixed(1)}%
                   </span>
                 </div>
               </div>
@@ -353,12 +354,12 @@ export default function Admin() {
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
-          {[
+          {useMemo(() => ([
             { id: 'users', label: 'Manage Users', icon: Users, color: 'blue', count: analytics.totalUsers },
             { id: 'content', label: 'Content Review', icon: BookOpen, color: 'purple', count: pendingGames.length + pendingQuizzes.length },
             { id: 'institutions', label: 'Institutions', icon: Building, color: 'emerald', count: institutions.length },
             { id: 'system', label: 'System Health', icon: Server, color: 'orange', status: systemMetrics.uptime > 99 ? 'Excellent' : 'Good' },
-          ].map((action, i) => {
+]), [analytics.totalUsers, pendingGames.length, pendingQuizzes.length, institutions.length, systemMetrics.uptime]).map((action, i) => {
             const Icon = action.icon
             const colorClasses = {
               blue: { bg: 'bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/10 dark:to-blue-800/20', icon: 'bg-blue-500', hover: 'hover:shadow-blue-500/20' },
@@ -379,11 +380,11 @@ export default function Admin() {
                 onClick={() => setActiveTab(action.id)}
                 className={`group relative p-6 ${colors.bg} rounded-2xl border-2 border-white dark:border-slate-700 ${colors.hover} transition-all duration-300 text-left shadow-lg hover:shadow-xl overflow-hidden`}
               >
-                <div className="absolute top-0 right-0 w-20 h-20 opacity-5 transform rotate-12 translate-x-6 -translate-y-6">
+                <div className="absolute top-0 right-0 w-20 h-20 opacity-5 transform rotate-12 translate-x-6 -translate-y-6 pointer-events-none">
                   <Icon className="w-full h-full" />
                 </div>
 
-                <div className="relative z-10">
+                <div className="relative z-10 will-change-auto">
                   <div className={`inline-flex p-3 rounded-xl ${colors.icon} text-white mb-4 group-hover:scale-110 transition-transform duration-200`}>
                     <Icon className="h-6 w-6" />
                   </div>
@@ -437,7 +438,7 @@ export default function Admin() {
       )}
 
       {/* Main Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 will-change-auto">
         <StatCard
           title="Total Users"
           value={analytics.totalUsers.toLocaleString()}
@@ -531,16 +532,16 @@ export default function Admin() {
             </div>
           </div>
           <div className="space-y-3 max-h-64 overflow-y-auto">
-            {[
-              { action: 'New user registered', user: 'Sarah Johnson', time: Math.floor(Math.random() * 60), type: 'user' },
-              { action: 'Quiz completed', user: 'Alex Chen', time: Math.floor(Math.random() * 60), type: 'quiz' },
-              { action: 'Game submitted', user: 'Maria Lopez', time: Math.floor(Math.random() * 60), type: 'game' },
-              { action: 'Institution created', user: 'Dr. Smith', time: Math.floor(Math.random() * 60), type: 'institution' },
-              { action: 'Badge earned', user: 'John Doe', time: Math.floor(Math.random() * 60), type: 'badge' },
-              { action: 'Course enrolled', user: 'Emily Davis', time: Math.floor(Math.random() * 60), type: 'course' },
-              { action: 'System backup completed', user: 'System', time: Math.floor(Math.random() * 60), type: 'system' },
-              { action: 'Security scan passed', user: 'Security Bot', time: Math.floor(Math.random() * 60), type: 'security' }
-            ].map((activity, i) => (
+            {useMemo(() => ([
+              { action: 'New user registered', user: 'Sarah Johnson', time: 12, type: 'user' },
+              { action: 'Quiz completed', user: 'Alex Chen', time: 23, type: 'quiz' },
+              { action: 'Game submitted', user: 'Maria Lopez', time: 7, type: 'game' },
+              { action: 'Institution created', user: 'Dr. Smith', time: 31, type: 'institution' },
+              { action: 'Badge earned', user: 'John Doe', time: 16, type: 'badge' },
+              { action: 'Course enrolled', user: 'Emily Davis', time: 44, type: 'course' },
+              { action: 'System backup completed', user: 'System', time: 52, type: 'system' },
+              { action: 'Security scan passed', user: 'Security Bot', time: 59, type: 'security' }
+            ]), []).map((activity, i) => (
               <motion.div
                 key={i}
                 initial={{ opacity: 0, x: -20 }}
@@ -548,15 +549,7 @@ export default function Admin() {
                 transition={{ delay: i * 0.1 }}
                 className="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
               >
-                <div className={`w-2 h-2 rounded-full animate-pulse ${activity.type === 'user' ? 'bg-blue-500' :
-                    activity.type === 'quiz' ? 'bg-purple-500' :
-                      activity.type === 'game' ? 'bg-emerald-500' :
-                        activity.type === 'institution' ? 'bg-orange-500' :
-                          activity.type === 'badge' ? 'bg-amber-500' :
-                            activity.type === 'system' ? 'bg-red-500' :
-                              activity.type === 'security' ? 'bg-indigo-500' :
-                                'bg-slate-500'
-                  }`} />
+                <div className={`w-2 h-2 rounded-full animate-pulse ${activity.type === 'user' ? 'bg-blue-500' : activity.type === 'quiz' ? 'bg-purple-500' : activity.type === 'game' ? 'bg-emerald-500' : activity.type === 'institution' ? 'bg-orange-500' : activity.type === 'badge' ? 'bg-amber-500' : activity.type === 'system' ? 'bg-red-500' : activity.type === 'security' ? 'bg-indigo-500' : 'bg-slate-500'}`} />
                 <div className="flex-1">
                   <p className="text-sm font-medium">{activity.action}</p>
                   <p className="text-xs text-slate-500">{activity.user} • {activity.time}s ago</p>
@@ -591,16 +584,11 @@ export default function Admin() {
                   <div className="flex-1">
                     <div className="flex justify-between text-sm mb-2">
                       <span className="font-medium">{config.label}</span>
-                      <span className={`font-bold ${config.color === 'red' ? 'text-red-600' :
-                          config.color === 'yellow' ? 'text-yellow-600' : 'text-green-600'
-                        }`}>{Math.round(value)}%</span>
+                      <span className={`font-bold ${config.color === 'red' ? 'text-red-600' : config.color === 'yellow' ? 'text-yellow-600' : 'text-green-600'}`}>{Math.round(value)}%</span>
                     </div>
                     <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-3 overflow-hidden">
                       <motion.div
-                        className={`h-3 rounded-full transition-all duration-1000 ease-out ${config.color === 'red' ? 'bg-gradient-to-r from-red-500 to-red-600' :
-                            config.color === 'yellow' ? 'bg-gradient-to-r from-yellow-500 to-yellow-600' :
-                              'bg-gradient-to-r from-green-500 to-green-600'
-                          }`}
+                        className={`h-3 rounded-full transition-all duration-1000 ease-out ${config.color === 'red' ? 'bg-gradient-to-r from-red-500 to-red-600' : config.color === 'yellow' ? 'bg-gradient-to-r from-yellow-500 to-yellow-600' : 'bg-gradient-to-r from-green-500 to-green-600'}`}
                         initial={{ width: 0 }}
                         animate={{ width: `${value}%` }}
                       />
@@ -615,11 +603,11 @@ export default function Admin() {
           <div className="mt-6 pt-4 border-t border-slate-200 dark:border-slate-700">
             <div className="grid grid-cols-2 gap-4">
               <div className="text-center">
-                <p className="text-2xl font-bold text-emerald-600">{systemMetrics.uptime.toFixed(1)}%</p>
+              <p className="text-2xl font-bold text-emerald-600">{systemMetrics.uptime.toFixed(1)}%</p>
                 <p className="text-sm text-slate-500">Uptime</p>
               </div>
               <div className="text-center">
-                <p className="text-2xl font-bold text-amber-600">{systemMetrics.errorRate.toFixed(2)}%</p>
+              <p className="text-2xl font-bold text-amber-600">{systemMetrics.errorRate.toFixed(2)}%</p>
                 <p className="text-sm text-slate-500">Error Rate</p>
               </div>
             </div>
@@ -736,10 +724,7 @@ export default function Admin() {
               onClick={() => setActiveTab('institutions')}
             >
               <div className="flex items-center gap-3 mb-3">
-                <div className={`p-2 rounded-lg ${inst.type === 'school' ? 'bg-purple-100 dark:bg-purple-900/20' :
-                    inst.type === 'college' ? 'bg-blue-100 dark:bg-blue-900/20' :
-                      'bg-emerald-100 dark:bg-emerald-900/20'
-                  }`}>
+                <div className={`p-2 rounded-lg ${inst.type === 'school' ? 'bg-purple-100 dark:bg-purple-900/20' : inst.type === 'college' ? 'bg-blue-100 dark:bg-blue-900/20' : 'bg-emerald-100 dark:bg-emerald-900/20'}`}>
                   {inst.type === 'school' ?
                     <School className="h-5 w-5 text-purple-600 dark:text-purple-400" /> :
                     inst.type === 'college' ?
@@ -987,8 +972,7 @@ export default function Admin() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.02 }}
-                  className={`border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors ${selectedUsers.includes(user.id) ? 'bg-emerald-50 dark:bg-emerald-900/20' : ''
-                    }`}
+                  className={`border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors ${selectedUsers.includes(user.id) ? 'bg-emerald-50 dark:bg-emerald-900/20' : ''}`}
                 >
                   <td className="py-4 px-6">
                     <input
@@ -1027,11 +1011,7 @@ export default function Admin() {
                           toast.success(`Updated ${user.name}'s role to ${e.target.value.replace('-', ' ')}`)
                         }
                       }}
-                      className={`inline-flex items-center px-3 py-1 text-xs font-medium rounded-full border-0 focus:ring-2 focus:ring-emerald-500 ${user.role === 'admin' ? 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400' :
-                          user.role.includes('teacher') ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400' :
-                            user.role.includes('student') ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400' :
-                              'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400'
-                        }`}
+                      className={`inline-flex items-center px-3 py-1 text-xs font-medium rounded-full border-0 focus:ring-2 focus:ring-emerald-500 ${user.role === 'admin' ? 'bg-red-100 text-red-700 dark:bg-red-900/20 dark:text-red-400' : user.role.includes('teacher') ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400' : user.role.includes('student') ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/20 dark:text-purple-400' : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400'}`}
                     >
                       <option value="visitor">Visitor</option>
                       <option value="user">User</option>
@@ -1158,10 +1138,7 @@ export default function Admin() {
                   <button
                     key={pageNum}
                     onClick={() => setCurrentPage(pageNum)}
-                    className={`px-3 py-2 text-sm border rounded-lg ${currentPage === pageNum
-                        ? 'bg-emerald-500 text-white border-emerald-500'
-                        : 'border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800'
-                      }`}
+                    className={`px-3 py-2 text-sm border rounded-lg ${currentPage === pageNum ? 'bg-emerald-500 text-white border-emerald-500' : 'border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800'}`}
                   >
                     {pageNum}
                   </button>
@@ -1183,10 +1160,12 @@ export default function Admin() {
   )
 
   const InstitutionsTab = () => {
-    const filteredInstitutions = institutions.filter(inst => {
-      if (institutionFilter === 'all') return true
-      return inst.type === institutionFilter
-    })
+  const filteredInstitutions = useMemo(() => {
+      return institutions.filter(inst => {
+        if (institutionFilter === 'all') return true
+        return inst.type === institutionFilter
+      })
+    }, [institutions, institutionFilter])
 
     const handleCreateInstitution = () => {
       if (!newInstitution.name || !newInstitution.email) {
@@ -1548,10 +1527,7 @@ export default function Admin() {
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-3">
-                          <div className={`p-3 rounded-lg ${inst.type === 'school' ? 'bg-purple-100 dark:bg-purple-900/20' :
-                              inst.type === 'college' ? 'bg-blue-100 dark:bg-blue-900/20' :
-                                'bg-emerald-100 dark:bg-emerald-900/20'
-                            }`}>
+                          <div className={`p-3 rounded-lg ${inst.type === 'school' ? 'bg-purple-100 dark:bg-purple-900/20' : inst.type === 'college' ? 'bg-blue-100 dark:bg-blue-900/20' : 'bg-emerald-100 dark:bg-emerald-900/20'}`}>
                             {inst.type === 'school' ?
                               <School className="h-6 w-6 text-purple-600 dark:text-purple-400" /> :
                               inst.type === 'college' ?
@@ -1665,20 +1641,27 @@ export default function Admin() {
     
     const stats = getFeedbackStats()
     
-    const allSubmissions = [...feedbackSubmissions, ...supportSubmissions]
-      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    const deferredFeedbackSearch = useDeferredValue(searchQuery)
     
-    const filteredSubmissions = allSubmissions.filter(submission => {
-      const matchesType = selectedType === 'all' || submission.type === selectedType
-      const matchesStatus = selectedStatus === 'all' || submission.status === selectedStatus
-      const matchesSearch = searchQuery === '' || 
-        submission.message?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        submission.subject?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        submission.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        submission.email?.toLowerCase().includes(searchQuery.toLowerCase())
-      
-      return matchesType && matchesStatus && matchesSearch
-    })
+    const allSubmissions = useMemo(() => {
+      return [...feedbackSubmissions, ...supportSubmissions]
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    }, [feedbackSubmissions, supportSubmissions])
+    
+    const filteredSubmissions = useMemo(() => {
+      const q = (deferredFeedbackSearch || '').toLowerCase()
+      return allSubmissions.filter(submission => {
+        const matchesType = selectedType === 'all' || submission.type === selectedType
+        const matchesStatus = selectedStatus === 'all' || submission.status === selectedStatus
+        const matchesSearch = q === '' || 
+          submission.message?.toLowerCase().includes(q) ||
+          submission.subject?.toLowerCase().includes(q) ||
+          submission.name?.toLowerCase().includes(q) ||
+          submission.email?.toLowerCase().includes(q)
+        
+        return matchesType && matchesStatus && matchesSearch
+      })
+    }, [allSubmissions, selectedType, selectedStatus, deferredFeedbackSearch])
 
     const handleStatusUpdate = (id, type, status) => {
       if (type === 'feedback') {
@@ -2237,11 +2220,7 @@ export default function Admin() {
             { level: 'info', message: 'Database backup completed successfully', time: '1 hour ago' },
             { level: 'success', message: 'SSL certificates renewed', time: '2 hours ago' }
           ].map((alert, i) => (
-            <div key={i} className={`p-3 rounded-lg border-l-4 ${alert.level === 'warning' ? 'bg-amber-50 border-amber-500 text-amber-800' :
-                alert.level === 'error' ? 'bg-red-50 border-red-500 text-red-800' :
-                  alert.level === 'success' ? 'bg-green-50 border-green-500 text-green-800' :
-                    'bg-blue-50 border-blue-500 text-blue-800'
-              } dark:bg-opacity-10`}>
+            <div key={i} className={`p-3 rounded-lg border-l-4 ${alert.level === 'warning' ? 'bg-amber-50 border-amber-500 text-amber-800' : alert.level === 'error' ? 'bg-red-50 border-red-500 text-red-800' : alert.level === 'success' ? 'bg-green-50 border-green-500 text-green-800' : 'bg-blue-50 border-blue-500 text-blue-800'} dark:bg-opacity-10`}>
               <div className="flex items-center justify-between">
                 <p className="font-medium">{alert.message}</p>
                 <span className="text-sm opacity-75">{alert.time}</span>
@@ -2272,9 +2251,9 @@ export default function Admin() {
                     {Math.round(metric.value)}{metric.unit}
                   </span>
                 </div>
-                <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
+          <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2 will-change-auto">
                   <div
-                    className={`h-2 rounded-full bg-gradient-to-r from-${metric.color}-500 to-${metric.color}-600 transition-all duration-1000`}
+              className={`h-2 rounded-full bg-gradient-to-r from-${metric.color}-500 to-${metric.color}-600 transition-[width] duration-700 ease-out`}
                     style={{ width: `${(metric.value / metric.max) * 100}%` }}
                   />
                 </div>
@@ -2344,7 +2323,7 @@ export default function Admin() {
   return (
     <>
       <SEO title="Admin Dashboard" description="Comprehensive admin panel for AverSoltix platform management." noIndex={true} />
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-emerald-50 dark:from-slate-900 dark:to-emerald-950" style={{ willChange: 'transform', transform: 'translateZ(0)' }}>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-emerald-50 dark:from-slate-900 dark:to-emerald-950">
         <div className="container mx-auto px-4 py-8">
           {/* Header (restored entrance animation) */}
           <motion.div
@@ -2384,22 +2363,15 @@ export default function Admin() {
                     onClick={() => setActiveTab(tab.id)}
                     whileHover={{ scale: 1.02, y: -2 }}
                     whileTap={{ scale: 0.98 }}
-                    className={`group relative flex flex-col items-start gap-3 p-4 rounded-xl font-medium transition-all duration-200 ${activeTab === tab.id
-                        ? 'bg-gradient-to-r from-emerald-500 to-blue-500 text-white shadow-lg shadow-emerald-500/25'
-                        : 'text-slate-600 dark:text-slate-300 hover:bg-white/60 dark:hover:bg-slate-700/60 hover:shadow-md'
-                      }`}
+                    className={`group relative flex flex-col items-start gap-3 p-4 rounded-xl font-medium transition-all duration-200 ${activeTab === tab.id ? 'bg-gradient-to-r from-emerald-500 to-blue-500 text-white shadow-lg shadow-emerald-500/25' : 'text-slate-600 dark:text-slate-300 hover:bg-white/60 dark:hover:bg-slate-700/60 hover:shadow-md'}`}
                   >
                     <div className="flex items-center gap-3 w-full">
-                      <div className={`p-2 rounded-lg transition-colors ${activeTab === tab.id
-                          ? 'bg-white/20'
-                          : 'bg-slate-100 dark:bg-slate-700 group-hover:bg-emerald-100 dark:group-hover:bg-emerald-900/20'
-                        }`}>
+                      <div className={`p-2 rounded-lg transition-colors ${activeTab === tab.id ? 'bg-white/20' : 'bg-slate-100 dark:bg-slate-700 group-hover:bg-emerald-100 dark:group-hover:bg-emerald-900/20'}`}>
                         <Icon className="h-5 w-5" />
                       </div>
                       <div className="text-left flex-1">
                         <div className="font-semibold text-sm">{tab.label}</div>
-                        <div className={`text-xs mt-1 opacity-70 ${activeTab === tab.id ? 'text-white/80' : 'text-slate-500 dark:text-slate-400'
-                          }`}>
+                        <div className={`text-xs mt-1 opacity-70 ${activeTab === tab.id ? 'text-white/80' : 'text-slate-500 dark:text-slate-400'}`}>
                           {tab.description}
                         </div>
                       </div>
@@ -2484,15 +2456,14 @@ export default function Admin() {
             >
               <SettingsTab />
             </motion.div>
-            {activeTab === 'playground' && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.2 }}
-              >
-                <PlaygroundTab />
-              </motion.div>
-            )}
+            <motion.div
+              initial={false}
+              animate={{ opacity: activeTab === 'playground' ? 1 : 0 }}
+              style={{ display: activeTab === 'playground' ? 'block' : 'none' }}
+              transition={{ duration: 0.2 }}
+            >
+              <PlaygroundTab />
+            </motion.div>
           </div>
         </div>
       </div>

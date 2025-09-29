@@ -11,10 +11,35 @@ import { useRipple } from './animations'
 // Register presets once on startup (no-op if re-imported)
 try { registerAllPresets() } catch {}
 
-// Register service worker in production
+// Register service worker in production with robust update flow
 if (import.meta.env.PROD && 'serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(() => {/* noop */})
+    navigator.serviceWorker.register('/sw.js').then(reg => {
+      // If there's an updated SW waiting, activate it immediately
+      if (reg.waiting) {
+        reg.waiting.postMessage({ type: 'SKIP_WAITING' })
+      }
+
+      // Listen for new updates and activate as soon as installed
+      reg.addEventListener('updatefound', () => {
+        const newWorker = reg.installing
+        if (!newWorker) return
+        newWorker.addEventListener('statechange', () => {
+          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+            newWorker.postMessage({ type: 'SKIP_WAITING' })
+          }
+        })
+      })
+    }).catch(() => {/* noop */})
+
+    // When the active SW changes, reload to get the fresh app
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      // Avoid reload loops
+      if (!window.__reloadingForSW) {
+        window.__reloadingForSW = true
+        window.location.reload()
+      }
+    })
   })
 }
 

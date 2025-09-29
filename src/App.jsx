@@ -181,7 +181,8 @@ export default function App() {
   const reduced = useAnimationStore(s => s.reduced)
 
   useLenis({ smooth: true, enabled: !reduced })
-  useBarbaTransitions({ enabled: !reduced })
+  // Disable Barba transitions to prevent conflicts with React Router + Framer on first navigation
+  useBarbaTransitions({ enabled: false })
 
   useEffect(() => {
     setIsNavigating(true)
@@ -191,6 +192,12 @@ export default function App() {
     const timer = setTimeout(() => setIsNavigating(false), 150)
     const hide = setTimeout(() => setRouteOverlay(false), 300)
     
+    // Smoothly scroll to top on route changes for consistent UX
+    try {
+      const prefersReduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      window.scrollTo({ top: 0, behavior: prefersReduced ? 'auto' : 'smooth' })
+    } catch {}
+
     return () => { 
       clearTimeout(timer)
       clearTimeout(hide) 

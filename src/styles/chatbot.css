@@ -165,3 +165,13 @@
     font-size: 0.8125rem;
   }
 }
+
+/* Input area safe-area support */
+.eco-input-area {
+  padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
+}
+@supports (padding: max(0px)) {
+  .eco-input-area {
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0px));
+  }
+}

@@ -573,6 +573,11 @@ export default function useServerChat() {
         }
     }, [])
 
+    // Clear error
+    const clearError = useCallback(() => {
+        setError(null)
+    }, [])
+
     // Auto-save messages when they change
     useEffect(() => {
         if (messages.length > 0) {
@@ -605,6 +610,7 @@ export default function useServerChat() {
         isStreaming,
         streamingText,
         error,
+        clearError,
 
         // Message operations
         sendMessage,
