@@ -387,21 +387,28 @@ const AnimatedLoadingScreen = ({ onComplete }) => {
     try {
       const tl = gsap.timeline()
 
-      // Phase 1: Logo formation (0-1s)
-      tl.fromTo('.logo-part',
-        { scale: 0, rotation: 180, opacity: 0 },
-        {
-          scale: 1,
-          rotation: 0,
-          opacity: 1,
-          duration: 0.8,
-          stagger: 0.1,
-          ease: "back.out(1.7)"
-        }
-      )
+      const hasLogoParts = containerRef.current.querySelectorAll('.logo-part').length > 0
+      const hasEnvElements = containerRef.current.querySelectorAll('.env-element').length > 0
+      const hasCenterLogo = !!containerRef.current.querySelector('.center-logo')
 
-        // Phase 2: Environmental elements (1-2s)
-        .fromTo('.env-element',
+      // Phase 1: Logo formation (0-1s)
+      if (hasLogoParts) {
+        tl.fromTo('.logo-part',
+          { scale: 0, rotation: 180, opacity: 0 },
+          {
+            scale: 1,
+            rotation: 0,
+            opacity: 1,
+            duration: 0.8,
+            stagger: 0.1,
+            ease: "back.out(1.7)"
+          }
+        )
+      }
+
+      // Phase 2: Environmental elements (1-2s)
+      if (hasEnvElements) {
+        tl.fromTo('.env-element',
           { y: 100, opacity: 0, scale: 0 },
           {
             y: 0,
@@ -410,11 +417,13 @@ const AnimatedLoadingScreen = ({ onComplete }) => {
             duration: 0.6,
             stagger: 0.15,
             ease: "elastic.out(1, 0.3)"
-          }, "-=0.4"
+          }, hasLogoParts ? "-=0.4" : 0
         )
+      }
 
-        // Phase 3: Final explosion effect (2-3s)
-        .to('.center-logo', {
+      // Phase 3: Final explosion effect (2-3s)
+      if (hasCenterLogo) {
+        tl.to('.center-logo', {
           scale: 1.2,
           duration: 0.3,
           ease: "power2.inOut"
@@ -424,8 +433,9 @@ const AnimatedLoadingScreen = ({ onComplete }) => {
           duration: 0.4,
           ease: "bounce.out"
         }, "-=0.1")
+      }
 
-      // Trigger phase changes
+      // Trigger phase changes (time-based labels; timeline will stretch as needed)
       tl.call(() => setCurrentPhase(1), [], "1")
       tl.call(() => setCurrentPhase(2), [], "2")
       tl.call(() => {

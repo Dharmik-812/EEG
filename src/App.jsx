@@ -37,6 +37,14 @@ import Privacy from './pages/Privacy.jsx'
 import Terms from './pages/Terms.jsx'
 import Feedback from './pages/Feedback.jsx'
 import Support from './pages/Support.jsx'
+import ChatFriends from './pages/ChatFriends.jsx'
+import Groups from './pages/Groups.jsx'
+import GroupChat from './pages/GroupChat.jsx'
+import Messages from './pages/Messages.jsx'
+// Enhanced components
+import MessagesInterface from './components/enhanced/MessagesInterface.jsx'
+import GroupsInterface from './components/enhanced/GroupsInterface.jsx'
+import AdminReports from './pages/AdminReports.jsx'
 
 // Suspense fallback
 function PageFallback() {
@@ -338,6 +346,13 @@ export default function App() {
                   <Route path="/leaderboard" element={<PageWrapper><Leaderboard /></PageWrapper>} />
                   <Route path="/badges" element={<PageWrapper><Badges /></PageWrapper>} />
                   <Route path="/community" element={<PageWrapper><Community /></PageWrapper>} />
+                  <Route path="/chat-friends" element={<PageWrapper><ChatFriends /></PageWrapper>} />
+                  <Route path="/messages" element={<FullscreenPageWrapper><MessagesInterface /></FullscreenPageWrapper>} />
+                  <Route path="/groups" element={<PageWrapper><GroupsInterface /></PageWrapper>} />
+                  {/* Legacy routes for backward compatibility */}
+                  <Route path="/messages-old" element={<PageWrapper><Messages /></PageWrapper>} />
+                  <Route path="/groups-old" element={<PageWrapper><Groups /></PageWrapper>} />
+                  <Route path="/group-chat" element={<PageWrapper><GroupChat /></PageWrapper>} />
                   <Route path="/projects" element={<PageWrapper><Projects /></PageWrapper>} />
                   <Route path="/editor" element={<FullscreenPageWrapper><Editor /></FullscreenPageWrapper>} />
                   <Route path="/play/:id" element={<PageWrapper><PlayGame /></PageWrapper>} />
@@ -345,6 +360,7 @@ export default function App() {
                   <Route path="/register" element={<PageWrapper><Register /></PageWrapper>} />
                   <Route path="/create-quiz" element={<PageWrapper><CreateQuiz /></PageWrapper>} />
                   <Route path="/admin" element={<PageWrapper><Admin /></PageWrapper>} />
+                  <Route path="/admin/reports" element={<PageWrapper><AdminReports /></PageWrapper>} />
                   <Route path="/how-it-works" element={<PageWrapper><HowItWorks /></PageWrapper>} />
                   <Route path="/chat" element={<PageWrapper><ChatInterface /></PageWrapper>} />
                   <Route path="/privacy" element={<PageWrapper><Privacy /></PageWrapper>} />

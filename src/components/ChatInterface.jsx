@@ -6,7 +6,7 @@ import {
     Volume2, VolumeX, X, PlayCircle, PauseCircle, Send, Plus,
     Trash2, Settings, AlertCircle, Wifi, WifiOff, Clock
 } from 'lucide-react'
-import gsap from 'gsap'
+import { loadGSAP } from '../animations/lazy'
 import { useAnimationStore } from '../store/animationStore'
 import useServerChat from '../hooks/useServerChat'
 import '../styles/chatbot.css'
@@ -89,8 +89,9 @@ function MessageBubble({
     const { role, content, image, timestamp, model, editedAt } = message
 
     useEffect(() => {
-        if (reduced || !bubbleRef.current) return
+        if (reduced || !bubbleRef.current || !gsapRef.current) return
 
+        const gsap = gsapRef.current
         const el = bubbleRef.current
         const y = role === 'user' ? 6 : 8
 
@@ -110,11 +111,12 @@ function MessageBubble({
                 repeat: 1
             }
         )
-    }, [reduced, role])
+    }, [reduced, role, hasGSAP])
 
     const handleMouseEnter = useCallback(() => {
         setIsHovered(true)
-        if (reduced || !bubbleRef.current) return
+        if (reduced || !bubbleRef.current || !gsapRef.current) return
+        const gsap = gsapRef.current
         gsap.to(bubbleRef.current, {
             scale: 1.02,
             duration: 0.2,
@@ -124,7 +126,8 @@ function MessageBubble({
 
     const handleMouseLeave = useCallback(() => {
         setIsHovered(false)
-        if (reduced || !bubbleRef.current) return
+        if (reduced || !bubbleRef.current || !gsapRef.current) return
+        const gsap = gsapRef.current
         gsap.to(bubbleRef.current, {
             scale: 1,
             duration: 0.2,
@@ -478,6 +481,20 @@ export default function ChatInterface() {
     const [imagePreview, setImagePreview] = useState(null)
     const [showSettings, setShowSettings] = useState(false)
 
+    // Lazy-load GSAP to keep it out of the main chunk
+    const gsapRef = useRef(null)
+    const [hasGSAP, setHasGSAP] = useState(false)
+    useEffect(() => {
+        let active = true
+        ;(async () => {
+            try {
+                const g = await loadGSAP()
+                if (active && g) { gsapRef.current = g; setHasGSAP(true) }
+            } catch {}
+        })()
+        return () => { active = false }
+    }, [])
+
     // Refs
     const inputRef = useRef(null)
     const messagesEndRef = useRef(null)
@@ -566,7 +583,8 @@ export default function ChatInterface() {
 
     // Animation handlers
     const handleInputFocus = useCallback((e) => {
-        if (reduced) return
+        if (reduced || !gsapRef.current) return
+        const gsap = gsapRef.current
         gsap.to(e.currentTarget, {
             boxShadow: '0 0 0 3px rgba(16,185,129,0.25)',
             duration: 0.25,
@@ -575,7 +593,8 @@ export default function ChatInterface() {
     }, [reduced])
 
     const handleInputBlur = useCallback((e) => {
-        if (reduced) return
+        if (reduced || !gsapRef.current) return
+        const gsap = gsapRef.current
         gsap.to(e.currentTarget, {
             boxShadow: '0 0 0 0 rgba(0,0,0,0)',
             duration: 0.2,
@@ -584,7 +603,8 @@ export default function ChatInterface() {
     }, [reduced])
 
     const handleButtonHover = useCallback((e) => {
-        if (reduced) return
+        if (reduced || !gsapRef.current) return
+        const gsap = gsapRef.current
         gsap.to(e.currentTarget, {
             y: -2,
             duration: 0.14,
@@ -598,7 +618,8 @@ export default function ChatInterface() {
     }, [reduced])
 
     const handleSendPress = useCallback((e) => {
-        if (reduced) return
+        if (reduced || !gsapRef.current) return
+        const gsap = gsapRef.current
         gsap.fromTo(e.currentTarget,
             { scale: 0.98 },
             { scale: 1, duration: 0.22, ease: 'back.out(2)' }

@@ -16,13 +16,20 @@ export default function SplashScreen() {
 
   return (
     <motion.div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-gradient-to-b from-emerald-50 to-sky-50 dark:from-slate-950 dark:to-slate-900"
+      className="fixed inset-0 z-[100] flex items-center justify-center"
+      style={{
+        background: 'linear-gradient(to bottom, #ecfdf5, #f0f9ff)',
+        WebkitFontSmoothing: 'antialiased',
+        backfaceVisibility: 'hidden',
+        willChange: 'opacity, transform',
+        contain: 'paint',
+      }}
       initial={{ opacity: 1 }}
       animate={{ opacity: 1 }}
-      exit={{ opacity: 0, filter: 'blur(2px)' }}
+      exit={{ opacity: 0, filter: 'blur(1.5px)' }}
       transition={{ duration: 0.45 }}
     >
-      <div className="relative w-[min(92vw,740px)] aspect-square">
+      <div className="relative w-[min(92vw,740px)] aspect-square overflow-hidden rounded-[2px]" style={{ transform: 'translateZ(0)' }}>
         <svg viewBox="0 0 200 200" className="w-full h-full" aria-hidden>
           {/* soft sun glow */}
           <motion.circle cx="100" cy="78" r="44" fill="url(#sun)" initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 0.6 }} transition={{ duration: 0.8, delay: 0.15 }} />
@@ -96,7 +103,7 @@ export default function SplashScreen() {
         </motion.div>
 
         {/* Enhanced loading bar with environmental messaging */}
-        <div className="absolute -bottom-16 left-1/2 -translate-x-1/2 w-[75%] max-w-[520px]">
+        <div className="absolute -bottom-16 left-1/2 -translate-x-1/2 w-[75%] max-w-[520px]" style={{ willChange: 'transform, opacity', transform: 'translateZ(0)' }}>
           <motion.div
             className="text-xs text-center text-emerald-600 dark:text-emerald-400 mb-2 font-medium"
             initial={{ opacity: 0 }}
@@ -105,7 +112,7 @@ export default function SplashScreen() {
           >
             🌱 Loading your eco-adventure...
           </motion.div>
-          <div className="h-2 rounded-full bg-emerald-200/50 dark:bg-emerald-900/50 overflow-hidden shadow-inner">
+          <div className="relative h-2 rounded-full bg-emerald-200/50 dark:bg-emerald-900/50 overflow-hidden shadow-inner" style={{ contain: 'paint' }}>
             <motion.div
               className="h-full bg-gradient-to-r from-emerald-400 via-teal-400 to-sky-400 shadow-sm"
               style={{ width: '40%' }}

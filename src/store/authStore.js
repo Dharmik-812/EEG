@@ -1,68 +1,11 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-
-const seedUsers = [
-  { 
-    id: 'admin-1', 
-    name: 'Administrator', 
-    email: 'admin@aversoltix.com', 
-    password: 'admin123', 
-    role: 'admin',
-    createdAt: '2024-01-01T00:00:00Z',
-    stats: {
-      xp: 0,
-      badges: [],
-      streak: 0,
-      completedQuizzes: 0
-    }
-  },
-  { 
-    id: 'school-teacher-1', 
-    name: 'Sarah Johnson', 
-    email: 'sarah@greenvalleyschool.edu', 
-    password: 'teacher123', 
-    role: 'school-teacher',
-    institution: {
-      name: 'Green Valley Elementary',
-      type: 'school',
-      code: 'GVE2024',
-      location: 'California, USA'
-    },
-    createdAt: '2024-01-15T10:30:00Z',
-    stats: {
-      xp: 0,
-      badges: [],
-      streak: 0,
-      completedQuizzes: 0,
-      createdContent: 0
-    }
-  },
-  { 
-    id: 'college-student-1', 
-    name: 'Alex Chen', 
-    email: 'alex@stanford.edu', 
-    password: 'student123', 
-    role: 'college-student',
-    institution: {
-      name: 'Stanford University',
-      type: 'college',
-      code: 'STAN2024',
-      location: 'California, USA'
-    },
-    createdAt: '2024-02-10T14:15:00Z',
-    stats: {
-      xp: 0,
-      badges: [],
-      streak: 0,
-      completedQuizzes: 0
-    }
-  },
-]
+import { api, setTokens, getAccessToken, getRefreshToken } from '../lib/api'
 
 export const useAuthStore = create(
   persist(
     (set, get) => ({
-      users: seedUsers,
+      users: [],
       institutions: [
         {
           id: '1',
@@ -92,40 +35,63 @@ export const useAuthStore = create(
         }
       ],
       currentUser: null,
-      login: (email, password) => {
-        const user = get().users.find(u => u.email === email && u.password === password)
-        if (!user) throw new Error('Invalid credentials')
-        set({ currentUser: user })
-        return user
+
+      login: async (email, password) => {
+        const response = await api.login(email, password)
+        setTokens({
+          accessToken: response.accessToken,
+          refreshToken: response.refreshToken,
+          expiresIn: response.expiresIn
+        })
+        set({ currentUser: response.user })
+        try {
+          const { ensureUserKeypairUploaded } = await import('../lib/crypto')
+          await ensureUserKeypairUploaded(api, { getState: () => ({ currentUser: response.user }) })
+        } catch {}
+        // refresh users list for friend discovery, etc.
+        const list = await api.users()
+        set({ users: list.users || [] })
+        return response.user
       },
 
-      register: (userData) => {
-        const { name, email, password, role = 'visitor', institution } = userData
-        const exists = get().users.some(u => u.email === email)
-        if (exists) throw new Error('Email already registered')
-        
-        const id = `u-${Date.now()}`
-        const user = { 
-          id, 
-          name, 
-          email, 
-          password, 
-          role,
-          institution,
-          createdAt: new Date().toISOString(),
-          stats: {
-            xp: 0,
-            badges: [],
-            streak: 0,
-            completedQuizzes: 0,
-            createdContent: role.includes('teacher') ? 0 : undefined
-          }
+      register: async (userData) => {
+        const { name, email, password } = userData
+        const response = await api.register(name, email, password)
+        setTokens({
+          accessToken: response.accessToken,
+          refreshToken: response.refreshToken,
+          expiresIn: response.expiresIn
+        })
+        set({ currentUser: response.user })
+        try {
+          const { ensureUserKeypairUploaded } = await import('../lib/crypto')
+          await ensureUserKeypairUploaded(api, { getState: () => ({ currentUser: response.user }) })
+        } catch {}
+        const list = await api.users()
+        set({ users: list.users || [] })
+        return response.user
+      },
+
+      refreshMe: async () => {
+        const accessToken = getAccessToken()
+        if (!accessToken) return null
+        try {
+          const { user } = await api.me()
+          set({ currentUser: user })
+          const list = await api.users()
+          set({ users: list.users || [] })
+          return user
+        } catch (e) {
+          setTokens({ accessToken: null, refreshToken: null, expiresIn: 0 })
+          set({ currentUser: null })
+          return null
         }
-        set(state => ({ users: [...state.users, user], currentUser: user }))
-        return user
       },
 
-      logout: () => set({ currentUser: null }),
+      logout: () => { 
+        setTokens({ accessToken: null, refreshToken: null, expiresIn: 0 })
+        set({ currentUser: null }) 
+      },
 
       isAdmin: () => get().currentUser?.role === 'admin',
       isTeacher: () => {
@@ -137,7 +103,7 @@ export const useAuthStore = create(
         return role === 'school-student' || role === 'college-student'
       },
 
-      // Institution management methods
+      // Institution management methods (unchanged, can be migrated later)
       createInstitution: (institutionData) => {
         const user = get().currentUser
         const isTeacher = get().isTeacher()
@@ -217,6 +183,16 @@ export const useAuthStore = create(
           totalXP: users.reduce((sum, u) => sum + (u.stats?.xp || 0), 0),
           totalQuizzes: users.reduce((sum, u) => sum + (u.stats?.completedQuizzes || 0), 0)
         }
+      },
+
+      // Admin moderation helpers (server-backed)
+      adminBanUser: async ({ userId, reason, until }) => {
+        await api.adminBanUser({ userId, reason, until })
+        return true
+      },
+      adminUnbanUser: async ({ userId }) => {
+        await api.adminUnbanUser({ userId })
+        return true
       },
     }),
     { name: 'aversoltix_auth' }
