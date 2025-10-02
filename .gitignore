@@ -27,6 +27,7 @@ dist-ssr
 key.env
 .env
 .env.local
+.env.server
 .env.development.local
 .env.test.local
 .env.production.local

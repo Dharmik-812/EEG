@@ -12,9 +12,9 @@ yarn-error.log*
 key.env
 server/.env
 
-# Source files (only dist is needed for production)
-src
-public
+# Source files are needed for building, so don't ignore them
+# src
+# public
 
 # Development tools
 .vscode

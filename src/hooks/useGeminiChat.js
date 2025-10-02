@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai'
 import {
     addPlayfulEmojis,
     buildGeminiContents,
@@ -33,23 +32,8 @@ RESPONSE STYLE:
 - End with encouragement or a call to action when appropriate
 - Use varied sentence structures to keep responses engaging`
 
-// Enhanced safety settings with more granular control
-const SAFETY_SETTINGS = [
-    { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
-    { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
-    { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
-    { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
-]
-
-// Enhanced generation config with better parameters
-const GENERATION_CONFIG = {
-    temperature: 0.8, // Slightly higher for more creative responses
-    topP: 0.9, // More focused responses
-    topK: 40,
-    maxOutputTokens: 1024, // Increased for better responses
-    candidateCount: 1,
-    stopSequences: ["Human:", "User:", "Assistant:"] // Prevent role confusion
-}
+// Secure API endpoint for Gemini chat
+const GEMINI_API_ENDPOINT = '/api/gemini-chat'
 
 // Enhanced model mapping with fallback options
 const MODEL_VARIANTS = {
@@ -167,52 +151,27 @@ export default function useGeminiChat() {
     const abortControllerRef = useRef(null)
     const retryTimeoutRef = useRef(null)
 
-    // API configuration
-    const apiKey = import.meta.env.VITE_GEMINI_API_KEY
+    // Secure API call helper
+    const callGeminiAPI = useCallback(async (contents, modelType = 'fast', isVision = false) => {
+        const response = await fetch(GEMINI_API_ENDPOINT, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                contents,
+                modelType,
+                isVision
+            })
+        })
 
-    // Enhanced Gemini AI client with error handling
-    const genAI = useMemo(() => {
-        if (!apiKey) {
-            console.warn('Missing VITE_GEMINI_API_KEY environment variable')
-            return null
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}))
+            throw new Error(errorData.error || `API request failed: ${response.status}`)
         }
 
-        try {
-            return new GoogleGenerativeAI(apiKey)
-        } catch (error) {
-            console.error('Failed to initialize GoogleGenerativeAI:', error)
-            return null
-        }
-    }, [apiKey])
-
-    // Enhanced model selection with fallbacks
-    const getModel = useCallback((modelType = 'fast', isVision = false) => {
-        if (!genAI) return null
-
-        const variant = MODEL_VARIANTS[modelType] || MODEL_VARIANTS.fast
-        const models = [variant.primary, variant.fallback]
-
-        // For vision tasks, ensure we use a compatible model
-        if (isVision) {
-            models.unshift('gemini-1.5-pro', 'gemini-1.5-flash')
-        }
-
-        for (const modelId of models) {
-            try {
-                return genAI.getGenerativeModel({
-                    model: modelId,
-                    safetySettings: SAFETY_SETTINGS,
-                    generationConfig: GENERATION_CONFIG
-                }, { apiVersion: 'v1' })
-            } catch (error) {
-                console.warn(`Failed to create model ${modelId}:`, error)
-                continue
-            }
-        }
-
-        console.error('All model variants failed to initialize')
-        return null
-    }, [genAI])
+        return response.json()
+    }, [])
 
     // Enhanced retry logic with exponential backoff
     const executeWithRetry = useCallback(async (operation, maxAttempts = 3) => {
@@ -310,11 +269,8 @@ export default function useGeminiChat() {
                 )
             }
 
-            // Get appropriate model
-            const model = getModel(modelKey)
-            if (!model) {
-                throw new APIError('AI model unavailable. Please check your API key.', 'model')
-            }
+            // Validate that our API endpoint is available
+            // (The actual model checking is done server-side now)
 
             // Create user message
             const userMsg = {
@@ -339,28 +295,13 @@ export default function useGeminiChat() {
                 const updatedHistory = [...messages, userMsg]
                 const contents = buildGeminiContents(updatedHistory, processed.text, SYSTEM_PROMPT)
 
-                // Execute with retry logic
-                const response = await executeWithRetry(async () => {
-                    const result = await model.generateContentStream({ contents })
-                    return result
+                // Execute with retry logic (secure API call)
+                const apiResponse = await executeWithRetry(async () => {
+                    return await callGeminiAPI(contents, modelKey, false)
                 })
 
-                // Process streaming response
-                let fullText = ''
-                for await (const chunk of response.stream) {
-                    if (abortControllerRef.current?.signal?.aborted) {
-                        break
-                    }
-
-                    const delta = chunk?.text?.() || ''
-                    if (delta) {
-                        fullText += delta
-                        setStreamingText(fullText)
-                    }
-                }
-
-                // Process final response
-                let finalText = limitToSentences(fullText || 'Got it! 🌱', 3)
+                // Process response
+                let finalText = limitToSentences(apiResponse.text || 'Got it! 🌱', 3)
                 finalText = addPlayfulEmojis(finalText)
 
                 // Create assistant message
@@ -369,7 +310,7 @@ export default function useGeminiChat() {
                     role: 'assistant',
                     content: finalText,
                     timestamp: Date.now(),
-                    model: modelKey
+                    model: apiResponse.model || modelKey
                 }
 
                 setMessages(prev => [...prev, assistantMsg])
@@ -412,11 +353,7 @@ export default function useGeminiChat() {
                 )
             }
 
-            // Get vision model
-            const model = getModel(modelKey, true)
-            if (!model) {
-                throw new APIError('Vision model unavailable. Please try again.', 'model')
-            }
+            // Vision processing will be handled server-side
 
             // Create user message with image
             const userMsg = {
@@ -434,30 +371,27 @@ export default function useGeminiChat() {
             abortControllerRef.current = new AbortController()
 
             try {
-                // Prepare content parts for vision model
-                const parts = [
-                    { text: `${SYSTEM_PROMPT}\n\nUser message: ${text}` },
-                    {
-                        inlineData: {
-                            data: imageData.data,
-                            mimeType: imageData.mimeType
+                // Prepare content for secure API
+                const contents = [{
+                    role: 'user',
+                    parts: [
+                        { text: `${SYSTEM_PROMPT}\n\nUser message: ${text}` },
+                        {
+                            inlineData: {
+                                data: imageData.data,
+                                mimeType: imageData.mimeType
+                            }
                         }
-                    }
-                ]
+                    ]
+                }]
 
-                // Execute with retry
-                const response = await executeWithRetry(async () => {
-                    return await model.generateContent({
-                        contents: [{ role: 'user', parts }]
-                    })
+                // Execute with retry (secure API call)
+                const apiResponse = await executeWithRetry(async () => {
+                    return await callGeminiAPI(contents, modelKey, true)
                 })
 
                 // Process response
-                const responseText = response?.response?.text?.() ||
-                    response?.response?.candidates?.[0]?.content?.parts?.map(p => p.text).join(' ') ||
-                    'I can see the image, but I\'m having trouble analyzing it right now.'
-
-                let finalText = limitToSentences(responseText, 3)
+                let finalText = limitToSentences(apiResponse.text || 'I can see the image, but I\'m having trouble analyzing it right now.', 3)
                 finalText = addPlayfulEmojis(finalText)
 
                 const assistantMsg = {
@@ -465,7 +399,7 @@ export default function useGeminiChat() {
                     role: 'assistant',
                     content: finalText,
                     timestamp: Date.now(),
-                    model: `${modelKey}-vision`
+                    model: apiResponse.model || `${modelKey}-vision`
                 }
 
                 setMessages(prev => [...prev, assistantMsg])
@@ -690,12 +624,10 @@ export default function useGeminiChat() {
         }
     }, [])
 
-    // Enhanced API status
+    // Enhanced API status (always ready since we use secure server-side API)
     const apiStatus = useMemo(() => {
-        if (!apiKey) return 'missing_key'
-        if (!genAI) return 'invalid_key'
         return 'ready'
-    }, [apiKey, genAI])
+    }, [])
 
     // Return enhanced API
     return {
