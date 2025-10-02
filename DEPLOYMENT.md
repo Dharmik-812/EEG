@@ -1,3 +1,67 @@
+# 🚀 Vercel Deployment Guide for EEG Project
+
+## Required Environment Variables
+
+Configure these in your Vercel dashboard under **Settings > Environment Variables**:
+
+### Frontend Variables
+```bash
+VITE_GEMINI_API_KEY=your_google_gemini_api_key
+VITE_SUPABASE_URL=https://wlyxbyvlyymxzekkqxpl.supabase.co
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+### API Variables (Optional)
+```bash
+GEMINI_API_KEY=your_google_gemini_api_key  # Fallback for API functions
+ALLOWED_ORIGINS=https://your-domain.vercel.app,http://localhost:5173
+```
+
+## Deployment Steps
+
+1. **Connect Repository**
+   - Go to [Vercel Dashboard](https://vercel.com/dashboard)
+   - Click "New Project"
+   - Import your GitHub repository
+
+2. **Configure Build Settings**
+   - Framework: **Vite**
+   - Build Command: `npm run build`
+   - Output Directory: `dist`
+   - Install Command: `npm install`
+
+3. **Add Environment Variables**
+   - Go to Project Settings > Environment Variables
+   - Add all the variables listed above
+   - Make sure to set them for **Production**, **Preview**, and **Development**
+
+4. **Deploy**
+   - Click "Deploy"
+   - Wait for the build to complete
+
+## API Endpoints
+
+After deployment, your API endpoints will be available at:
+
+- **Health Check**: `https://your-domain.vercel.app/api/`
+- **AI Chat**: `https://your-domain.vercel.app/api/chat`
+- **Daily Quiz**: `https://your-domain.vercel.app/api/daily-quiz`
+
+## Troubleshooting
+
+### Common Issues:
+
+1. **Build fails**: Check that all dependencies are in `package.json`
+2. **API errors**: Verify environment variables are set correctly
+3. **CORS issues**: Update `ALLOWED_ORIGINS` with your Vercel domain
+4. **Function Runtime Error**: Ensure all API files use `export default` syntax
+
+### Performance Notes:
+
+- Build time: ~20-25 seconds
+- Bundle size: ~489 kB (optimized)
+- API response time: ~1-3 seconds for AI chat
+
 # Deployment Guide
 
 ## Vercel Deployment Instructions

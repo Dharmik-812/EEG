@@ -1,4 +1,14 @@
-module.exports = async (req, res) => {
+export default async function handler(req, res) {
+  // Set CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*')
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
+  
+  if (req.method === 'OPTIONS') {
+    res.status(200).end()
+    return
+  }
+  
   // Fallback pool if client does not POST a dynamic pool
   const defaultPool = [
     { id: 'dq-01', topic: 'Energy' }, { id: 'dq-02', topic: 'Waste' }, { id: 'dq-03', topic: 'Water' }, { id: 'dq-04', topic: 'Ecology' }, { id: 'dq-05', topic: 'Climate' },

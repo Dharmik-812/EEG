@@ -1,0 +1,39 @@
+# Development files
+node_modules
+.git
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment files (these should be configured in Vercel dashboard)
+.env.local
+.env
+key.env
+server/.env
+
+# Source files (only dist is needed for production)
+src
+public
+
+# Development tools
+.vscode
+.vs
+*.sqlite
+
+# Documentation
+README.md
+docs/
+*.md
+
+# Test files
+test/
+tests/
+*.test.js
+*.spec.js
+
+# Server files (not used in serverless deployment)
+server/
+
+# Build analysis
+bundle-analysis.html
