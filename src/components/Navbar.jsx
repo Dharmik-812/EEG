@@ -80,8 +80,6 @@ export default function Navbar() {
     <NavLink
       to={to}
       onClick={() => setOpen(false)}
-      onMouseEnter={() => setHoveredLink(to)}
-      onMouseLeave={() => setHoveredLink(null)}
       className={({ isActive }) =>
         `nav-link relative group px-4 py-2 rounded-xl transition-all duration-300 ${
           isActive 
@@ -93,11 +91,8 @@ export default function Navbar() {
       <span className="relative flex items-center gap-2">
         <Icon className="h-4 w-4 transition-transform group-hover:scale-110" />
         {label}
-        <motion.span 
-          className="absolute -bottom-1 left-0 h-[2px] bg-gradient-to-r from-emerald-500 via-green-400 to-emerald-500"
-          initial={{ width: 0 }}
-          animate={{ width: hoveredLink === to ? '100%' : 0 }}
-          transition={{ duration: 0.3 }}
+        <span 
+          className="absolute -bottom-1 left-0 h-[2px] w-0 bg-gradient-to-r from-emerald-500 via-green-400 to-emerald-500 transition-[width] duration-300 group-hover:w-full"
         />
       </span>
     </NavLink>
@@ -229,7 +224,7 @@ export default function Navbar() {
                       <Leaf className="h-4 w-4 text-emerald-500" />
                       <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Explore</span>
                     </div>
-                     <CircularNavWheel
+                    <CircularNavWheel
                       items={links
                         .filter(l => !(l.hideForAdmin && currentUser?.role === 'admin'))
                         .map(l => ({ ...l }))}
@@ -239,8 +234,8 @@ export default function Navbar() {
                         // Slight delay to let the popover close smoothly
                         setTimeout(() => navigate(item.to), 80)
                       }}
-                      radius={90}
-                      itemSize={38}
+                      radius={96}
+                      itemSize={50}
                     />
                   </div>
                 </motion.div>

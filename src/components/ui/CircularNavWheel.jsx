@@ -477,8 +477,8 @@ const CircularNavWheel = ({
           }}
           aria-label={item.label}
         >
-          {/* Place item exactly on the spiral with a tiny offset toward center for readability */}
-          <Icon className="w-[42%] h-[42%]" />
+          {/* Larger icon proportion for better legibility on a smaller wheel */}
+          <Icon className="w-[60%] h-[60%]" />
           
           {/* Active pulse effect */}
           {isCentered && (
@@ -635,18 +635,15 @@ const CircularNavWheel = ({
           )
         })()}
 
-        {/* Enhanced center indicator - positioned much lower */}
+        {/* Enhanced center indicator - perfectly centered */}
         <motion.div 
-          className="absolute left-1/2 transform -translate-x-1/2 pointer-events-none z-[2]"
-          style={{
-            top: `calc(50% + ${radius * 0.45}px)` // Position dot much lower
-          }}
+          className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none z-[2]"
         >
           {/* Main center dot */}
           <motion.div
-            className="w-1.5 h-1.5 bg-emerald-500 rounded-full"
+            className="bg-emerald-500 rounded-full"
             animate={{
-              scale: [1, 1.4, 1],
+              scale: [1, 1.25, 1],
               opacity: [0.8, 1, 0.8],
               boxShadow: [
                 '0 0 6px rgba(16,185,129,0.4)',
@@ -655,15 +652,12 @@ const CircularNavWheel = ({
               ]
             }}
             transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+            style={{ width: Math.max(10, itemSize * 0.3), height: Math.max(10, itemSize * 0.3) }}
           />
           
           {/* Orbiting ring effect */}
           <motion.div
-            className="absolute inset-0 w-4 h-4 border border-emerald-400/30 rounded-full"
-            style={{
-              left: '-5px',
-              top: '-5px'
-            }}
+            className="absolute -inset-1 w-5 h-5 border border-emerald-400/30 rounded-full"
             animate={{
               rotate: 360,
               scale: [1, 1.1, 1],
@@ -680,33 +674,33 @@ const CircularNavWheel = ({
         {/* Navigation items */}
         {items.map((item, index) => renderNavItem(item, index))}
         
-        {/* Compact navigation arrows - smaller size */}
+        {/* Navigation arrows - larger and balanced */}
         <motion.button
           onClick={rotateLeft}
           className="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-10 z-[3]
-                     p-1 rounded-full bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm 
-                     shadow-sm border border-slate-200/50 dark:border-slate-700/50
+                     p-2 rounded-full bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm 
+                     shadow border border-slate-200/60 dark:border-slate-700/60
                      hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-all hover:shadow-md
                      hover:border-emerald-300 dark:hover:border-emerald-600"
-          whileHover={{ scale: 1.05, x: -1 }}
+          whileHover={{ scale: 1.08, x: -2 }}
           whileTap={{ scale: 0.9 }}
           aria-label="Previous item"
         >
-          <ChevronLeft className="w-2.5 h-2.5 text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400" />
+          <ChevronLeft className="w-4 h-4 text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400" />
         </motion.button>
         
         <motion.button
           onClick={rotateRight}
           className="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-10 z-[3]
-                     p-1 rounded-full bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm 
-                     shadow-sm border border-slate-200/50 dark:border-slate-700/50
+                     p-2 rounded-full bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm 
+                     shadow border border-slate-200/60 dark:border-slate-700/60
                      hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-all hover:shadow-md
                      hover:border-emerald-300 dark:hover:border-emerald-600"
-          whileHover={{ scale: 1.05, x: 1 }}
+          whileHover={{ scale: 1.08, x: 2 }}
           whileTap={{ scale: 0.9 }}
           aria-label="Next item"
         >
-          <ChevronRight className="w-2.5 h-2.5 text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400" />
+          <ChevronRight className="w-4 h-4 text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400" />
         </motion.button>
       </motion.div>
 
