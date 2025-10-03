@@ -131,9 +131,12 @@ const MessagesInterface = () => {
   const filteredConversations = useMemo(() => {
     const conversations = activeTab === 'dms' ? dmConversations : groupConversations
     
-    if (!searchQuery) return conversations
+    // Ensure conversations is always an array
+    const safeConversations = Array.isArray(conversations) ? conversations : []
     
-    return conversations.filter(conv => {
+    if (!searchQuery) return safeConversations
+    
+    return safeConversations.filter(conv => {
       const name = activeTab === 'dms' 
         ? users.find(u => u.id === conv.otherUserId)?.name || ''
         : conv.group?.name || ''

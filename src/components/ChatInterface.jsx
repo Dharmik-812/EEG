@@ -80,7 +80,8 @@ function MessageBubble({
     onRegenerate,
     speaking,
     canEdit = false,
-    isLatestAssistant = false
+    isLatestAssistant = false,
+    gsap
 }) {
     const bubbleRef = useRef(null)
     const [isHovered, setIsHovered] = useState(false)
@@ -89,9 +90,8 @@ function MessageBubble({
     const { role, content, image, timestamp, model, editedAt } = message
 
     useEffect(() => {
-        if (reduced || !bubbleRef.current || !gsapRef.current) return
+        if (reduced || !bubbleRef.current || !gsap) return
 
-        const gsap = gsapRef.current
         const el = bubbleRef.current
         const y = role === 'user' ? 6 : 8
 
@@ -111,29 +111,27 @@ function MessageBubble({
                 repeat: 1
             }
         )
-    }, [reduced, role, hasGSAP])
+    }, [reduced, role, gsap])
 
     const handleMouseEnter = useCallback(() => {
         setIsHovered(true)
-        if (reduced || !bubbleRef.current || !gsapRef.current) return
-        const gsap = gsapRef.current
+        if (reduced || !bubbleRef.current || !gsap) return
         gsap.to(bubbleRef.current, {
             scale: 1.02,
             duration: 0.2,
             ease: 'power2.out'
         })
-    }, [reduced])
+    }, [reduced, gsap])
 
     const handleMouseLeave = useCallback(() => {
         setIsHovered(false)
-        if (reduced || !bubbleRef.current || !gsapRef.current) return
-        const gsap = gsapRef.current
+        if (reduced || !bubbleRef.current || !gsap) return
         gsap.to(bubbleRef.current, {
             scale: 1,
             duration: 0.2,
             ease: 'power2.out'
         })
-    }, [reduced])
+    }, [reduced, gsap])
 
     const formatTime = useCallback((timestamp) => {
         if (!timestamp) return ''
@@ -937,6 +935,7 @@ export default function ChatInterface() {
                                     handleRegenerate : null
                                 }
                                 speaking={speakingId === message.id}
+                                gsap={gsapRef.current}
                             />
                         ))}
 

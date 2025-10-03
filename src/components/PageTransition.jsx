@@ -5,9 +5,9 @@ import { useLocation } from 'react-router-dom'
 const pageVariants = {
   initial: {
     opacity: 0,
-    y: 20,
-    scale: 0.98,
-    filter: "blur(4px)"
+    y: 16,
+    scale: 0.995,
+    filter: "blur(2px)"
   },
   in: {
     opacity: 1,
@@ -17,16 +17,16 @@ const pageVariants = {
   },
   out: {
     opacity: 0,
-    y: -20,
-    scale: 1.02,
-    filter: "blur(4px)"
+    y: -14,
+    scale: 1.005,
+    filter: "blur(2px)"
   }
 }
 
 const pageTransition = {
   type: "tween",
-  ease: "anticipate",
-  duration: 0.6
+  ease: [0.22, 1, 0.36, 1],
+  duration: 0.45
 }
 
 const PageTransition = ({ children, className = "" }) => {
@@ -42,7 +42,7 @@ const PageTransition = ({ children, className = "" }) => {
 
   return (
     <motion.div
-      className={`min-h-[50vh] ${className}`}
+      className={`min-h-[50vh] will-change-transform ${className}`}
       key={displayLocation.pathname}
       variants={pageVariants}
       initial="initial"

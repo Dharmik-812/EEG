@@ -1,7 +1,11 @@
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai';
 
-// Environment variables
-const API_KEY = process.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
+// Load environment variables from both server/.env and root/key.env
+require('dotenv').config({ path: '../server/.env' })
+require('dotenv').config({ path: '../key.env' })
+
+// Environment variables - SERVER-SIDE ONLY for security
+const API_KEY = process.env.GEMINI_API_KEY;
 
 if (!API_KEY) {
     console.error('Missing GEMINI_API_KEY environment variable');

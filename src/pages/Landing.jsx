@@ -583,11 +583,11 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Features Section with Staggered Animation */}
-      <section className="py-16 sm:py-24 lg:py-32 relative safe-area-bottom">
+      {/* Features Section (trimmed) */}
+      <section className="py-14 sm:py-20 lg:py-24 relative safe-area-bottom">
         <div className="container-fluid mx-auto">
           <motion.div
-            className="text-center mb-12 sm:mb-16 lg:mb-20"
+            className="text-center mb-10 sm:mb-14 lg:mb-16"
             initial={{ opacity: 0, y: 50 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -601,26 +601,11 @@ export default function Landing() {
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-7">
             {[
-              {
-                title: 'Quests & Challenges',
-                desc: 'Interactive missions that teach climate science through engaging gameplay mechanics.',
-                emoji: '🧩',
-                gradient: 'from-emerald-500 to-teal-600'
-              },
-              {
-                title: 'Daily Streaks',
-                desc: 'Build consistent learning habits with streak tracking and daily rewards.',
-                emoji: '🔥',
-                gradient: 'from-orange-500 to-red-600'
-              },
-              {
-                title: 'Badges & Leaderboards',
-                desc: 'Compete with peers and unlock achievements as you master environmental topics.',
-                emoji: '🏆',
-                gradient: 'from-yellow-500 to-amber-600'
-              },
+              { title: 'Quests & Challenges', desc: 'Interactive missions that teach climate science.', emoji: '🧩', gradient: 'from-emerald-500 to-teal-600' },
+              { title: 'Daily Streaks', desc: 'Build consistent learning habits with rewards.', emoji: '🔥', gradient: 'from-orange-500 to-red-600' },
+              { title: 'Badges & Leaderboards', desc: 'Compete and unlock achievements as you learn.', emoji: '🏆', gradient: 'from-yellow-500 to-amber-600' },
             ].map((feature, i) => (
               <motion.div
                 key={i}
@@ -640,7 +625,7 @@ export default function Landing() {
                 }}
                 data-ripple
               >
-                <div className="relative p-6 sm:p-8 h-full bg-white/10 backdrop-blur-xl rounded-2xl sm:rounded-3xl border border-white/20 shadow-2xl overflow-hidden">
+                <div className="relative p-6 sm:p-7 h-full bg-white/10 backdrop-blur-xl rounded-2xl sm:rounded-3xl border border-white/20 shadow-2xl overflow-hidden">
                   {/* Gradient background */}
                   <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-500`} />
 
@@ -655,7 +640,7 @@ export default function Landing() {
 
                   {/* Content */}
                   <div className="relative z-10">
-                    <h3 className="text-lg sm:text-xl lg:text-2xl font-bold mb-3 sm:mb-4 group-hover:text-emerald-500 transition-colors">
+                    <h3 className="text-lg sm:text-xl lg:text-2xl font-bold mb-2 sm:mb-3 group-hover:text-emerald-500 transition-colors">
                       {feature.title}
                     </h3>
                     <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 leading-relaxed">
@@ -697,7 +682,7 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Testimonials Section - Animated Slider */}
+      {/* Testimonials Section - Removed extra padding to keep page concise */}
       <TestimonialSlider />
 
       {/* Custom CSS for golden text */}

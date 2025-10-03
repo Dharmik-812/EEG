@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
-import { Link, NavLink } from 'react-router-dom'
+import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { Leaf, Menu, X, Sun, Moon, Zap, Droplets, Wind, TreePine, Sprout, Award, Users, BookOpen, MessageCircle, LayoutDashboard, Trophy, Shield, Search, Bell } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
+import CircularNavWheel from './ui/CircularNavWheel'
 import useTheme from '../store/useTheme.js'
 import { useAuthStore } from '../store/authStore'
 import { useAnimationStore } from '../store/animationStore'
@@ -11,15 +12,16 @@ import Button from './ui/Button'
 
 // Professional navigation flow with icons
 const links = [
-  { to: '/', label: 'Home', category: 'overview', icon: Sprout },
-  { to: '/about', label: 'About', category: 'overview', icon: BookOpen },
-  { to: '/how-it-works', label: 'Guide', category: 'learn', icon: BookOpen },
-  { to: '/community', label: 'Community', category: 'engage', icon: Users },
-  // Chat & Friends will be conditionally shown for logged-in users below
-  { to: '/chat', label: 'Chatbot', category: 'engage', icon: MessageCircle },
-  { to: '/dashboard', label: 'Dashboard', category: 'track', hideForAdmin: true, icon: LayoutDashboard },
-  { to: '/leaderboard', label: 'Leaderboard', category: 'track', icon: Trophy },
-  { to: '/badges', label: 'Badges', category: 'track', icon: Award },
+  { to: '/', label: 'Home', category: 'primary', icon: Sprout },
+  { to: '/chat', label: 'Chatbot', category: 'primary', icon: MessageCircle },
+  { to: '/editor', label: 'Editor', category: 'primary', icon: BookOpen },
+  { to: '/dashboard', label: 'Dashboard', category: 'primary', hideForAdmin: true, icon: LayoutDashboard },
+  // Secondary (will appear in the wheel)
+  { to: '/leaderboard', label: 'Leaderboard', category: 'more', icon: Trophy },
+  { to: '/badges', label: 'Badges', category: 'more', icon: Award },
+  { to: '/community', label: 'Community', category: 'more', icon: Users },
+  { to: '/about', label: 'About', category: 'more', icon: BookOpen },
+  { to: '/how-it-works', label: 'Guide', category: 'more', icon: BookOpen },
 ]
 
 // Floating particles for environmental theme
@@ -46,12 +48,14 @@ const FloatingParticle = ({ delay }) => (
 )
 
 export default function Navbar() {
+  const navigate = useNavigate()
   const [open, setOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [hoveredLink, setHoveredLink] = useState(null)
   const [ecoScore, setEcoScore] = useState(0)
   const [showSearch, setShowSearch] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
+  const [showNavWheel, setShowNavWheel] = useState(false)
   const { theme, setTheme } = useTheme()
   const toggle = () => setTheme(theme === 'dark' ? 'light' : 'dark')
   const { reduced, toggle: toggleMotion } = useAnimationStore(s => ({ reduced: s.reduced, toggle: s.toggle }))
@@ -181,68 +185,17 @@ export default function Navbar() {
 
         {/* Desktop Navigation */}
         <div className="hidden lg:flex items-center gap-1">
-          {/* Overview Section */}
+          {/* Primary Section: show only the main pages */}
           <div className="flex items-center gap-1">
-            {links.filter(l => l.category === 'overview' && !(l.hideForAdmin && currentUser?.role === 'admin')).map(l => (
+            {links.filter(l => l.category === 'primary' && !(l.hideForAdmin && currentUser?.role === 'admin')).map(l => (
               <LinkItem key={l.to} {...l} />
             ))}
           </div>
           
           <div className="w-px h-6 bg-gradient-to-b from-transparent via-emerald-300 to-transparent dark:via-slate-600 mx-2" />
 
-          {/* Learn Section */}
-          <div className="flex items-center gap-1">
-            {links.filter(l => l.category === 'learn' && !(l.hideForAdmin && currentUser?.role === 'admin')).map(l => (
-              <LinkItem key={l.to} {...l} />
-            ))}
-          </div>
-          
-          <div className="w-px h-6 bg-gradient-to-b from-transparent via-emerald-300 to-transparent dark:via-slate-600 mx-2" />
-
-          {/* Engage Section */}
-          <div className="flex items-center gap-1">
-            {links.filter(l => l.category === 'engage' && !(l.hideForAdmin && currentUser?.role === 'admin')).map(l => (
-              <LinkItem key={l.to} {...l} />
-            ))}
-            {currentUser && (
-              <>
-                <NavLink to="/messages" className="nav-link relative group px-4 py-2 rounded-xl transition-all duration-300 hover:bg-emerald-50/30 dark:hover:bg-slate-800/50" data-ripple>
-                  <span className="flex items-center gap-2">
-                    <MessageCircle className="h-4 w-4" />
-                    Messages
-                    {/* Unread message indicator */}
-                    <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></span>
-                  </span>
-                </NavLink>
-                <NavLink to="/groups" className="nav-link relative group px-4 py-2 rounded-xl transition-all duration-300 hover:bg-emerald-50/30 dark:hover:bg-slate-800/50" data-ripple>
-                  <span className="flex items-center gap-2">
-                    <Users className="h-4 w-4" />
-                    Groups
-                  </span>
-                </NavLink>
-              </>
-            )}
-            <NavLink to="/editor" className="nav-link relative group px-4 py-2 rounded-xl transition-all duration-300 hover:bg-emerald-50/30 dark:hover:bg-slate-800/50" data-ripple>
-              <span className="flex items-center gap-2">
-                <BookOpen className="h-4 w-4" />
-                Editor
-              </span>
-            </NavLink>
-            <NavLink to="/create-quiz" className="nav-link relative group px-4 py-2 rounded-xl transition-all duration-300 hover:bg-emerald-50/30 dark:hover:bg-slate-800/50" data-ripple>
-              <span className="flex items-center gap-2">
-                <Award className="h-4 w-4" />
-                Quiz
-              </span>
-            </NavLink>
-          </div>
-          
-          <div className="w-px h-6 bg-gradient-to-b from-transparent via-emerald-300 to-transparent dark:via-slate-600 mx-2" />
-
-          {/* Track Section */}
-          <div className="flex items-center gap-1">
-            {links.filter(l => l.category === 'track' && !(l.hideForAdmin && currentUser?.role === 'admin')).map(l => (
-              <LinkItem key={l.to} {...l} />
-            ))}
+          {/* More Section trigger + optional Admin */}
+          <div className="flex items-center gap-1 relative">
             {currentUser?.role === 'admin' && (
               <NavLink to="/admin" className="nav-link relative group px-4 py-2 rounded-xl transition-all duration-300 hover:bg-emerald-50/30 dark:hover:bg-slate-800/50" data-ripple>
                 <span className="flex items-center gap-2">
@@ -251,6 +204,48 @@ export default function Navbar() {
                 </span>
               </NavLink>
             )}
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setShowNavWheel(v => !v)}
+              className="ml-2 px-3 py-2 rounded-xl border border-emerald-200/60 dark:border-slate-700/60 bg-white/60 dark:bg-slate-900/60 hover:bg-emerald-50/60 dark:hover:bg-slate-800/60"
+              aria-label="Open navigation wheel"
+            >
+              <span className="text-sm">See more</span>
+            </motion.button>
+
+            {/* In-navbar Wheel Popover */}
+            <AnimatePresence>
+              {showNavWheel && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.9, y: 8 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.9, y: 8 }}
+                  transition={{ type: 'spring', stiffness: 260, damping: 26 }}
+                  className="absolute top-full right-0 mt-2 z-50"
+                >
+                  <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-2xl border border-emerald-200/40 dark:border-slate-700/50 shadow-2xl p-4">
+                    <div className="flex items-center justify-center gap-2 mb-3">
+                      <Leaf className="h-4 w-4 text-emerald-500" />
+                      <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Explore</span>
+                    </div>
+                     <CircularNavWheel
+                      items={links
+                        .filter(l => !(l.hideForAdmin && currentUser?.role === 'admin'))
+                        .map(l => ({ ...l }))}
+                      currentPath={window.location.pathname}
+                      onItemSelect={(item) => {
+                        setShowNavWheel(false)
+                        // Slight delay to let the popover close smoothly
+                        setTimeout(() => navigate(item.to), 80)
+                      }}
+                      radius={90}
+                      itemSize={38}
+                    />
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           <div className="w-px h-6 bg-gradient-to-b from-transparent via-emerald-300 to-transparent dark:via-slate-600 mx-2" />
@@ -650,6 +645,8 @@ export default function Navbar() {
           </>
         )}
       </AnimatePresence>
+
+      {/* Removed full-screen wheel overlay in favor of in-navbar popover */}
 
       {/* Search Interface */}
       <SearchInterface

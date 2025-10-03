@@ -482,13 +482,13 @@ const AnimatedLoadingScreen = ({ onComplete }) => {
       {!isComplete && (
         <motion.div
           ref={containerRef}
-          className="fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden"
+          className="fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden w-screen h-screen"
           style={{
             background: 'linear-gradient(135deg, #0b1220 0%, #0f172a 25%, #0a3d38 50%, #064e3b 75%, #0b1220 100%)',
             backgroundSize: '400% 400%'
           }}
           initial={{ opacity: 1 }}
-          exit={{ opacity: 0, scale: 0.8, filter: 'blur(10px)' }}
+          exit={{ opacity: 0, filter: 'blur(6px)' }}
           animate={{ backgroundPosition: ['0% 0%', '100% 100%'] }}
           transition={{
             duration: 0.8,
@@ -507,7 +507,7 @@ const AnimatedLoadingScreen = ({ onComplete }) => {
           <div className="absolute inset-0 bg-gradient-radial from-transparent via-transparent to-black/35" />
 
           {/* Main content container */}
-          <div className="relative z-10 flex flex-col items-center justify-center w-full h-full px-4">
+            <div className="relative z-10 flex flex-col items-center justify-center w-full h-full px-4">
             {/* Brand name (kept subtle, sits above the tree) */}
             <motion.div
               className="text-center mb-3 sm:mb-4"
@@ -529,11 +529,11 @@ const AnimatedLoadingScreen = ({ onComplete }) => {
             </motion.div>
 
             {/* Central logo area (now: tree at center with orbital rings) */}
-            <div className="relative flex items-center justify-center mb-6 sm:mb-8 h-[420px] sm:h-[500px] md:h-[560px]">
+            <div className="relative flex items-center justify-center mb-6 sm:mb-8" style={{ height: 'min(62vh, 560px)' }}>
             {/* Rotating rings orbiting around the tree (centered wrappers) */}
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
                 <motion.div
-                  style={{ width: '19rem', height: '19rem', filter: 'drop-shadow(0 0 12px rgba(16,185,129,0.25))' }}
+                  style={{ width: 'clamp(12rem, 28vw, 19rem)', height: 'clamp(12rem, 28vw, 19rem)', filter: 'drop-shadow(0 0 12px rgba(16,185,129,0.25))' }}
                   animate={{ rotate: 360, x: [0, 2, 0, -2, 0], y: [0, -1.5, 0, 1.5, 0] }}
                   transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
                 >
@@ -543,7 +543,7 @@ const AnimatedLoadingScreen = ({ onComplete }) => {
 
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
                 <motion.div
-                  style={{ width: '16rem', height: '16rem', filter: 'drop-shadow(0 0 10px rgba(56,189,248,0.24))' }}
+                  style={{ width: 'clamp(10rem, 22vw, 16rem)', height: 'clamp(10rem, 22vw, 16rem)', filter: 'drop-shadow(0 0 10px rgba(56,189,248,0.24))' }}
                   animate={{ rotate: -360, x: [0, -1.5, 0, 1.5, 0], y: [0, 1.5, 0, -1.5, 0] }}
                   transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
                 >
@@ -554,7 +554,7 @@ const AnimatedLoadingScreen = ({ onComplete }) => {
               {/* Center content: Tree */}
               <motion.div className="center-logo relative z-10 flex items-center justify-center">
                 {/* Soft halo behind tree */}
-                <div className="absolute w-[320px] h-[320px] sm:w-[360px] sm:h-[360px] rounded-full bg-emerald-400/10 blur-3xl" aria-hidden />
+                <div className="absolute rounded-full bg-emerald-400/10 blur-3xl" style={{ width: 'clamp(14rem, 26vw, 22rem)', height: 'clamp(14rem, 26vw, 22rem)' }} aria-hidden />
                 <TreeGrow />
               </motion.div>
             </div>

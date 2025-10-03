@@ -1,4 +1,6 @@
 require('dotenv').config()
+// Also load from root key.env file for centralized API key management
+require('dotenv').config({ path: '../key.env' })
 const express = require('express')
 const cors = require('cors')
 const bcrypt = require('bcryptjs')
@@ -43,7 +45,7 @@ app.use(sanitizeRequestBody({
 // Helpers
 function userRowToDto(u) {
   if (!u) return null
-  return { id: u.id, name: u.name, email: u.email, bio: u.bio, avatarUrl: u.avatarUrl, createdAt: u.createdAt }
+  return { id: u.id, name: u.name, email: u.email, role: u.role || (isAdmin(u.id) ? 'admin' : 'user'), bio: u.bio, avatarUrl: u.avatarUrl, createdAt: u.createdAt }
 }
 
 function isAdmin(userId) {
@@ -629,6 +631,93 @@ app.post('/upload', authMiddleware, createSingleFileUploadMiddleware('file'), as
     })
   } catch (err) {
     next(err)
+  }
+})
+
+// AI Chat API (server-side Gemini integration)
+app.post('/api/chat', async (req, res, next) => {
+  try {
+    // Check if Gemini API is available
+    const GEMINI_API_KEY = process.env.GEMINI_API_KEY
+    if (!GEMINI_API_KEY) {
+      return res.status(500).json({ 
+        error: 'AI service unavailable', 
+        message: 'Server configuration error - missing Gemini API key' 
+      })
+    }
+
+    const { contents, modelKey = 'fast', isVision = false } = req.body || {}
+
+    // Validate request
+    if (!contents || !Array.isArray(contents)) {
+      return res.status(400).json({ 
+        error: 'Invalid request', 
+        message: 'Contents array is required' 
+      })
+    }
+
+    // Import Gemini AI library dynamically
+    const { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } = await import('@google/generative-ai')
+    
+    const genAI = new GoogleGenerativeAI(GEMINI_API_KEY)
+    
+    // Safety settings
+    const safetySettings = [
+      { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
+      { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
+      { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
+      { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
+    ]
+
+    // Generation config
+    const generationConfig = {
+      temperature: 0.8,
+      topP: 0.9,
+      topK: 40,
+      maxOutputTokens: 1024,
+      candidateCount: 1,
+    }
+
+    // System prompt
+    const systemPrompt = `You are AversoAI, an enthusiastic environmental education assistant for a gamified learning website. 
+
+CORE RULES:
+- ONLY answer questions about environmental topics: climate change, recycling, sustainability, renewable energy, conservation, biodiversity, pollution, eco-friendly habits, green technology, and environmental science.
+- For off-topic questions, politely redirect users to environmental education with encouraging suggestions.
+- Keep responses concise (under 3 sentences) but informative and engaging.
+- Use emojis occasionally to maintain a fun, gamified atmosphere.
+- Maintain an enthusiastic, educational tone that encourages learning and action.
+- Provide practical, actionable advice when possible.
+- Be scientifically accurate but accessible to all education levels.`
+
+    // Model selection
+    const modelName = modelKey === 'balanced' ? 'gemini-1.5-pro-latest' : 'gemini-1.5-flash-latest'
+    
+    const model = genAI.getGenerativeModel({
+      model: modelName,
+      safetySettings,
+      generationConfig,
+      systemInstruction: systemPrompt
+    })
+
+    // Generate response
+    const result = await model.generateContent({ contents })
+    const response = result.response
+    const text = response.text()
+
+    res.json({ 
+      success: true, 
+      text,
+      model: modelKey
+    })
+
+  } catch (error) {
+    console.error('Chat API error:', error)
+    res.status(500).json({ 
+      error: 'Generation failed', 
+      message: 'Something went wrong with the AI service',
+      retryable: true
+    })
   }
 })
 
