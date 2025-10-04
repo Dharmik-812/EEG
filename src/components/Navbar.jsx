@@ -179,7 +179,7 @@ export default function Navbar() {
         </Link>
 
         {/* Desktop Navigation */}
-        <div className="hidden lg:flex items-center gap-1">
+        <div className="hidden lg:flex items-center gap-1" onClick={() => console.log('Desktop navbar active')}>
           {/* Primary Section: show only the main pages */}
           <div className="flex items-center gap-1">
             {links.filter(l => l.category === 'primary' && !(l.hideForAdmin && currentUser?.role === 'admin')).map(l => (
@@ -202,11 +202,15 @@ export default function Navbar() {
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              onClick={() => setShowNavWheel(v => !v)}
-              className="ml-2 px-3 py-2 rounded-xl border border-emerald-200/60 dark:border-slate-700/60 bg-white/60 dark:bg-slate-900/60 hover:bg-emerald-50/60 dark:hover:bg-slate-800/60"
+              onClick={() => {
+                console.log('See more button clicked, current state:', showNavWheel)
+                setShowNavWheel(v => !v)
+              }}
+              className="ml-2 px-3 py-2 rounded-xl border-2 border-emerald-300 dark:border-emerald-600 bg-emerald-50 dark:bg-emerald-900/40 hover:bg-emerald-100 dark:hover:bg-emerald-800/60 text-emerald-700 dark:text-emerald-300 font-medium shadow-sm transition-all duration-200"
               aria-label="Open navigation wheel"
+              style={{ minWidth: '80px' }}
             >
-              <span className="text-sm">See more</span>
+              <span className="text-sm font-semibold">See more</span>
             </motion.button>
 
             {/* In-navbar Wheel Popover */}
@@ -334,7 +338,7 @@ export default function Navbar() {
         </div>
 
         {/* Medium screen navbar */}
-        <div className="hidden md:flex lg:hidden items-center gap-2">
+        <div className="hidden md:flex lg:hidden items-center gap-2" onClick={() => console.log('Medium navbar active')}>
           <div className="flex items-center gap-1">
             {links.slice(0, 4).filter(l => !(l.hideForAdmin && currentUser?.role === 'admin')).map(l => (
               <LinkItem key={l.to} {...l} />
@@ -357,6 +361,20 @@ export default function Navbar() {
           <div className="w-px h-5 bg-gradient-to-b from-transparent via-emerald-300 to-transparent dark:via-slate-600 mx-1" />
           
           <div className="flex items-center gap-2">
+            {/* See more button for medium screens */}
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => {
+                console.log('See more button clicked (medium screen), current state:', showNavWheel)
+                setShowNavWheel(v => !v)
+              }}
+              className="px-2 py-1 rounded-lg border border-emerald-300 dark:border-emerald-600 bg-emerald-50 dark:bg-emerald-900/40 hover:bg-emerald-100 dark:hover:bg-emerald-800/60 text-emerald-700 dark:text-emerald-300 text-xs font-medium"
+              aria-label="Open navigation wheel"
+            >
+              More
+            </motion.button>
+            
             {/* Search button */}
             <motion.button
               whileHover={{ scale: 1.1 }}
@@ -415,10 +433,44 @@ export default function Navbar() {
               {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </motion.button>
           </div>
+          
+          {/* Navigation Wheel Popover for medium screens */}
+          <AnimatePresence>
+            {showNavWheel && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9, y: 8 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 8 }}
+                transition={{ type: 'spring', stiffness: 260, damping: 26 }}
+                className="absolute top-full right-4 mt-2 z-50 max-w-[90vw] sm:max-w-none"
+              >
+                <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-2xl border border-emerald-200/40 dark:border-slate-700/50 shadow-2xl p-4 sm:p-6 min-w-[280px] sm:min-w-[320px]">
+                  <div className="flex items-center justify-center gap-2 mb-3">
+                    <Leaf className="h-4 w-4 text-emerald-500" />
+                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Explore</span>
+                  </div>
+                  <CircularNavWheel
+                    items={links
+                      .filter(l => !(l.hideForAdmin && currentUser?.role === 'admin'))
+                      .map(l => ({ ...l }))}
+                    currentPath={window.location.pathname}
+                    onItemSelect={(item) => {
+                      setShowNavWheel(false)
+                      setTimeout(() => navigate(item.to), 80)
+                    }}
+                    radius={110}
+                    itemSize={50}
+                    mobileRadius={90}
+                    mobileItemSize={45}
+                  />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* Mobile controls */}
-        <div className="md:hidden flex items-center gap-2">
+        <div className="md:hidden flex items-center gap-2" onClick={() => console.log('Mobile navbar active')}>
           {currentUser && (
             <motion.div
               whileHover={{ scale: 1.05 }}
@@ -453,6 +505,19 @@ export default function Navbar() {
             className="p-2 rounded-lg hover:bg-emerald-100/50 dark:hover:bg-slate-800"
           >
             {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+          </motion.button>
+          
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => {
+              console.log('See more button clicked (mobile), current state:', showNavWheel)
+              setShowNavWheel(v => !v)
+            }}
+            className="px-2 py-1.5 rounded-lg border border-emerald-300 dark:border-emerald-600 bg-emerald-50 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-xs font-medium mr-2"
+            aria-label="Open navigation wheel"
+          >
+            More
           </motion.button>
           
           <motion.button 
@@ -643,7 +708,48 @@ export default function Navbar() {
         )}
       </AnimatePresence>
 
-      {/* Removed full-screen wheel overlay in favor of in-navbar popover */}
+      {/* Mobile Navigation Wheel Popover */}
+      <AnimatePresence>
+        {showNavWheel && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 8 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: 8 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 26 }}
+            className="md:hidden fixed top-16 left-4 right-4 z-50"
+          >
+            <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-2xl border border-emerald-200/40 dark:border-slate-700/50 shadow-2xl p-4 w-full max-w-sm mx-auto">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <Leaf className="h-4 w-4 text-emerald-500" />
+                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Explore</span>
+                </div>
+                <button 
+                  onClick={() => setShowNavWheel(false)}
+                  className="p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400"
+                  aria-label="Close navigation"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+              <CircularNavWheel
+                items={links
+                  .filter(l => !(l.hideForAdmin && currentUser?.role === 'admin'))
+                  .map(l => ({ ...l }))}
+                currentPath={window.location.pathname}
+                onItemSelect={(item) => {
+                  setShowNavWheel(false)
+                  setTimeout(() => navigate(item.to), 80)
+                }}
+                radius={80}
+                itemSize={40}
+                mobileRadius={70}
+                mobileItemSize={36}
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Search Interface */}
       <SearchInterface

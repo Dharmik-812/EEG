@@ -7,17 +7,36 @@
 }
 
 @layer base {
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+  
   html, body, #root {
     height: 100%;
   }
+  
   html {
     /* Avoid conflict with smooth-scrolling libraries (Lenis) */
     scroll-behavior: auto;
   }
+  
   body { 
     overscroll-behavior-y: contain; 
     -webkit-overflow-scrolling: touch; /* iOS momentum scroll */
     touch-action: pan-y; /* better touch scroll perf */
+  }
+  
+  /* Reset button styles for consistency */
+  button {
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: none;
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    color: inherit;
+    cursor: pointer;
   }
   img, video, canvas, svg {
     max-width: 100%;
@@ -108,6 +127,116 @@
   }
   .card {
     @apply rounded-2xl bg-white/70 dark:bg-slate-900/60 backdrop-blur border border-white/20 dark:border-slate-800 shadow-lg transition-all;
+  }
+  
+  /* Circular Navigation Wheel - Consistent layout fixes */
+  .circular-nav-container {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 560px;
+    padding: 2rem;
+  }
+  
+  .circular-nav-dots {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+  }
+  
+  .circular-nav-dot {
+    border-radius: 9999px;
+    transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+    flex-shrink: 0;
+    cursor: pointer;
+    border: none;
+    outline: none;
+  }
+  
+  .circular-nav-dot:focus {
+    outline: 2px solid rgb(52 211 153);
+    outline-offset: 2px;
+  }
+  
+  .circular-nav-dot.active {
+    background-color: rgb(16 185 129);
+    width: 0.75rem;
+    height: 0.75rem;
+    min-width: 0.75rem;
+    min-height: 0.75rem;
+    box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.5);
+  }
+  
+  .circular-nav-dot.inactive {
+    background-color: rgb(71 85 105);
+    width: 0.5rem;
+    height: 0.5rem;
+    min-width: 0.5rem;
+    min-height: 0.5rem;
+  }
+  
+  .circular-nav-dot.inactive:hover {
+    background-color: rgb(100 116 139);
+    width: 0.625rem;
+    height: 0.625rem;
+  }
+  
+  .circular-nav-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+    margin-bottom: 2rem;
+  }
+  
+  .circular-nav-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    border-radius: 1rem;
+    background-color: rgb(30 41 59);
+    color: rgb(148 163 184);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgb(51 65 85);
+    transition: all 300ms cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    min-width: 3.5rem;
+    min-height: 3.5rem;
+    width: 3.5rem;
+    height: 3.5rem;
+  }
+  
+  .circular-nav-button:hover {
+    color: rgb(52 211 153);
+    border-color: rgb(71 85 105);
+    transform: scale(1.05);
+  }
+  
+  .circular-nav-button:active {
+    transform: scale(0.95);
+  }
+  
+  .circular-nav-button:focus {
+    outline: 2px solid rgb(52 211 153);
+    outline-offset: 0;
+  }
+  
+  .circular-nav-center-dot {
+    width: 0.75rem;
+    height: 0.75rem;
+    min-width: 0.75rem;
+    min-height: 0.75rem;
+    background-color: rgb(16 185 129);
+    border-radius: 9999px;
+    box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.5);
+    flex-shrink: 0;
+    margin: 0 1rem;
   }
   .card-vintage { box-shadow: inset 0 0 0 1px rgba(212,175,55,.25), inset 0 0 0 4px rgba(255,255,255,.05); }
   .font-display { font-family: 'Playfair Display', serif; }
