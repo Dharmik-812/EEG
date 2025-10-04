@@ -217,9 +217,9 @@ export default function Navbar() {
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.9, y: 8 }}
                   transition={{ type: 'spring', stiffness: 260, damping: 26 }}
-                  className="absolute top-full right-0 mt-2 z-50"
+                  className="absolute top-full right-0 mt-2 z-50 max-w-[90vw] sm:max-w-none"
                 >
-                  <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-2xl border border-emerald-200/40 dark:border-slate-700/50 shadow-2xl p-4">
+                  <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-2xl border border-emerald-200/40 dark:border-slate-700/50 shadow-2xl p-4 sm:p-6 min-w-[280px] sm:min-w-[320px]">
                     <div className="flex items-center justify-center gap-2 mb-3">
                       <Leaf className="h-4 w-4 text-emerald-500" />
                       <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Explore</span>
@@ -234,8 +234,10 @@ export default function Navbar() {
                         // Slight delay to let the popover close smoothly
                         setTimeout(() => navigate(item.to), 80)
                       }}
-                      radius={96}
+                      radius={110}
                       itemSize={50}
+                      mobileRadius={90}
+                      mobileItemSize={45}
                     />
                   </div>
                 </motion.div>
