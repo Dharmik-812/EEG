@@ -127,15 +127,15 @@ const CircularNavWheel = ({
   currentPath = '/',
   onItemSelect,
   className = '',
-  radius = 140,
-  itemSize = 52,
+  radius = 160, // Increased radius for better spacing
+  itemSize = 56, // Increased item size
   visibleItems = 5,
   autoRotate = true,
   enableParticles = true,
   // Responsive options
   responsive = true,
-  mobileRadius = 110,
-  mobileItemSize = 48,
+  mobileRadius = 120,
+  mobileItemSize = 52,
   // Theme (reserved)
   theme = 'auto'
 }) => {
@@ -505,15 +505,15 @@ const CircularNavWheel = ({
     
     if (!isInFront) return null
 
-    // Calculate position with proper spacing
+    // Calculate position with depth - increased spacing
     const radian = (angle * Math.PI) / 180
-    const x = Math.sin(radian) * effectiveRadius
-    const y = -Math.cos(radian) * effectiveRadius
+    const x = Math.sin(radian) * (effectiveRadius + 8) // Added spacing
+    const y = -Math.cos(radian) * (effectiveRadius + 8) // Added spacing
     
-    // Enhanced depth effects with better visibility
+    // Enhanced depth effects with better contrast
     const distanceFromCenter = Math.abs(normalizedAngle) / (visibleAngleRange / 2)
-    const scale = Math.max(0.8, 1 - distanceFromCenter * 0.2) // Much less scaling
-    const opacity = Math.max(0.9, 1 - distanceFromCenter * 0.1) // Much higher minimum opacity
+    const scale = Math.max(0.65, 1 - distanceFromCenter * 0.35) // Less scaling for better visibility
+    const opacity = Math.max(0.6, 1 - distanceFromCenter * 0.4) // Higher minimum opacity
     const zIndex = Math.round(10 - distanceFromCenter * 8)
     
     const isCentered = Math.abs(normalizedAngle) < angleStep / 4
@@ -537,17 +537,25 @@ const CircularNavWheel = ({
         }}
         initial={{ scale: 0.85, opacity: 0, rotate: -90 }}
         animate={{ 
-          scale: isCentered ? 1.1 : scale,
+          scale: isCentered ? 1.2 : scale,
           opacity: isCentered ? 1 : opacity,
           rotate: 0,
+          y: isCentered ? [0, -4, 0] : 0,
         }}
         transition={{ 
           type: 'spring', 
           stiffness: 500, 
           damping: 30,
+          y: isCentered ? {
+            duration: 3,
+            repeat: Infinity,
+            ease: "easeInOut"
+          } : undefined
         }}
         whileHover={{ 
-          scale: (isCentered ? 1.1 : scale) * 1.05,
+          scale: (isCentered ? 1.2 : scale) * 1.1,
+          rotate: [0, -2, 2, 0],
+          transition: { rotate: { duration: 0.3 } }
         }}
         onMouseEnter={() => {
           setHoveredItem(index)
@@ -567,14 +575,14 @@ const CircularNavWheel = ({
           to={item.to}
           className={({ isActive: linkActive }) => `
             relative flex items-center justify-center rounded-full transition-all duration-300
-            shadow-lg hover:shadow-xl border
+            shadow-lg hover:shadow-xl border-2
             ${isCentered 
-              ? 'bg-gradient-to-br from-emerald-500 to-teal-600 text-white ring-2 ring-emerald-400' 
+              ? 'bg-gradient-to-br from-emerald-500 to-teal-600 text-white ring-4 ring-emerald-400 ring-offset-2 ring-offset-slate-900' 
               : linkActive || isActive
-                ? 'bg-white/95 dark:bg-slate-600/95 text-slate-800 dark:text-slate-100 border-slate-300 dark:border-slate-500'
-                : 'bg-white/90 dark:bg-slate-700/90 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-600'
+                ? 'bg-gradient-to-br from-emerald-100 to-teal-100 text-emerald-800 dark:from-emerald-800 dark:to-teal-800 dark:text-emerald-100 border-emerald-300 dark:border-emerald-600'
+                : 'bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 border-slate-300 dark:border-slate-600'
             }
-            hover:scale-105 backdrop-blur-sm
+            hover:scale-110
           `}
           style={{
             width: `${effectiveItemSize}px`,
@@ -590,7 +598,36 @@ const CircularNavWheel = ({
           }}
           aria-label={item.label}
         >
-          <Icon className={`w-[50%] h-[50%] ${isCentered ? 'text-white' : 'text-current'}`} />
+          {/* Larger icon proportion for better visibility */}
+          <Icon className={`w-[55%] h-[55%] ${isCentered ? 'text-white' : 'text-current'}`} />
+          
+          {/* Enhanced active pulse effect */}
+          {isCentered && (
+            <motion.div
+              className="absolute inset-0 rounded-full border-2 border-emerald-300"
+              initial={{ scale: 1, opacity: 0.8 }}
+              animate={{ scale: 1.4, opacity: 0 }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeOut" }}
+            />
+          )}
+          
+          {/* Enhanced tooltip with better positioning */}
+          <AnimatePresence>
+            {(hoveredItem === index || isCentered) && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 10 }}
+                className="absolute -bottom-12 left-1/2 transform -translate-x-1/2 
+                          px-3 py-2 bg-slate-800 dark:bg-slate-900 text-white text-sm font-semibold rounded-lg
+                          whitespace-nowrap pointer-events-none z-20 shadow-xl border border-slate-700"
+              >
+                {item.label}
+                <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-0 h-0 
+                              border-l-[8px] border-r-[8px] border-b-[8px] border-transparent border-b-slate-800 dark:border-b-slate-900" />
+              </motion.div>
+            )}
+          </AnimatePresence>
         </NavLink>
       </motion.div>
     )
@@ -610,7 +647,7 @@ const CircularNavWheel = ({
   }
 
   return (
-    <div className={`relative flex flex-col items-center justify-center mx-auto w-full max-w-2xl ${className}`}>
+    <div className={`relative flex flex-col items-center justify-center mx-auto w-full ${className}`}>
       {/* Enhanced Particle System */}
       <AnimatePresence>
         {/* Interaction particles */}
@@ -631,6 +668,36 @@ const CircularNavWheel = ({
             exit={{ opacity: 0 }}
           />
         ))}
+        
+        {/* Orbital ambient particles */}
+        {orbitalParticles.map(particle => {
+          const radian = (particle.angle * Math.PI) / 180
+          const x = Math.sin(radian) * particle.distance
+          const y = -Math.cos(radian) * particle.distance
+          
+          return (
+            <motion.div
+              key={particle.id}
+              className="absolute rounded-full pointer-events-none bg-emerald-300"
+              style={{
+                left: `calc(50% + ${x}px)`,
+                top: `calc(50% + ${y}px)`,
+                width: particle.size,
+                height: particle.size,
+                opacity: particle.opacity,
+              }}
+              animate={{
+                scale: [1, 1.3, 1],
+                opacity: [particle.opacity, particle.opacity * 0.5, particle.opacity]
+              }}
+              transition={{
+                duration: 3 + Math.random() * 2,
+                repeat: Infinity,
+                ease: 'easeInOut'
+              }}
+            />
+          )
+        })}
       </AnimatePresence>
 
       {/* Navigation hint animation */}
@@ -640,10 +707,10 @@ const CircularNavWheel = ({
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="absolute -top-12 left-1/2 transform -translate-x-1/2 z-10"
+            className="absolute -top-10 left-1/2 transform -translate-x-1/2 z-10"
           >
             <motion.div
-              className="flex items-center space-x-2 bg-slate-900/95 text-slate-100 px-4 py-3 rounded-xl text-sm backdrop-blur-sm border border-slate-700 shadow-xl"
+              className="flex items-center space-x-2 bg-slate-900/95 text-slate-100 px-4 py-3 rounded-xl text-sm backdrop-blur-sm border border-slate-700"
               animate={{
                 scale: [1, 1.05, 1],
               }}
@@ -660,14 +727,14 @@ const CircularNavWheel = ({
         )}
       </AnimatePresence>
 
-      {/* Main wheel container - FIXED ALIGNMENT */}
-      <div className="relative flex items-center justify-center w-full mb-8">
+      {/* Main wheel container - perfectly centered */}
+      <div className="relative flex items-center justify-center w-full mb-10">
         <motion.div 
           ref={wheelRef}
-          className="relative select-none cursor-grab active:cursor-grabbing focus:outline-none rounded-full mx-auto"
+          className="relative select-none cursor-grab active:cursor-grabbing focus:outline-none rounded-full"
           style={{ 
-            width: effectiveRadius * 2 + effectiveItemSize,
-            height: effectiveRadius * 2 + effectiveItemSize,
+            width: (effectiveRadius + 8) * 2 + effectiveItemSize * 2, 
+            height: (effectiveRadius + 8) * 2 + effectiveItemSize * 2,
           }}
           onWheel={handleWheel}
           onMouseDown={handleMouseDown}
@@ -675,49 +742,139 @@ const CircularNavWheel = ({
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           animate={{
-            scale: isFocused ? 1.02 : 1,
+            scale: isFocused ? 1.05 : 1,
+            rotate: isDragging ? [0, -0.5, 0, 0.5, 0] : 0,
+            boxShadow: isFocused 
+              ? ['0 0 0 rgba(16,185,129,0)', '0 0 25px rgba(16,185,129,0.2)', '0 0 0 rgba(16,185,129,0)']
+              : '0 0 0 rgba(16,185,129,0)'
           }}
           transition={{ 
             scale: { type: 'spring', stiffness: 400 },
+            rotate: { duration: 0.3, repeat: isDragging ? Infinity : 0 },
+            boxShadow: { duration: 2, repeat: Infinity, ease: 'easeInOut' }
           }}
           tabIndex={0}
           role="navigation"
           aria-label="Circular navigation wheel"
         >
-          {/* Simple center indicator */}
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none z-[2]">
-            <div className="w-3 h-3 bg-emerald-500 rounded-full shadow-lg" />
-          </div>
+          {/* Spiral path from orb (center) to active (centered) item */}
+          {(() => {
+            const size = (effectiveRadius + 8) * 2 + effectiveItemSize * 2
+            const cx = size / 2
+            const cy = size / 2
+            // Determine angle of centered (active) item
+            const activeIndex = getCenterItemIndex()
+            const targetAngleDeg = activeIndex * angleStep - rotation
+            const targetAngleRad = (targetAngleDeg * Math.PI) / 180
+            const maxR = effectiveRadius + 8
+            const steps = 80
+            const points = []
+            for (let i = 0; i <= steps; i++) {
+              const t = i / steps
+              // Archimedean spiral from r=0 to r=maxR along targetAngle
+              const a = targetAngleRad * t
+              const r = maxR * t
+              const x = cx + r * Math.sin(a)
+              const y = cy - r * Math.cos(a)
+              points.push([x, y])
+            }
+            const d = points.map(([x, y], i) => (i === 0 ? `M ${x} ${y}` : `L ${x} ${y}`)).join(' ')
+            return (
+              <svg className="absolute inset-0 pointer-events-none z-[1]" width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+                <motion.path
+                  d={d}
+                  fill="none"
+                  stroke="rgba(16,185,129,0.3)" // Reduced opacity for better contrast
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  strokeDasharray="8 12" // Increased spacing
+                  animate={{ strokeDashoffset: [0, -200] }}
+                  transition={{ duration: 6, repeat: Infinity, ease: 'linear' }}
+                />
+              </svg>
+            )
+          })()}
+
+          {/* Enhanced center indicator - perfectly centered */}
+          <motion.div 
+            className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none z-[2]"
+          >
+            {/* Main center dot */}
+            <motion.div
+              className="bg-emerald-500 rounded-full"
+              animate={{
+                scale: [1, 1.3, 1],
+                opacity: [0.9, 1, 0.9],
+                boxShadow: [
+                  '0 0 8px rgba(16,185,129,0.6)',
+                  '0 0 16px rgba(16,185,129,0.9)',
+                  '0 0 8px rgba(16,185,129,0.6)'
+                ]
+              }}
+              transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+              style={{ 
+                width: Math.max(12, effectiveItemSize * 0.35), 
+                height: Math.max(12, effectiveItemSize * 0.35) 
+              }}
+            />
+            
+            {/* Orbiting ring effect */}
+            <motion.div
+              className="absolute -inset-2 w-6 h-6 border-2 border-emerald-400/40 rounded-full"
+              animate={{
+                rotate: 360,
+                scale: [1, 1.2, 1],
+                opacity: [0.4, 0.7, 0.4]
+              }}
+              transition={{
+                rotate: { duration: 4, repeat: Infinity, ease: 'linear' },
+                scale: { duration: 2.5, repeat: Infinity, ease: 'easeInOut' },
+                opacity: { duration: 2.5, repeat: Infinity, ease: 'easeInOut' }
+              }}
+            />
+          </motion.div>
           
           {/* Navigation items */}
           {items.map((item, index) => renderNavItem(item, index))}
         </motion.div>
       </div>
 
-      {/* Enhanced bottom section - PROPERLY ALIGNED */}
-      <div className="w-full flex flex-col items-center justify-center space-y-6">
-        {/* Current page display */}
-        <div className="text-center">
+      {/* Enhanced bottom section with modern navigation */}
+      <div className="w-full flex flex-col items-center justify-center">
+        {/* Current page display with enhanced animations */}
+        <div className="text-center mb-8">
           <motion.div
             key={getCenterItemIndex()}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, y: 20, scale: 0.8 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-            className="text-2xl font-bold text-white mb-3"
+            className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-emerald-500 via-teal-500 to-emerald-500 bg-clip-text text-transparent mb-4"
           >
             {items[getCenterItemIndex()]?.label}
           </motion.div>
           
-          {/* Progress dots */}
-          <div className="flex items-center justify-center space-x-2">
+          {/* Enhanced progress dots with better contrast and size */}
+          <div className="flex items-center justify-center space-x-3 mb-6">
             {items.map((_, index) => (
-              <button
+              <motion.button
                 key={index}
-                className={`rounded-full transition-all duration-300 ${
+                className={`rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-slate-900 ${
                   index === getCenterItemIndex() 
-                    ? 'bg-emerald-400 w-3 h-3' 
-                    : 'bg-slate-600 w-2 h-2 hover:bg-slate-500'
+                    ? 'bg-emerald-500 scale-110 shadow-lg shadow-emerald-500/25' 
+                    : 'bg-slate-400 dark:bg-slate-600 hover:bg-slate-500 dark:hover:bg-slate-500'
                 }`}
+                style={{
+                  width: index === getCenterItemIndex() ? '14px' : '10px',
+                  height: index === getCenterItemIndex() ? '14px' : '10px',
+                }}
+                animate={{
+                  scale: index === getCenterItemIndex() ? [1, 1.2, 1] : 1,
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
                 onClick={() => rotateToItem(index)}
                 aria-label={`Go to ${items[index]?.label}`}
               />
@@ -725,39 +882,96 @@ const CircularNavWheel = ({
           </div>
         </div>
 
-        {/* Navigation controls - SIMPLIFIED AND ALIGNED */}
-        <div className="flex items-center justify-center space-x-6">
+        {/* Enhanced navigation controls with better contrast */}
+        <div className="flex items-center justify-center space-x-10">
+          {/* Left navigation - Enhanced button */}
           <motion.button
             onClick={rotateLeft}
-            className="p-3 rounded-xl bg-slate-800/90 hover:bg-slate-700/90 
-                       border border-slate-600 transition-all duration-300"
-            whileHover={{ scale: 1.05 }}
+            className="group relative p-5 rounded-2xl bg-slate-800/90 dark:bg-slate-700/90 
+                       shadow-xl hover:shadow-2xl border border-slate-600/50 dark:border-slate-500/50
+                       transition-all duration-300 backdrop-blur-sm"
+            whileHover={{ 
+              x: -4,
+              scale: 1.1,
+              backgroundColor: "rgba(16, 185, 129, 0.1)"
+            }}
             whileTap={{ scale: 0.95 }}
             aria-label="Previous item"
           >
-            <ChevronLeft className="w-5 h-5 text-slate-200" />
+            <ChevronLeft className="w-7 h-7 text-slate-200 group-hover:text-emerald-300 transition-colors duration-300" />
+            
+            {/* Enhanced hover glow effect */}
+            <motion.div
+              className="absolute inset-0 rounded-2xl bg-emerald-500/30 blur-lg opacity-0 group-hover:opacity-100"
+              initial={false}
+              transition={{ duration: 0.3 }}
+            />
+            
+            {/* Border glow */}
+            <motion.div
+              className="absolute inset-0 rounded-2xl border-2 border-emerald-400/0 group-hover:border-emerald-400/50"
+              initial={false}
+              transition={{ duration: 0.3 }}
+            />
           </motion.button>
 
+          {/* Center indicator */}
+          <motion.div
+            className="flex items-center justify-center"
+            animate={{
+              scale: [1, 1.1, 1],
+            }}
+            transition={{
+              duration: 3,
+              repeat: Infinity,
+              ease: "easeInOut"
+            }}
+          >
+            <div className="w-4 h-4 bg-emerald-400 rounded-full ring-4 ring-emerald-400/30 shadow-lg" />
+          </motion.div>
+
+          {/* Right navigation - Enhanced button */}
           <motion.button
             onClick={rotateRight}
-            className="p-3 rounded-xl bg-slate-800/90 hover:bg-slate-700/90 
-                       border border-slate-600 transition-all duration-300"
-            whileHover={{ scale: 1.05 }}
+            className="group relative p-5 rounded-2xl bg-slate-800/90 dark:bg-slate-700/90 
+                       shadow-xl hover:shadow-2xl border border-slate-600/50 dark:border-slate-500/50
+                       transition-all duration-300 backdrop-blur-sm"
+            whileHover={{ 
+              x: 4,
+              scale: 1.1,
+              backgroundColor: "rgba(16, 185, 129, 0.1)"
+            }}
             whileTap={{ scale: 0.95 }}
             aria-label="Next item"
           >
-            <ChevronRight className="w-5 h-5 text-slate-200" />
+            <ChevronRight className="w-7 h-7 text-slate-200 group-hover:text-emerald-300 transition-colors duration-300" />
+            
+            {/* Enhanced hover glow effect */}
+            <motion.div
+              className="absolute inset-0 rounded-2xl bg-emerald-500/30 blur-lg opacity-0 group-hover:opacity-100"
+              initial={false}
+              transition={{ duration: 0.3 }}
+            />
+            
+            {/* Border glow */}
+            <motion.div
+              className="absolute inset-0 rounded-2xl border-2 border-emerald-400/0 group-hover:border-emerald-400/50"
+              initial={false}
+              transition={{ duration: 0.3 }}
+            />
           </motion.button>
         </div>
 
-        {/* Keyboard hint */}
+        {/* Enhanced keyboard hint with better contrast */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 1.5 }}
-          className="text-xs text-slate-400 text-center"
+          className="mt-6 px-4 py-2 bg-slate-800/80 dark:bg-slate-900/80 rounded-lg backdrop-blur-sm"
         >
-          Use arrow keys or drag to navigate
+          <p className="text-sm text-slate-200 dark:text-slate-300 text-center font-medium">
+            Use <kbd className="px-2 py-1 bg-slate-700 rounded text-slate-100 mx-1">←</kbd> <kbd className="px-2 py-1 bg-slate-700 rounded text-slate-100 mx-1">→</kbd> arrow keys or drag to navigate
+          </p>
         </motion.div>
       </div>
     </div>
