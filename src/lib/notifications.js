@@ -16,10 +16,24 @@ class NotificationManager {
     }
 
     try {
-      // Register service worker
+      // Register service worker only in production. In development, proactively
+      // unregister any existing SW and clear caches to avoid stale assets.
       if ('serviceWorker' in navigator) {
-        this.serviceWorkerRegistration = await navigator.serviceWorker.register('/sw.js')
-        console.log('Service Worker registered successfully')
+        if (import.meta?.env?.PROD) {
+          this.serviceWorkerRegistration = await navigator.serviceWorker.register('/sw.js')
+          console.log('Service Worker registered successfully')
+        } else if (import.meta?.env?.DEV) {
+          try {
+            const regs = await navigator.serviceWorker.getRegistrations()
+            for (const r of regs) await r.unregister()
+          } catch {}
+          try {
+            if ('caches' in window) {
+              const keys = await caches.keys()
+              await Promise.all(keys.map((k) => caches.delete(k)))
+            }
+          } catch {}
+        }
       }
 
       // Check current permission

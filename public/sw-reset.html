@@ -1,0 +1,51 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Service Worker Reset</title>
+    <style>
+      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; margin: 2rem; color: #0f172a; }
+      .card { max-width: 720px; margin: 0 auto; border: 1px solid #cbd5e1; border-radius: 12px; padding: 1.25rem; background: #fff; }
+      .ok { color: #059669; }
+      .err { color: #b91c1c; }
+      code { background: #f8fafc; padding: 2px 6px; border-radius: 6px; }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h1>Resetting Service Worker and Caches…</h1>
+      <p>This page removes any registered service workers and clears Cache Storage for this origin. It then reloads the app.</p>
+      <pre id="log">Starting…</pre>
+    </div>
+    <script>
+      (async () => {
+        const log = (m) => (document.getElementById('log').textContent += `\n${m}`)
+        try {
+          if ('serviceWorker' in navigator) {
+            const regs = await navigator.serviceWorker.getRegistrations()
+            log(`Found ${regs.length} service worker(s). Unregistering…`)
+            for (const r of regs) {
+              try { await r.unregister(); } catch {}
+            }
+          } else {
+            log('No serviceWorker support')
+          }
+          if ('caches' in window) {
+            const keys = await caches.keys()
+            log(`Deleting ${keys.length} cache(s): ${keys.join(', ')}`)
+            await Promise.all(keys.map((k) => caches.delete(k)))
+          } else {
+            log('No CacheStorage support')
+          }
+          // Small delay to ensure SW is fully gone
+          await new Promise((r) => setTimeout(r, 300))
+          log('Reloading…')
+          location.replace('/')
+        } catch (e) {
+          log('Error: ' + (e && e.message ? e.message : String(e)))
+        }
+      })()
+    </script>
+  </body>
+</html>

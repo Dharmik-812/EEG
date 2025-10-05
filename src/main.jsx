@@ -11,6 +11,22 @@ import { useRipple } from './animations'
 // Register presets once on startup (no-op if re-imported)
 try { registerAllPresets() } catch {}
 
+// In development, ensure no service worker controls the origin to avoid
+// stale cached assets during local development.
+if (import.meta.env.DEV && 'serviceWorker' in navigator) {
+  // Best-effort cleanup (non-fatal if unsupported)
+  try {
+    navigator.serviceWorker.getRegistrations().then((regs) => {
+      regs.forEach((r) => r.unregister().catch(() => {}))
+    })
+  } catch {}
+  try {
+    if ('caches' in window) {
+      caches.keys().then((keys) => keys.forEach((k) => caches.delete(k)))
+    }
+  } catch {}
+}
+
 // Register service worker in production with robust update flow
 if (import.meta.env.PROD && 'serviceWorker' in navigator) {
   window.addEventListener('load', () => {

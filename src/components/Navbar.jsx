@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
 import { Leaf, Menu, X, Sun, Moon, Zap, Droplets, Wind, TreePine, Sprout, Award, Users, BookOpen, MessageCircle, LayoutDashboard, Trophy, Shield, Search, Bell } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-import CircularNavWheel from './ui/CircularNavWheel'
+import CircularNavWheel from './CircularNavWheel'
 import useTheme from '../store/useTheme.js'
 import { useAuthStore } from '../store/authStore'
 import { useAnimationStore } from '../store/animationStore'
@@ -223,26 +223,29 @@ export default function Navbar() {
                   transition={{ type: 'spring', stiffness: 260, damping: 26 }}
                   className="absolute top-full right-0 mt-2 z-50 max-w-[90vw] sm:max-w-none"
                 >
-                  <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-2xl border border-emerald-200/40 dark:border-slate-700/50 shadow-2xl p-4 sm:p-6 min-w-[280px] sm:min-w-[320px]">
-                    <div className="flex items-center justify-center gap-2 mb-3">
+<div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-2xl border border-emerald-200/40 dark:border-slate-700/50 shadow-2xl p-4 min-w-[360px] max-w-[420px] overflow-hidden">
+                    <div className="flex items-center justify-center gap-2 mb-2">
                       <Leaf className="h-4 w-4 text-emerald-500" />
                       <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Explore</span>
                     </div>
-                    <CircularNavWheel
-                      items={links
-                        .filter(l => !(l.hideForAdmin && currentUser?.role === 'admin'))
-                        .map(l => ({ ...l }))}
-                      currentPath={window.location.pathname}
-                      onItemSelect={(item) => {
-                        setShowNavWheel(false)
-                        // Slight delay to let the popover close smoothly
-                        setTimeout(() => navigate(item.to), 80)
-                      }}
-                      radius={110}
-                      itemSize={50}
-                      mobileRadius={90}
-                      mobileItemSize={45}
-                    />
+<div className="w-full flex items-center justify-center overflow-hidden">
+                      <CircularNavWheel
+                        items={links
+                          .filter(l => !(l.hideForAdmin && currentUser?.role === 'admin'))
+                          .map(l => ({ ...l }))}
+                        currentPath={typeof window !== 'undefined' ? window.location.pathname : '/'}
+                        onItemSelect={(item) => {
+                          setShowNavWheel(false)
+                          // Slight delay to let the popover close smoothly
+                          setTimeout(() => navigate(item.to), 80)
+                        }}
+                        layoutStyle="semi-circle"
+                        radius={85}
+                        itemSize={40}
+                        mobileRadius={70}
+                        mobileItemSize={36}
+                      />
+                    </div>
                   </div>
                 </motion.div>
               )}
@@ -444,25 +447,28 @@ export default function Navbar() {
                 transition={{ type: 'spring', stiffness: 260, damping: 26 }}
                 className="absolute top-full right-4 mt-2 z-50 max-w-[90vw] sm:max-w-none"
               >
-                <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-2xl border border-emerald-200/40 dark:border-slate-700/50 shadow-2xl p-4 sm:p-6 min-w-[280px] sm:min-w-[320px]">
-                  <div className="flex items-center justify-center gap-2 mb-3">
+<div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-2xl border border-emerald-200/40 dark:border-slate-700/50 shadow-2xl p-4 min-w-[360px] max-w-[420px] overflow-hidden">
+                  <div className="flex items-center justify-center gap-2 mb-2">
                     <Leaf className="h-4 w-4 text-emerald-500" />
                     <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Explore</span>
                   </div>
-                  <CircularNavWheel
-                    items={links
-                      .filter(l => !(l.hideForAdmin && currentUser?.role === 'admin'))
-                      .map(l => ({ ...l }))}
-                    currentPath={window.location.pathname}
-                    onItemSelect={(item) => {
-                      setShowNavWheel(false)
-                      setTimeout(() => navigate(item.to), 80)
-                    }}
-                    radius={110}
-                    itemSize={50}
-                    mobileRadius={90}
-                    mobileItemSize={45}
-                  />
+<div className="w-full flex items-center justify-center overflow-hidden">
+                    <CircularNavWheel
+                      items={links
+                        .filter(l => !(l.hideForAdmin && currentUser?.role === 'admin'))
+                        .map(l => ({ ...l }))}
+                      currentPath={typeof window !== 'undefined' ? window.location.pathname : '/'}
+                      onItemSelect={(item) => {
+                        setShowNavWheel(false)
+                        setTimeout(() => navigate(item.to), 80)
+                      }}
+                      layoutStyle="semi-circle"
+                      radius={85}
+                      itemSize={40}
+                      mobileRadius={70}
+                      mobileItemSize={36}
+                    />
+                  </div>
                 </div>
               </motion.div>
             )}
@@ -718,8 +724,8 @@ export default function Navbar() {
             transition={{ type: 'spring', stiffness: 260, damping: 26 }}
             className="md:hidden fixed top-16 left-4 right-4 z-50"
           >
-            <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-2xl border border-emerald-200/40 dark:border-slate-700/50 shadow-2xl p-4 w-full max-w-sm mx-auto">
-              <div className="flex items-center justify-between mb-3">
+<div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-2xl border border-emerald-200/40 dark:border-slate-700/50 shadow-2xl p-4 w-full max-w-sm mx-auto overflow-hidden">
+              <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">
                   <Leaf className="h-4 w-4 text-emerald-500" />
                   <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Explore</span>
@@ -732,20 +738,23 @@ export default function Navbar() {
                   <X className="h-4 w-4" />
                 </button>
               </div>
-              <CircularNavWheel
-                items={links
-                  .filter(l => !(l.hideForAdmin && currentUser?.role === 'admin'))
-                  .map(l => ({ ...l }))}
-                currentPath={window.location.pathname}
-                onItemSelect={(item) => {
-                  setShowNavWheel(false)
-                  setTimeout(() => navigate(item.to), 80)
-                }}
-                radius={80}
-                itemSize={40}
-                mobileRadius={70}
-                mobileItemSize={36}
-              />
+              <div className="w-full flex items-center justify-center">
+                <CircularNavWheel
+                  items={links
+                    .filter(l => !(l.hideForAdmin && currentUser?.role === 'admin'))
+                    .map(l => ({ ...l }))}
+                  currentPath={typeof window !== 'undefined' ? window.location.pathname : '/'}
+                  onItemSelect={(item) => {
+                    setShowNavWheel(false)
+                    setTimeout(() => navigate(item.to), 80)
+                  }}
+                  layoutStyle="semi-circle"
+                  radius={75}
+                  itemSize={36}
+                  mobileRadius={65}
+                  mobileItemSize={32}
+                />
+              </div>
             </div>
           </motion.div>
         )}
