@@ -295,6 +295,26 @@
   .text-responsive-md { @apply text-lg sm:text-xl md:text-2xl; }
   .text-responsive-sm { @apply text-sm sm:text-base md:text-lg; }
   
+  /* Mobile touch optimizations */
+  .touch-manipulation { touch-action: manipulation; }
+  .touch-pan-x { touch-action: pan-x; }
+  .touch-pan-y { touch-action: pan-y; }
+  
+  /* Mobile-specific improvements */
+  @media (max-width: 768px) {
+    .nav-link {
+      @apply px-4 py-3 text-base;
+    }
+    
+    .btn {
+      @apply px-6 py-4 text-base min-h-[48px];
+    }
+    
+    .btn-outline {
+      @apply px-6 py-4 text-base min-h-[48px];
+    }
+  }
+  
   /* Enhanced Animations */
   @keyframes gradient-x { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
   @keyframes gradient-golden {

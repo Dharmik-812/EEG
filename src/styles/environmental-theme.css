@@ -287,6 +287,26 @@
   .btn-eco {
     @apply px-4 py-2 text-sm;
   }
+  
+  /* Mobile navbar improvements */
+  .nav-link {
+    @apply px-4 py-3 text-base min-h-[48px] flex items-center;
+  }
+  
+  /* Mobile button improvements */
+  .btn, .btn-outline {
+    @apply min-h-[48px] px-6 py-4 text-base;
+  }
+  
+  /* Mobile menu improvements */
+  .mobile-menu-item {
+    @apply px-4 py-3 text-base min-h-[48px] flex items-center gap-3;
+  }
+  
+  /* Mobile touch targets */
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
 }
 
 /* Performance optimizations for smooth scrolling */

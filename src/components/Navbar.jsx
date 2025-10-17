@@ -81,18 +81,26 @@ export default function Navbar() {
       to={to}
       onClick={() => setOpen(false)}
       className={({ isActive }) =>
-        `nav-link relative group px-4 py-2 rounded-xl transition-all duration-300 ${
+        `nav-link relative group px-4 py-2 rounded-xl transition-all duration-500 ease-out ${
           isActive 
             ? 'text-emerald-600 dark:text-emerald-400 bg-emerald-50/50 dark:bg-emerald-900/20' 
             : 'hover:bg-emerald-50/30 dark:hover:bg-slate-800/50'
         }`
       }
     >
-      <span className="relative flex items-center gap-2">
-        <Icon className="h-4 w-4 transition-transform group-hover:scale-110" />
-        {label}
-        <span 
-          className="absolute -bottom-1 left-0 h-[2px] w-0 bg-gradient-to-r from-emerald-500 via-green-400 to-emerald-500 transition-[width] duration-300 group-hover:w-full"
+      <span className="relative flex items-center gap-2 overflow-hidden">
+        <Icon className="h-4 w-4 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3" />
+        <span className="transition-all duration-300 group-hover:translate-x-0.5">{label}</span>
+        <motion.span 
+          className="absolute -bottom-1 left-0 h-[2px] bg-gradient-to-r from-emerald-500 via-green-400 to-emerald-500"
+          initial={{ width: 0 }}
+          whileHover={{ width: '100%' }}
+          transition={{ duration: 0.4, ease: "easeOut" }}
+        />
+        <motion.div
+          className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 to-green-500/10 rounded-xl opacity-0"
+          whileHover={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
         />
       </span>
     </NavLink>
@@ -520,7 +528,7 @@ export default function Navbar() {
               console.log('See more button clicked (mobile), current state:', showNavWheel)
               setShowNavWheel(v => !v)
             }}
-            className="px-2 py-1.5 rounded-lg border border-emerald-300 dark:border-emerald-600 bg-emerald-50 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-xs font-medium mr-2"
+            className="px-3 py-2 rounded-lg border border-emerald-300 dark:border-emerald-600 bg-emerald-50 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-sm font-medium mr-2 touch-manipulation"
             aria-label="Open navigation wheel"
           >
             More
@@ -531,7 +539,7 @@ export default function Navbar() {
             whileTap={{ scale: 0.9 }}
             aria-label="Open menu" 
             onClick={() => setOpen(true)} 
-            className="p-2 rounded-lg hover:bg-emerald-100/50 dark:hover:bg-slate-800"
+            className="p-3 rounded-lg hover:bg-emerald-100/50 dark:hover:bg-slate-800 touch-manipulation"
           >
             <Menu className="h-6 w-6" />
           </motion.button>
@@ -551,11 +559,16 @@ export default function Navbar() {
               onClick={() => setOpen(false)}
             />
             <motion.div
-              initial={{ x: '100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="md:hidden fixed top-0 right-0 bottom-0 w-[85%] max-w-sm bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-l border-emerald-200/30 dark:border-slate-700/50 shadow-2xl z-50 overflow-y-auto"
+              initial={{ x: '100%', opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: '100%', opacity: 0 }}
+              transition={{ 
+                type: 'spring', 
+                damping: 30, 
+                stiffness: 300,
+                opacity: { duration: 0.2 }
+              }}
+              className="md:hidden fixed top-0 right-0 bottom-0 w-[90%] max-w-sm bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-l border-emerald-200/30 dark:border-slate-700/50 shadow-2xl z-50 overflow-y-auto"
             >
               <div className="p-6 space-y-6">
                 {/* Header */}
@@ -617,7 +630,7 @@ export default function Navbar() {
                         <Link 
                           to={l.to} 
                           onClick={() => setOpen(false)} 
-                          className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-emerald-50/60 dark:hover:bg-slate-800 transition-colors group" 
+                          className="mobile-menu-item rounded-xl hover:bg-emerald-50/60 dark:hover:bg-slate-800 transition-colors group" 
                           data-ripple
                         >
                           <Icon className="h-5 w-5 text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform" />
@@ -628,14 +641,14 @@ export default function Navbar() {
                   })}
                   
                   <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}>
-                    <Link to="/editor" onClick={() => setOpen(false)} className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-emerald-50/60 dark:hover:bg-slate-800 transition-colors group" data-ripple>
+                    <Link to="/editor" onClick={() => setOpen(false)} className="mobile-menu-item rounded-xl hover:bg-emerald-50/60 dark:hover:bg-slate-800 transition-colors group" data-ripple>
                       <BookOpen className="h-5 w-5 text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform" />
                       <span className="font-medium">Editor</span>
                     </Link>
                   </motion.div>
                   
                   <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.35 }}>
-                    <Link to="/create-quiz" onClick={() => setOpen(false)} className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-emerald-50/60 dark:hover:bg-slate-800 transition-colors group" data-ripple>
+                    <Link to="/create-quiz" onClick={() => setOpen(false)} className="mobile-menu-item rounded-xl hover:bg-emerald-50/60 dark:hover:bg-slate-800 transition-colors group" data-ripple>
                       <Award className="h-5 w-5 text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform" />
                       <span className="font-medium">Create Quiz</span>
                     </Link>
@@ -643,7 +656,7 @@ export default function Navbar() {
                   
                   {currentUser?.role === 'admin' && (
                     <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4 }}>
-                      <Link to="/admin" onClick={() => setOpen(false)} className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-emerald-50/60 dark:hover:bg-slate-800 transition-colors group" data-ripple>
+                      <Link to="/admin" onClick={() => setOpen(false)} className="mobile-menu-item rounded-xl hover:bg-emerald-50/60 dark:hover:bg-slate-800 transition-colors group" data-ripple>
                         <Shield className="h-5 w-5 text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform" />
                         <span className="font-medium">Admin</span>
                       </Link>
@@ -717,13 +730,13 @@ export default function Navbar() {
       {/* Mobile Navigation Wheel Popover */}
       <AnimatePresence>
         {showNavWheel && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 8 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 8 }}
-            transition={{ type: 'spring', stiffness: 260, damping: 26 }}
-            className="md:hidden fixed top-16 left-4 right-4 z-50"
-          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 8 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 8 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+              className="md:hidden fixed top-16 left-4 right-4 z-50"
+            >
 <div className="bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl rounded-2xl border border-emerald-200/40 dark:border-slate-700/50 shadow-2xl p-4 w-full max-w-sm mx-auto overflow-hidden">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2">

@@ -214,8 +214,8 @@ function TestimonialSlider() {
   const autoDuration = (current?.content?.length || 100) * 0.05 + 2.2 // seconds
 
   return (
-    <section className="py-16 sm:py-24 lg:py-32 bg-slate-50 dark:bg-slate-900">
-      <div className="container-fluid mx-auto">
+    <section className="py-16 sm:py-24 lg:py-32 bg-slate-50 dark:bg-slate-900 px-4 sm:px-6 lg:px-8">
+      <div className="container-fluid mx-auto w-full">
         {/* Top progress bar */}
         <div className="relative mx-auto max-w-3xl mb-6">
           <div className="h-1.5 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
@@ -245,18 +245,18 @@ function TestimonialSlider() {
           {/* Navigation Arrows */}
           <button
             onClick={goToPrevious}
-            className="absolute left-2 sm:left-0 top-1/2 -translate-y-1/2 z-10 p-2 sm:p-3 bg-white dark:bg-slate-800 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 group"
+            className="absolute left-2 sm:left-0 top-1/2 -translate-y-1/2 z-10 p-3 sm:p-4 bg-white dark:bg-slate-800 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 group touch-manipulation"
             aria-label="Previous testimonial"
           >
-            <ChevronLeft className="h-5 w-5 sm:h-6 sm:w-6 text-slate-600 dark:text-slate-300 group-hover:text-emerald-600" />
+            <ChevronLeft className="h-6 w-6 sm:h-7 sm:w-7 text-slate-600 dark:text-slate-300 group-hover:text-emerald-600" />
           </button>
 
           <button
             onClick={goToNext}
-            className="absolute right-2 sm:right-0 top-1/2 -translate-y-1/2 z-10 p-2 sm:p-3 bg-white dark:bg-slate-800 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 group"
+            className="absolute right-2 sm:right-0 top-1/2 -translate-y-1/2 z-10 p-3 sm:p-4 bg-white dark:bg-slate-800 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 group touch-manipulation"
             aria-label="Next testimonial"
           >
-            <ChevronRight className="h-5 w-5 sm:h-6 sm:w-6 text-slate-600 dark:text-slate-300 group-hover:text-emerald-600" />
+            <ChevronRight className="h-6 w-6 sm:h-7 sm:w-7 text-slate-600 dark:text-slate-300 group-hover:text-emerald-600" />
           </button>
 
           {/* Testimonials Container */}
@@ -276,7 +276,7 @@ function TestimonialSlider() {
                     initial={{ opacity: 0, y: 30, scale: 0.96 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     transition={{ duration: 0.7, type: "spring", stiffness: 120 }}
-                    className="relative max-w-xl w-full bg-gradient-to-br from-white via-white to-slate-50 dark:from-slate-800 dark:via-slate-800 dark:to-slate-900 rounded-3xl p-8 shadow-2xl border border-white/20 dark:border-slate-700/50 group overflow-hidden will-change-transform"
+                    className="relative max-w-xl w-full bg-gradient-to-br from-white via-white to-slate-50 dark:from-slate-800 dark:via-slate-800 dark:to-slate-900 rounded-3xl p-6 sm:p-8 shadow-2xl border border-white/20 dark:border-slate-700/50 group overflow-hidden will-change-transform"
                     whileHover={{ y: -10, scale: 1.03, rotateY: 2, transition: { type: 'spring', stiffness: 300, damping: 22 } }}
                     style={{ transformStyle: 'preserve-3d' }}
                   >
@@ -380,15 +380,15 @@ function TestimonialSlider() {
           </div>
 
           {/* Avatar Navigation */}
-          <div className="flex justify-center mt-10 flex-wrap gap-3">
+          <div className="flex justify-center mt-10 flex-wrap gap-2 sm:gap-3">
             {testimonialsData.map((t, index) => (
               <button
                 key={index}
                 onClick={() => { setCurrentIndex(index); resetTimer() }}
-                className={`relative grid place-items-center w-9 h-9 rounded-full transition-all duration-300 focus:outline-none ${index === currentIndex ? 'ring-2 ring-emerald-400 scale-110' : 'opacity-70 hover:opacity-100'}`}
+                className={`relative grid place-items-center w-10 h-10 sm:w-9 sm:h-9 rounded-full transition-all duration-300 focus:outline-none touch-manipulation ${index === currentIndex ? 'ring-2 ring-emerald-400 scale-110' : 'opacity-70 hover:opacity-100'}`}
                 aria-label={`Go to testimonial ${index + 1}`}
               >
-                <span className="text-base">{t.avatar}</span>
+                <span className="text-lg sm:text-base">{t.avatar}</span>
                 {index === currentIndex && (
                   <motion.span layoutId="active-avatar-ring" className="absolute inset-0 rounded-full border-2 border-emerald-400/60" />
                 )}
@@ -443,8 +443,8 @@ export default function Landing() {
         className="fixed inset-0 -z-20 bg-gradient-to-br from-emerald-50 via-sky-50 to-emerald-100 dark:from-slate-900 dark:via-slate-800 dark:to-emerald-950"
       />
 
-      <section ref={heroRef} className="relative min-h-screen flex items-center safe-area-top">
-        <div className="container-fluid mx-auto">
+      <section ref={heroRef} className="relative min-h-screen flex items-center safe-area-top px-4 sm:px-6 lg:px-8">
+        <div className="container-fluid mx-auto w-full">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 lg:gap-12 items-center">
             <motion.div
               initial={{ opacity: 0, x: -80 }}
@@ -584,8 +584,8 @@ export default function Landing() {
       </section>
 
       {/* Features Section (trimmed) */}
-      <section className="py-14 sm:py-20 lg:py-24 relative safe-area-bottom">
-        <div className="container-fluid mx-auto">
+      <section className="py-14 sm:py-20 lg:py-24 relative safe-area-bottom px-4 sm:px-6 lg:px-8">
+        <div className="container-fluid mx-auto w-full">
           <motion.div
             className="text-center mb-10 sm:mb-14 lg:mb-16"
             initial={{ opacity: 0, y: 50 }}
