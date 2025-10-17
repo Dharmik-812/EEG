@@ -75,7 +75,7 @@ Your API key is currently exposed on the client-side. To fix this and make your 
 2. Navigate to "Environment Variables"
 3. Add a new environment variable:
    - **Name**: `GEMINI_API_KEY` 
-   - **Value**: `AIzaSyBtj2nnSF0cnkg6aoPmt-sh6DaYvjnuGuE` (your API key)
+   - **Value**: `your-gemini-api-key-here` (your API key)
    - **Environment**: Select all environments (Production, Preview, Development)
 
 ### 2. API Endpoint Configuration
