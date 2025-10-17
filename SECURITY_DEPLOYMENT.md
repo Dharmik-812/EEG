@@ -18,7 +18,7 @@ This project has been updated to handle API keys securely. The Google Gemini API
 2. Navigate to **Settings** → **Environment Variables**
 3. Add the following variable:
    - **Name**: `GEMINI_API_KEY`
-   - **Value**: `AIzaSyDbLvWTaaSIZdxiY758lvMrbU1SwH7KTes`
+   - **Value**: `AIzaSyBtj2nnSF0cnkg6aoPmt-sh6DaYvjnuGuE`
    - **Environment**: Select all (Production, Preview, Development)
 
 ### Step 2: Deploy
@@ -31,14 +31,14 @@ For local development, you have two options:
 
 ### Option 1: Environment Variable
 ```bash
-export GEMINI_API_KEY=AIzaSyDbLvWTaaSIZdxiY758lvMrbU1SwH7KTes
+export GEMINI_API_KEY=AIzaSyBtj2nnSF0cnkg6aoPmt-sh6DaYvjnuGuE
 npm run dev
 ```
 
 ### Option 2: .env.server file
 Create a `.env.server` file (already in .gitignore) with:
 ```
-GEMINI_API_KEY=AIzaSyDbLvWTaaSIZdxiY758lvMrbU1SwH7KTes
+GEMINI_API_KEY=AIzaSyBtj2nnSF0cnkg6aoPmt-sh6DaYvjnuGuE
 ```
 Then:
 ```bash

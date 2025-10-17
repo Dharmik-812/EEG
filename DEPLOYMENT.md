@@ -6,7 +6,7 @@ Configure these in your Vercel dashboard under **Settings > Environment Variable
 
 ### Frontend Variables
 ```bash
-VITE_GEMINI_API_KEY=your_google_gemini_api_key
+# VITE_GEMINI_API_KEY removed - now using secure server-side approach
 VITE_SUPABASE_URL=https://wlyxbyvlyymxzekkqxpl.supabase.co
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
@@ -75,7 +75,7 @@ Your API key is currently exposed on the client-side. To fix this and make your 
 2. Navigate to "Environment Variables"
 3. Add a new environment variable:
    - **Name**: `GEMINI_API_KEY` 
-   - **Value**: `AIzaSyD4S8RYNSQ9lmB5PNSpFviUvpWwq5eLi9E` (your API key)
+   - **Value**: `AIzaSyBtj2nnSF0cnkg6aoPmt-sh6DaYvjnuGuE` (your API key)
    - **Environment**: Select all environments (Production, Preview, Development)
 
 ### 2. API Endpoint Configuration

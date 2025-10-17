@@ -1,7 +1,30 @@
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from '@google/generative-ai'
 
-// Initialize Gemini with server-side API key
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
+// Enhanced API key validation and security
+function validateApiKey() {
+    const apiKey = process.env.GEMINI_API_KEY
+    
+    if (!apiKey) {
+        throw new Error('GEMINI_API_KEY environment variable is not set')
+    }
+    
+    // Basic API key format validation
+    if (!apiKey.startsWith('AIza') || apiKey.length < 35) {
+        throw new Error('Invalid API key format')
+    }
+    
+    return apiKey
+}
+
+// Initialize Gemini with validated server-side API key
+let genAI = null
+function initializeGemini() {
+    if (!genAI) {
+        const apiKey = validateApiKey()
+        genAI = new GoogleGenerativeAI(apiKey)
+    }
+    return genAI
+}
 
 // Safety settings
 const SAFETY_SETTINGS = [
@@ -61,14 +84,20 @@ function sanitizeInput(text) {
 }
 
 export default async function handler(req, res) {
-    // CORS headers
+    // Enhanced security headers
     res.setHeader('Access-Control-Allow-Credentials', true)
-    res.setHeader('Access-Control-Allow-Origin', '*')
-    res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT')
+    res.setHeader('Access-Control-Allow-Origin', process.env.NODE_ENV === 'production' ? 'https://yourdomain.com' : '*')
+    res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS')
     res.setHeader(
         'Access-Control-Allow-Headers',
-        'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
+        'Content-Type, X-Requested-With'
     )
+    
+    // Security headers
+    res.setHeader('X-Content-Type-Options', 'nosniff')
+    res.setHeader('X-Frame-Options', 'DENY')
+    res.setHeader('X-XSS-Protection', '1; mode=block')
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin')
 
     if (req.method === 'OPTIONS') {
         return res.status(200).end()
@@ -79,15 +108,23 @@ export default async function handler(req, res) {
     }
 
     try {
-        // Check if API key is configured
-        if (!process.env.GEMINI_API_KEY) {
-            console.error('GEMINI_API_KEY environment variable is not set')
-            return res.status(500).json({ error: 'Server configuration error' })
+        // Initialize and validate API key
+        const ai = initializeGemini()
+
+        // Enhanced request validation
+        const contentType = req.headers['content-type']
+        if (!contentType || !contentType.includes('application/json')) {
+            return res.status(400).json({ error: 'Content-Type must be application/json' })
         }
 
-        // Rate limiting
-        const clientId = req.headers['x-forwarded-for'] || req.connection.remoteAddress || 'unknown'
+        // Rate limiting with enhanced client identification
+        const clientId = req.headers['x-forwarded-for'] || 
+                        req.headers['x-real-ip'] || 
+                        req.connection.remoteAddress || 
+                        'unknown'
+        
         if (!checkRateLimit(clientId)) {
+            console.warn(`Rate limit exceeded for client: ${clientId}`)
             return res.status(429).json({ 
                 error: 'Rate limit exceeded. Please wait before sending another message.' 
             })
@@ -127,7 +164,7 @@ export default async function handler(req, res) {
             modelName = 'gemini-1.5-pro'
         }
 
-        const model = genAI.getGenerativeModel({
+        const model = ai.getGenerativeModel({
             model: modelName,
             safetySettings: SAFETY_SETTINGS,
             generationConfig: GENERATION_CONFIG
@@ -154,21 +191,34 @@ export default async function handler(req, res) {
         })
 
     } catch (error) {
-        console.error('Gemini API Error:', error)
+        // Enhanced error logging with sanitization
+        const errorMessage = error.message || 'Unknown error'
+        const clientId = req.headers['x-forwarded-for'] || req.connection.remoteAddress || 'unknown'
+        
+        console.error('Gemini API Error:', {
+            message: errorMessage,
+            clientId: clientId,
+            timestamp: new Date().toISOString(),
+            stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        })
 
         // Handle specific Google AI errors
-        if (error.message?.includes('API key')) {
+        if (errorMessage.includes('API key') || errorMessage.includes('Invalid API key format')) {
+            console.error('API Key Error - Check environment configuration')
             return res.status(401).json({ error: 'Invalid API configuration' })
         }
         
-        if (error.message?.includes('quota') || error.message?.includes('rate limit')) {
+        if (errorMessage.includes('quota') || errorMessage.includes('rate limit')) {
+            console.warn('Quota/Rate limit exceeded')
             return res.status(429).json({ error: 'Service temporarily unavailable due to high demand' })
         }
 
-        if (error.message?.includes('safety')) {
+        if (errorMessage.includes('safety')) {
+            console.warn('Content blocked by safety filters')
             return res.status(400).json({ error: 'Response blocked by safety filters' })
         }
 
+        // Generic error response (don't expose internal details)
         return res.status(500).json({ 
             error: 'Failed to generate response. Please try again.' 
         })
