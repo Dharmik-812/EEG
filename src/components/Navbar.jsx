@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link, NavLink, useNavigate } from 'react-router-dom'
+import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { Leaf, Menu, X, Sun, Moon, Zap, Droplets, Wind, TreePine, Sprout, Award, Users, BookOpen, MessageCircle, LayoutDashboard, Trophy, Shield, Search, Bell } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import CircularNavWheel from './CircularNavWheel'
@@ -49,6 +49,7 @@ const FloatingParticle = ({ delay }) => (
 
 export default function Navbar() {
   const navigate = useNavigate()
+  const location = useLocation()
   const [open, setOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [hoveredLink, setHoveredLink] = useState(null)
@@ -68,11 +69,19 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
+  // Close menus/popovers on route change
+  useEffect(() => {
+    setOpen(false)
+    setShowNavWheel(false)
+    setShowSearch(false)
+    setShowNotifications(false)
+  }, [location.pathname])
+
   // Simulate eco score (replace with actual user data)
   useEffect(() => {
     const timer = setInterval(() => {
       setEcoScore(prev => (prev + 1) % 101)
-    }, 100)
+    }, 1000)
     return () => clearInterval(timer)
   }, [])
 
@@ -378,6 +387,7 @@ export default function Navbar() {
               whileTap={{ scale: 0.95 }}
               onClick={() => {
                 console.log('See more button clicked (medium screen), current state:', showNavWheel)
+                setOpen(false)
                 setShowNavWheel(v => !v)
               }}
               className="px-2 py-1 rounded-lg border border-emerald-300 dark:border-emerald-600 bg-emerald-50 dark:bg-emerald-900/40 hover:bg-emerald-100 dark:hover:bg-emerald-800/60 text-emerald-700 dark:text-emerald-300 text-xs font-medium"
@@ -526,6 +536,7 @@ export default function Navbar() {
             whileTap={{ scale: 0.95 }}
             onClick={() => {
               console.log('See more button clicked (mobile), current state:', showNavWheel)
+              setOpen(false)
               setShowNavWheel(v => !v)
             }}
             className="px-3 py-2 rounded-lg border border-emerald-300 dark:border-emerald-600 bg-emerald-50 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-sm font-medium mr-2 touch-manipulation"

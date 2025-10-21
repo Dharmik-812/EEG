@@ -110,7 +110,12 @@ function Root() {
   // Globally enable ripple on elements with [data-ripple]
   useRipple()
   return (
-    <BrowserRouter>
+    <BrowserRouter
+      future={{
+        v7_startTransition: true,
+        v7_relativeSplatPath: true
+      }}
+    >
       <App />
       <Toaster position="top-right" toastOptions={{ style: { background: '#0f172a', color: '#e2e8f0' } }} />
     </BrowserRouter>

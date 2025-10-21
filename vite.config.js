@@ -27,6 +27,7 @@ export default defineConfig({
   },
   envPrefix: ['VITE_', 'GEMINI_'],
   server: {
+    port: 5173,
     proxy: {
       '/api/gemini': {
         target: 'https://generativelanguage.googleapis.com',

@@ -634,32 +634,133 @@ app.post('/upload', authMiddleware, createSingleFileUploadMiddleware('file'), as
   }
 })
 
+// Helper functions for chat API
+function extractUserQuestion(contents) {
+  if (!contents || !Array.isArray(contents)) return ''
+  
+  // Find the last user message
+  for (let i = contents.length - 1; i >= 0; i--) {
+    const content = contents[i]
+    if (content.role === 'user' && content.parts && Array.isArray(content.parts)) {
+      for (const part of content.parts) {
+        if (part.text && typeof part.text === 'string') {
+          return part.text.trim()
+        }
+      }
+    }
+  }
+  return ''
+}
+
+function getRecentContext(contents) {
+  if (!Array.isArray(contents)) return { lastAssistant: '', prevUser: '' }
+  let lastAssistant = ''
+  let prevUser = ''
+  for (let i = contents.length - 1; i >= 0; i--) {
+    const c = contents[i]
+    if (!lastAssistant && c.role === 'assistant' && Array.isArray(c.parts)) {
+      const part = c.parts.find(p => typeof p.text === 'string')
+      if (part) lastAssistant = part.text.trim()
+    }
+    if (!prevUser && c.role === 'user' && Array.isArray(c.parts)) {
+      const part = c.parts.find(p => typeof p.text === 'string')
+      if (part) prevUser = part.text.trim()
+    }
+    if (lastAssistant && prevUser) break
+  }
+  return { lastAssistant, prevUser }
+}
+
+function generateMockResponse(userQuestion, contents) {
+  const question = (userQuestion || '').toLowerCase()
+  const { lastAssistant, prevUser } = getRecentContext(contents)
+  const isFollowUp = /tell me more|more details|what about|and|also|continue|follow up/i.test(userQuestion || '')
+
+  if (question.includes('recycl')) {
+    return `${isFollowUp ? 'Continuing our recycling discussion: ' : ''}♻️ Mock: Recycling reduces waste by converting materials like paper, plastic, glass, and metals into new products. Separate materials and follow local guidelines. ${lastAssistant ? 'Previously, we discussed: ' + lastAssistant : ''}`
+  }
+  if (question.includes('climate') || question.includes('global warming')) {
+    return `${isFollowUp ? 'Building on climate basics: ' : ''}🌍 Mock: Climate change is driven by greenhouse gases. Reduce energy use, choose sustainable transport, and support renewables. ${lastAssistant ? 'Earlier, we noted: ' + lastAssistant : ''}`
+  }
+  if (question.includes('renewable') || question.includes('solar') || question.includes('wind')) {
+    return `${isFollowUp ? 'To add on renewables: ' : ''}⚡ Mock: Solar, wind, and hydro are clean alternatives to fossil fuels, lowering carbon emissions. ${lastAssistant ? 'Recall: ' + lastAssistant : ''}`
+  }
+  if (question.includes('plastic') || question.includes('pollution')) {
+    return `${isFollowUp ? 'Following up on plastic impacts: ' : ''}🚫 Mock: Cut single-use plastics, pick reusables, and dispose properly to protect oceans and wildlife. ${lastAssistant ? 'We mentioned: ' + lastAssistant : ''}`
+  }
+  if (question.includes('energy') || question.includes('save') || question.includes('conserv')) {
+    return `${isFollowUp ? 'Continuing energy tips: ' : ''}💡 Mock: Use LED bulbs, unplug idle devices, and adjust thermostats a few degrees to save energy. ${lastAssistant ? 'Previously: ' + lastAssistant : ''}`
+  }
+  if (question.includes('water')) {
+    return `${isFollowUp ? 'More on water: ' : ''}💧 Mock: Take shorter showers, fix leaks, use efficient appliances, and collect rainwater for gardens. ${lastAssistant ? 'Earlier: ' + lastAssistant : ''}`
+  }
+  if (question.includes('transport') || question.includes('car') || question.includes('bike')) {
+    return `${isFollowUp ? 'Adding transport ideas: ' : ''}🚲 Mock: Walk, bike, transit, or carpool to cut emissions. EVs are increasingly accessible. ${lastAssistant ? 'Previously: ' + lastAssistant : ''}`
+  }
+  if (question.includes('food') || question.includes('organic') || question.includes('local')) {
+    return `${isFollowUp ? 'More on food choices: ' : ''}🥬 Mock: Choose local, seasonal produce, reduce meat, and minimize food waste; consider organic options. ${lastAssistant ? 'Recall: ' + lastAssistant : ''}`
+  }
+  if ((userQuestion || '').length > 0) {
+    return `🌱 Mock: Thanks for asking "${userQuestion}"! I use your conversation context to stay consistent. If this is a follow-up, ${prevUser ? 'earlier you asked: ' + prevUser + '. ' : ''}Try topics like recycling, climate change, renewable energy, and sustainability.`
+  }
+  return '🌿 Mock: Hello! I\'m AversoAI, your environmental assistant. Ask about recycling, climate, renewable energy, or sustainability!'
+}
+
 // AI Chat API (server-side Gemini integration)
 app.post('/api/chat', async (req, res, next) => {
   try {
+    // Read request early for dev fallback
+    const { contents, modelKey = 'fast', isVision = false } = req.body || {}
+
     // Check if Gemini API is available
     const GEMINI_API_KEY = process.env.GEMINI_API_KEY
     if (!GEMINI_API_KEY) {
+      if (NODE_ENV === 'development') {
+        // Extract user question from contents for dynamic mock response
+        const userQuestion = extractUserQuestion(contents)
+        const mockResponse = generateMockResponse(userQuestion, contents)
+        return res.json({
+          success: true,
+          text: mockResponse,
+          model: 'mock'
+        })
+      }
       return res.status(500).json({ 
         error: 'AI service unavailable', 
         message: 'Server configuration error - missing Gemini API key' 
       })
     }
 
-    const { contents, modelKey = 'fast', isVision = false } = req.body || {}
-
     // Validate request
     if (!contents || !Array.isArray(contents)) {
-      return res.status(400).json({ 
-        error: 'Invalid request', 
-        message: 'Contents array is required' 
-      })
+      return res.status(400).json({ error: 'Invalid request', message: 'Contents array is required' })
     }
 
     // Import Gemini AI library dynamically
-    const { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } = await import('@google/generative-ai')
+    let GoogleGenerativeAI, HarmCategory, HarmBlockThreshold
+    try {
+      const geminiModule = await import('@google/generative-ai')
+      GoogleGenerativeAI = geminiModule.GoogleGenerativeAI
+      HarmCategory = geminiModule.HarmCategory
+      HarmBlockThreshold = geminiModule.HarmBlockThreshold
+    } catch (importError) {
+      console.error('Failed to import Gemini AI library:', importError)
+      return res.status(500).json({ 
+        error: 'AI service unavailable', 
+        message: 'Failed to load AI library' 
+      })
+    }
     
-    const genAI = new GoogleGenerativeAI(GEMINI_API_KEY)
+    let genAI
+    try {
+      genAI = new GoogleGenerativeAI(GEMINI_API_KEY)
+    } catch (initError) {
+      console.error('Failed to initialize Gemini AI:', initError)
+      return res.status(500).json({ 
+        error: 'AI service unavailable', 
+        message: 'Failed to initialize AI service' 
+      })
+    }
     
     // Safety settings
     const safetySettings = [
@@ -671,45 +772,72 @@ app.post('/api/chat', async (req, res, next) => {
 
     // Generation config
     const generationConfig = {
-      temperature: 0.8,
-      topP: 0.9,
-      topK: 40,
-      maxOutputTokens: 1024,
+      temperature: 0.3,
+      topP: 0.8,
+      topK: 1,
+      maxOutputTokens: 2048,
       candidateCount: 1,
     }
 
     // System prompt
-    const systemPrompt = `You are AversoAI, an enthusiastic environmental education assistant for a gamified learning website. 
+    const systemPrompt = `You are EcoGuide — a friendly, accurate environmental assistant.
 
-CORE RULES:
-- ONLY answer questions about environmental topics: climate change, recycling, sustainability, renewable energy, conservation, biodiversity, pollution, eco-friendly habits, green technology, and environmental science.
-- For off-topic questions, politely redirect users to environmental education with encouraging suggestions.
-- Keep responses concise (under 3 sentences) but informative and engaging.
-- Use emojis occasionally to maintain a fun, gamified atmosphere.
-- Maintain an enthusiastic, educational tone that encourages learning and action.
-- Provide practical, actionable advice when possible.
-- Be scientifically accurate but accessible to all education levels.`
+Use the recent conversation context below to stay consistent with ongoing topics, prior suggestions, and the user's preferences. Build on what has already been discussed; do not repeat yourself unnecessarily.
+
+Core scope: recycling, energy efficiency, climate change, sustainable living, biodiversity, water conservation, environmental policy, and actionable local practices when location is provided. If the question is clearly non-environmental, kindly redirect by offering a related environmental angle or suggest an environmental topic.
+
+Style: practical, structured, and concise (lists, steps, short paragraphs). Default to clear, actionable guidance. Avoid alarmist tone; focus on empowerment.
+
+Constraints: prefer general best practices unless a location is given. Keep to 3–5 sentences unless the user asks for more detail.`
 
     // Model selection
     const modelName = modelKey === 'balanced' ? 'gemini-1.5-pro-latest' : 'gemini-1.5-flash-latest'
     
-    const model = genAI.getGenerativeModel({
-      model: modelName,
-      safetySettings,
-      generationConfig,
-      systemInstruction: systemPrompt
-    })
+    let model
+    try {
+      model = genAI.getGenerativeModel({
+        model: modelName,
+        safetySettings,
+        generationConfig,
+        systemInstruction: systemPrompt
+      })
+    } catch (modelError) {
+      console.error('Failed to create Gemini model:', modelError)
+      return res.status(500).json({ 
+        error: 'AI service unavailable', 
+        message: 'Failed to create AI model' 
+      })
+    }
 
     // Generate response
-    const result = await model.generateContent({ contents })
-    const response = result.response
-    const text = response.text()
+    try {
+      const result = await model.generateContent({ contents })
+      const response = result.response
+      const text = response.text()
 
-    res.json({ 
-      success: true, 
-      text,
-      model: modelKey
-    })
+      res.json({ 
+        success: true, 
+        text,
+        model: modelKey
+      })
+    } catch (generateError) {
+      console.error('Failed to generate content:', generateError)
+      if (NODE_ENV === 'development') {
+        // Extract user question from contents for dynamic mock response
+        const userQuestion = extractUserQuestion(contents)
+        const mockResponse = generateMockResponse(userQuestion, contents)
+        return res.json({
+          success: true,
+          text: mockResponse,
+          model: 'mock'
+        })
+      }
+      return res.status(500).json({ 
+        error: 'Generation failed', 
+        message: 'Failed to generate AI response',
+        retryable: true
+      })
+    }
 
   } catch (error) {
     console.error('Chat API error:', error)
@@ -742,9 +870,12 @@ app.use((err, req, res, next) => {
   } catch (e) {
     console.error('Failed to initialize server', e)
     if (process.env.NODE_ENV !== 'test') {
-      process.exit(1)
+      console.warn('Starting server without DB. Chat API will work; DB features limited.')
+      app.listen(PORT, () => {
+        console.log(`EEG server listening on http://localhost:${PORT} (no DB connection)`)
+      })
     }
   }
-})()
+})();
 
 module.exports = app
