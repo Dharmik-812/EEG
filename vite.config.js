@@ -29,10 +29,9 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      '/api/gemini': {
-        target: 'https://generativelanguage.googleapis.com',
+      '/api/chat': {
+        target: 'http://localhost:4000',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api\/gemini/, '')
       }
     }
   },

@@ -114,7 +114,7 @@ export default function Register() {
         <div className="absolute -bottom-8 left-20 w-72 h-72 bg-teal-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
       </div>
 
-      <section className="min-h-[calc(100vh-6rem)] grid grid-cols-1 lg:grid-cols-2 gap-8 items-center relative">
+      <section className="min-h-[calc(100vh-6rem)] grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8 items-center relative px-4 sm:px-6 lg:px-8">
         {/* Left Side - Benefits Card */}
         <motion.div
           initial={{ opacity: 0, x: -30 }}
@@ -123,14 +123,15 @@ export default function Register() {
           className="order-2 lg:order-1"
         >
           <Card>
-            <div className="flex items-center gap-3 text-2xl font-extrabold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
+            <div className="flex items-center gap-3 text-xl sm:text-2xl font-extrabold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
               <div className="relative">
                 <Stars className="text-emerald-500 animate-pulse" />
                 <div className="absolute -top-1 -right-1 w-2 h-2 bg-yellow-400 rounded-full animate-ping"></div>
               </div>
-              Join the AverSoltix Community
+              <span className="hidden sm:inline">Join the AverSoltix Community</span>
+              <span className="sm:hidden">Join AverSoltix</span>
             </div>
-            <p className="mt-3 text-slate-600 dark:text-slate-300 leading-relaxed">
+            <p className="mt-3 text-slate-600 dark:text-slate-300 leading-relaxed text-sm sm:text-base">
               Start your journey towards environmental literacy. Create games, earn badges, and make a positive impact on our planet!
             </p>
 
@@ -235,7 +236,7 @@ export default function Register() {
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Full Name</label>
                       <input 
-                        className="w-full rounded-lg border border-slate-300 dark:border-slate-600 px-4 py-3 bg-white/80 dark:bg-slate-800/80 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-200" 
+                        className="w-full rounded-lg border border-slate-300 dark:border-slate-600 px-3 sm:px-4 py-3 text-base bg-white/80 dark:bg-slate-800/80 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-200 touch-manipulation" 
                         placeholder="Enter your full name" 
                         type="text"
                         value={name} 
@@ -247,7 +248,7 @@ export default function Register() {
                     <div className="space-y-2">
                       <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Email Address</label>
                       <input 
-                        className="w-full rounded-lg border border-slate-300 dark:border-slate-600 px-4 py-3 bg-white/80 dark:bg-slate-800/80 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-200" 
+                        className="w-full rounded-lg border border-slate-300 dark:border-slate-600 px-3 sm:px-4 py-3 text-base bg-white/80 dark:bg-slate-800/80 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-200 touch-manipulation" 
                         placeholder="Enter your email" 
                         type="email"
                         value={email} 
@@ -260,7 +261,7 @@ export default function Register() {
                       <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Password</label>
                       <div className="relative">
                         <input 
-                          className="w-full rounded-lg border border-slate-300 dark:border-slate-600 px-4 py-3 pr-12 bg-white/80 dark:bg-slate-800/80 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-200" 
+                          className="w-full rounded-lg border border-slate-300 dark:border-slate-600 px-3 sm:px-4 py-3 pr-12 text-base bg-white/80 dark:bg-slate-800/80 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all duration-200 touch-manipulation" 
                           placeholder="Create a secure password" 
                           type={showPwd ? 'text' : 'password'} 
                           value={password} 
@@ -273,9 +274,9 @@ export default function Register() {
                           type="button" 
                           aria-label="Toggle password visibility" 
                           onClick={() => setShowPwd(s=>!s)} 
-                          className="absolute inset-y-0 right-3 flex items-center p-1 rounded-full hover:bg-slate-200/60 dark:hover:bg-slate-700 transition-colors"
+                          className="absolute inset-y-0 right-3 flex items-center p-1 rounded-full hover:bg-slate-200/60 dark:hover:bg-slate-700 transition-colors min-h-[44px] min-w-[44px] touch-manipulation"
                         >
-                          {showPwd ? <EyeOff className="h-5 w-5 text-slate-500"/> : <Eye className="h-5 w-5 text-slate-500"/>}
+                          {showPwd ? <EyeOff className="h-4 w-4 sm:h-5 sm:w-5 text-slate-500"/> : <Eye className="h-4 w-4 sm:h-5 sm:w-5 text-slate-500"/>}
                         </motion.button>
                       </div>
                     </div>
@@ -410,12 +411,12 @@ export default function Register() {
               </AnimatePresence>
               
               {/* Navigation Buttons */}
-              <div className="flex gap-4 pt-4">
+              <div className="flex gap-3 sm:gap-4 pt-4">
                 {step > 1 && (
                   <motion.button
                     type="button"
                     onClick={() => setStep(step - 1)}
-                    className="flex-1 px-6 py-3 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                    className="flex-1 px-4 sm:px-6 py-3 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-base min-h-[48px] touch-manipulation"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
@@ -424,7 +425,7 @@ export default function Register() {
                 )}
                 
                 <motion.button 
-                  className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 shadow-lg flex items-center justify-center gap-2" 
+                  className="flex-1 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold py-3 px-4 sm:px-6 rounded-lg transition-all duration-200 shadow-lg flex items-center justify-center gap-2 text-base min-h-[48px] touch-manipulation" 
                   type="submit"
                   whileHover={{ scale: 1.02, boxShadow: "0 10px 25px -5px rgba(16, 185, 129, 0.25)" }} 
                   whileTap={{ scale: 0.98 }}

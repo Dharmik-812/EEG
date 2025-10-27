@@ -128,27 +128,49 @@ export default function useServerChat() {
     const timeoutId = setTimeout(() => {
       controller.abort();
     }, 30000);
-    
-    const response = await fetch(apiEndpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents, modelKey: modelType, isVision }),
-      signal: controller.signal
-    });
-    
+
+    // NEW: Try local server first, then fall back to Vercel serverless
+    const endpoints = import.meta.env.PROD
+      ? [apiEndpoint] // production: already '' => /api/chat
+      : [apiEndpoint, '/api/chat']; // dev: try localhost:4000, then Vite proxy/serverless
+
+    let data;
+    let lastErr;
+    for (const url of endpoints) {
+      try {
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contents, modelKey: modelType, isVision }),
+          signal: controller.signal
+        });
+
+        if (!response.ok) {
+          const errData = await response.json().catch(() => ({}));
+          throw new APIError(
+            errData.message || `Server responded ${response.status}`,
+            errData.type || 'server',
+            response.status,
+            response.status >= 500
+          );
+        }
+
+        data = await response.json();
+        break;
+      } catch (err) {
+        lastErr = err;
+        // try next endpoint
+        continue;
+      }
+    }
+
     clearTimeout(timeoutId);
-    
-    if (!response.ok) {
-      const data = await response.json().catch(() => ({}));
-      throw new APIError(
-        data.message || `Server responded ${response.status}`,
-        data.type || 'server',
-        response.status,
-        response.status >= 500
-      );
+
+    if (!data) {
+      const categorized = categorizeError(lastErr || new Error('Network error'));
+      throw new APIError(categorized.message, categorized.type, categorized.statusCode, categorized.retryable);
     }
     
-    const data = await response.json();
     if (!isVision && data?.success) {
       const key = createCacheKey(contents, modelType);
       cacheResponse(key, data);

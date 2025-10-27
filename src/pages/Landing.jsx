@@ -601,7 +601,7 @@ export default function Landing() {
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-7">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {[
               { title: 'Quests & Challenges', desc: 'Interactive missions that teach climate science.', emoji: '🧩', gradient: 'from-emerald-500 to-teal-600' },
               { title: 'Daily Streaks', desc: 'Build consistent learning habits with rewards.', emoji: '🔥', gradient: 'from-orange-500 to-red-600' },
@@ -625,7 +625,7 @@ export default function Landing() {
                 }}
                 data-ripple
               >
-                <div className="relative p-6 sm:p-7 h-full bg-white/10 backdrop-blur-xl rounded-2xl sm:rounded-3xl border border-white/20 shadow-2xl overflow-hidden">
+                <div className="relative p-5 sm:p-7 h-full bg-white/10 backdrop-blur-xl rounded-2xl sm:rounded-3xl border border-white/20 shadow-2xl overflow-hidden">
                   {/* Gradient background */}
                   <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-10 transition-opacity duration-500`} />
 

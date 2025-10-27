@@ -41,23 +41,23 @@ export default function Leaderboard() {
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative bg-gradient-to-br from-yellow-500/10 via-orange-500/10 to-red-500/10 rounded-3xl p-8 border border-yellow-200/20 dark:border-yellow-800/20 overflow-hidden"
+          className="relative bg-gradient-to-br from-yellow-500/10 via-orange-500/10 to-red-500/10 rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 border border-yellow-200/20 dark:border-yellow-800/20 overflow-hidden"
         >
           <div className="absolute inset-0 bg-white/5 dark:bg-black/5 backdrop-blur-3xl" />
           <div className="relative z-10">
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 sm:gap-6">
               <motion.div
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.2 }}
-                className="space-y-4"
+                className="space-y-3 sm:space-y-4"
               >
-                <div className="flex items-center gap-4">
-                  <div className="p-4 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-xl">
-                    <Trophy className="h-8 w-8 text-white" />
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <div className="p-3 sm:p-4 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-xl">
+                    <Trophy className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
                   </div>
                   <div>
-                    <h1 className="text-4xl font-black bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent">
+                    <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent">
                       Global Leaderboard
                     </h1>
                     <div className="flex items-center gap-2 mt-2">

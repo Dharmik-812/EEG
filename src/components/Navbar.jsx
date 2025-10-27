@@ -168,13 +168,13 @@ export default function Navbar() {
 
       <nav className={`container-fluid mx-auto ${scrolled ? 'py-2' : 'py-3'} flex items-center justify-between transition-all duration-300`}>
         {/* Logo with enhanced animation */}
-        <Link to="/" className="group flex items-center gap-2 font-extrabold text-xl tracking-tight">
+        <Link to="/" className="group flex items-center gap-2 font-extrabold text-lg sm:text-xl tracking-tight">
           <motion.div
             whileHover={{ rotate: 360, scale: 1.1 }}
             transition={{ duration: 0.6, ease: "easeInOut" }}
             className="relative"
           >
-            <Leaf className="h-7 w-7 text-emerald-500 drop-shadow-lg" aria-hidden />
+            <Leaf className="h-6 w-6 sm:h-7 sm:w-7 text-emerald-500 drop-shadow-lg" aria-hidden />
             {!reduced && (
               <motion.div
                 className="absolute inset-0 bg-emerald-400 rounded-full blur-md"
@@ -358,22 +358,22 @@ export default function Navbar() {
         </div>
 
         {/* Medium screen navbar */}
-        <div className="hidden md:flex lg:hidden items-center gap-2" onClick={() => console.log('Medium navbar active')}>
+        <div className="hidden md:flex lg:hidden items-center gap-1" onClick={() => console.log('Medium navbar active')}>
           <div className="flex items-center gap-1">
-            {links.slice(0, 4).filter(l => !(l.hideForAdmin && currentUser?.role === 'admin')).map(l => (
+            {links.slice(0, 3).filter(l => !(l.hideForAdmin && currentUser?.role === 'admin')).map(l => (
               <LinkItem key={l.to} {...l} />
             ))}
             {currentUser && (
               <>
-                <NavLink to="/chat-friends" className="nav-link px-3 py-2 rounded-xl hover:bg-emerald-50/30 dark:hover:bg-slate-800/50" data-ripple>
+                <NavLink to="/chat-friends" className="nav-link px-2 py-2 rounded-xl hover:bg-emerald-50/30 dark:hover:bg-slate-800/50" data-ripple>
                   <Users className="h-4 w-4" />
                 </NavLink>
-                <NavLink to="/groups" className="nav-link px-3 py-2 rounded-xl hover:bg-emerald-50/30 dark:hover:bg-slate-800/50" data-ripple>
+                <NavLink to="/groups" className="nav-link px-2 py-2 rounded-xl hover:bg-emerald-50/30 dark:hover:bg-slate-800/50" data-ripple>
                   <Users className="h-4 w-4" />
                 </NavLink>
               </>
             )}
-            <NavLink to="/chat" className="nav-link px-3 py-2 rounded-xl hover:bg-emerald-50/30 dark:hover:bg-slate-800/50" data-ripple>
+            <NavLink to="/chat" className="nav-link px-2 py-2 rounded-xl hover:bg-emerald-50/30 dark:hover:bg-slate-800/50" data-ripple>
               <MessageCircle className="h-4 w-4" />
             </NavLink>
           </div>
@@ -494,11 +494,11 @@ export default function Navbar() {
         </div>
 
         {/* Mobile controls */}
-        <div className="md:hidden flex items-center gap-2" onClick={() => console.log('Mobile navbar active')}>
+        <div className="md:hidden flex items-center gap-1" onClick={() => console.log('Mobile navbar active')}>
           {currentUser && (
             <motion.div
               whileHover={{ scale: 1.05 }}
-              className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800"
+              className="hidden xs:flex items-center gap-1.5 px-2 py-1 rounded-full bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800"
             >
               <TreePine className="h-3 w-3 text-emerald-600" />
               <span className="text-xs font-semibold text-emerald-700 dark:text-emerald-300">
@@ -512,13 +512,13 @@ export default function Navbar() {
             whileTap={{ scale: 0.9 }}
             aria-label="Toggle reduced motion"
             onClick={toggleMotion}
-            className={`p-2 rounded-lg transition-all ${
+            className={`p-2 rounded-lg transition-all min-h-[44px] min-w-[44px] touch-manipulation ${
               reduced
                 ? 'bg-red-100/50 dark:bg-red-900/20 text-red-600'
                 : 'bg-emerald-100/50 dark:bg-emerald-900/20 text-emerald-600'
             }`}
           >
-            <Zap className="h-5 w-5" />
+            <Zap className="h-4 w-4" />
           </motion.button>
           
           <motion.button 
@@ -526,9 +526,9 @@ export default function Navbar() {
             whileTap={{ scale: 0.9 }}
             aria-label="Toggle theme" 
             onClick={toggle} 
-            className="p-2 rounded-lg hover:bg-emerald-100/50 dark:hover:bg-slate-800"
+            className="p-2 rounded-lg hover:bg-emerald-100/50 dark:hover:bg-slate-800 min-h-[44px] min-w-[44px] touch-manipulation"
           >
-            {theme === 'dark' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+            {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           </motion.button>
           
           <motion.button
@@ -539,7 +539,7 @@ export default function Navbar() {
               setOpen(false)
               setShowNavWheel(v => !v)
             }}
-            className="px-3 py-2 rounded-lg border border-emerald-300 dark:border-emerald-600 bg-emerald-50 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-sm font-medium mr-2 touch-manipulation"
+            className="px-2 py-2 rounded-lg border border-emerald-300 dark:border-emerald-600 bg-emerald-50 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300 text-xs font-medium touch-manipulation min-h-[44px]"
             aria-label="Open navigation wheel"
           >
             More
@@ -550,9 +550,9 @@ export default function Navbar() {
             whileTap={{ scale: 0.9 }}
             aria-label="Open menu" 
             onClick={() => setOpen(true)} 
-            className="p-3 rounded-lg hover:bg-emerald-100/50 dark:hover:bg-slate-800 touch-manipulation"
+            className="p-2 rounded-lg hover:bg-emerald-100/50 dark:hover:bg-slate-800 touch-manipulation min-h-[44px] min-w-[44px]"
           >
-            <Menu className="h-6 w-6" />
+            <Menu className="h-5 w-5" />
           </motion.button>
         </div>
       </nav>
@@ -579,9 +579,9 @@ export default function Navbar() {
                 stiffness: 300,
                 opacity: { duration: 0.2 }
               }}
-              className="md:hidden fixed top-0 right-0 bottom-0 w-[90%] max-w-sm bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-l border-emerald-200/30 dark:border-slate-700/50 shadow-2xl z-50 overflow-y-auto"
+              className="md:hidden fixed top-0 right-0 bottom-0 w-[90vw] max-w-sm bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-l border-emerald-200/30 dark:border-slate-700/50 shadow-2xl z-50 overflow-y-auto safe-area-inset"
             >
-              <div className="p-6 space-y-6">
+              <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
                 {/* Header */}
                 <div className="flex items-center justify-between pb-4 border-b border-emerald-200/30 dark:border-slate-700/50">
                   <div className="flex items-center gap-2">
@@ -641,10 +641,10 @@ export default function Navbar() {
                         <Link 
                           to={l.to} 
                           onClick={() => setOpen(false)} 
-                          className="mobile-menu-item rounded-xl hover:bg-emerald-50/60 dark:hover:bg-slate-800 transition-colors group" 
+                          className="mobile-menu-item rounded-xl hover:bg-emerald-50/60 dark:hover:bg-slate-800 transition-colors group min-h-[48px]" 
                           data-ripple
                         >
-                          <Icon className="h-5 w-5 text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform" />
+                          <Icon className="h-5 w-5 text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform flex-shrink-0" />
                           <span className="font-medium">{l.label}</span>
                         </Link>
                       </motion.div>

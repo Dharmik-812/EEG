@@ -210,23 +210,23 @@ export default function Community() {
           initial={{ opacity: 0, y: -20, scale: 0.95 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-          className="relative bg-gradient-to-br from-emerald-500/10 via-sky-500/10 to-purple-500/10 rounded-3xl p-8 border border-emerald-200/20 dark:border-emerald-800/20 overflow-hidden backdrop-blur-sm"
+          className="relative bg-gradient-to-br from-emerald-500/10 via-sky-500/10 to-purple-500/10 rounded-2xl sm:rounded-3xl p-4 sm:p-6 lg:p-8 border border-emerald-200/20 dark:border-emerald-800/20 overflow-hidden backdrop-blur-sm"
         >
           <div className="absolute inset-0 bg-white/5 dark:bg-black/5 backdrop-blur-3xl" />
           <div className="relative z-10">
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-              <div className="space-y-4">
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 sm:gap-6">
+              <div className="space-y-3 sm:space-y-4">
                 <motion.div
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.2 }}
                   className="flex items-center gap-3"
                 >
-                  <div className="p-3 bg-gradient-to-br from-emerald-500 to-sky-500 rounded-xl">
-                    <Users className="h-6 w-6 text-white" />
+                  <div className="p-2 sm:p-3 bg-gradient-to-br from-emerald-500 to-sky-500 rounded-xl">
+                    <Users className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                   </div>
                   <div>
-                    <h1 className="text-3xl font-black bg-gradient-to-r from-emerald-600 to-sky-600 bg-clip-text text-transparent">
+                    <h1 className="text-2xl sm:text-3xl font-black bg-gradient-to-r from-emerald-600 to-sky-600 bg-clip-text text-transparent">
                       Community Hub
                     </h1>
                     <div className="flex items-center gap-2 mt-1">
@@ -376,7 +376,7 @@ export default function Community() {
               </button>
             </motion.div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {approvedGames.map((game, index) => {
                 const firstImage = game.project?.assets?.find(a => a.type === 'image')?.src
                 const canAccess = canUserAccessContent(game, currentUser)
@@ -530,7 +530,7 @@ export default function Community() {
               </div>
               <div className="hidden sm:block"><StreakFlame streak={dailyQuizStreak} /></div>
             </div>
-            <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {dailyPicks.map((dq, i) => (
                 <div key={i} className="p-4 rounded-2xl border bg-white/70 dark:bg-slate-900/50 backdrop-blur hover-lift transition-all">
                   <div className="font-semibold">{dq.title}</div>
@@ -610,7 +610,7 @@ export default function Community() {
               <h3 className="font-semibold text-slate-700 dark:text-slate-300">Filters & Search</h3>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               {/* Search */}
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -721,7 +721,7 @@ export default function Community() {
             </div>
           </motion.div>
           {/* Quiz Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             <AnimatePresence mode="popLayout">
               {approvedQuizzes.length === 0 && (
                 <motion.div

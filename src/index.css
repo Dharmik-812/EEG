@@ -13,17 +13,21 @@
   
   html, body, #root {
     height: 100%;
+    width: 100%;
+    overflow-x: hidden; /* Prevent horizontal scroll on mobile */
   }
   
   html {
     /* Avoid conflict with smooth-scrolling libraries (Lenis) */
     scroll-behavior: auto;
+    -webkit-text-size-adjust: 100%; /* Prevent font size adjustments on iOS */
   }
   
   body { 
     overscroll-behavior-y: contain; 
     -webkit-overflow-scrolling: touch; /* iOS momentum scroll */
     touch-action: pan-y; /* better touch scroll perf */
+    position: relative; /* Prevent mobile browser address bar issues */
   }
   
   /* Reset button styles for consistency */
@@ -302,16 +306,63 @@
   
   /* Mobile-specific improvements */
   @media (max-width: 768px) {
+    /* Improve text rendering */
+    * {
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    
     .nav-link {
-      @apply px-4 py-3 text-base;
+      @apply px-4 py-3 text-base min-h-[48px] min-w-[48px] touch-manipulation;
     }
     
     .btn {
-      @apply px-6 py-4 text-base min-h-[48px];
+      @apply px-6 py-4 text-base min-h-[48px] touch-manipulation;
     }
     
     .btn-outline {
-      @apply px-6 py-4 text-base min-h-[48px];
+      @apply px-6 py-4 text-base min-h-[48px] touch-manipulation;
+    }
+    
+    /* Better mobile card padding */
+    .card {
+      @apply p-4;
+    }
+    
+    /* Improve mobile text sizes */
+    h1, h2, h3 {
+      word-break: break-word;
+      line-height: 1.2;
+    }
+    
+    /* Better mobile touch targets */
+    button, a[role="button"] {
+      min-height: 44px;
+      min-width: 44px;
+      touch-action: manipulation;
+    }
+    
+    /* Mobile menu item styling */
+    .mobile-menu-item {
+      @apply flex items-center gap-3 px-4 py-3 text-base font-medium text-slate-700 dark:text-slate-300 min-h-[48px] touch-manipulation;
+    }
+    
+    /* Prevent text size adjustment */
+    input, textarea, select {
+      font-size: 16px !important;
+    }
+    
+    /* Improve scroll behavior */
+    * {
+      -webkit-overflow-scrolling: touch;
+    }
+    
+    /* Better table responsive behavior */
+    table {
+      display: block;
+      overflow-x: auto;
+      white-space: nowrap;
+      -webkit-overflow-scrolling: touch;
     }
   }
   

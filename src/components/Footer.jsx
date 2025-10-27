@@ -258,7 +258,7 @@ export default function Footer() {
         
         <div className="container mx-auto px-4 py-12">
           {/* Main footer content - 4 column layout */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
+          <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 mb-8 sm:mb-12">
             {/* Column 1 - Product */}
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
@@ -266,10 +266,10 @@ export default function Footer() {
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.1 }}
             >
-              <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-6 font-display">
+              <h3 className="text-base sm:text-lg font-semibold text-slate-800 dark:text-slate-200 mb-4 sm:mb-6 font-display">
                 Product
               </h3>
-              <ul className="space-y-4">
+              <ul className="space-y-3 sm:space-y-4">
                 {footerSections.product.map((link, index) => (
                   <motion.li
                     key={link.label}
@@ -298,10 +298,10 @@ export default function Footer() {
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.2 }}
             >
-              <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-6 font-display">
+              <h3 className="text-base sm:text-lg font-semibold text-slate-800 dark:text-slate-200 mb-4 sm:mb-6 font-display">
                 Education
               </h3>
-              <ul className="space-y-4">
+              <ul className="space-y-3 sm:space-y-4">
                 {footerSections.education.map((link, index) => (
                   <motion.li
                     key={link.label}
@@ -330,10 +330,10 @@ export default function Footer() {
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.3 }}
             >
-              <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-6 font-display">
+              <h3 className="text-base sm:text-lg font-semibold text-slate-800 dark:text-slate-200 mb-4 sm:mb-6 font-display">
                 Support
               </h3>
-              <ul className="space-y-4">
+              <ul className="space-y-3 sm:space-y-4">
                 {footerSections.support.map((link, index) => (
                   <motion.li
                   key={link.label}
@@ -362,10 +362,10 @@ export default function Footer() {
               viewport={{ once: true }}
               transition={{ duration: 0.6, delay: 0.4 }}
             >
-              <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-6 font-display">
+              <h3 className="text-base sm:text-lg font-semibold text-slate-800 dark:text-slate-200 mb-4 sm:mb-6 font-display">
                 Company
               </h3>
-              <ul className="space-y-4">
+              <ul className="space-y-3 sm:space-y-4">
                 {footerSections.company.map((link, index) => (
                   <motion.li
                     key={link.label}

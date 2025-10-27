@@ -512,7 +512,7 @@ const QuickActions = React.memo(({ onActionClick }) => {
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8"
         >
             {quickActions.map((action, index) => (
                 <motion.button
@@ -762,6 +762,17 @@ export default function ChatInterface() {
     const inputRef = useRef(null)
     const messagesEndRef = useRef(null)
     const speechRecognitionRef = useRef(null)
+    
+    // Auto-resize textarea
+    useEffect(() => {
+        const textarea = inputRef.current
+        if (textarea && input) {
+            textarea.style.height = 'auto'
+            textarea.style.height = `${Math.min(textarea.scrollHeight, 120)}px`
+        } else if (textarea && !input) {
+            textarea.style.height = 'auto'
+        }
+    }, [input])
 
     // Animation preferences
     const reduced = useAnimationStore(s => s.reduced)
@@ -991,7 +1002,7 @@ export default function ChatInterface() {
                                 onChange={(e) => setModelKey(e.target.value)}
                                 disabled={isStreaming}
                                 className={clsx(
-                                    "px-3 py-2 rounded-lg border text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-colors",
+                                    "px-3 py-2 rounded-lg border text-sm font-medium focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-colors min-h-[44px]",
                                     isDarkMode
                                         ? "bg-slate-800 border-slate-700 text-white"
                                         : "bg-white border-slate-300 text-slate-900"
@@ -1053,7 +1064,7 @@ export default function ChatInterface() {
             </header>
 
             {/* Main content */}
-            <main className="flex-1 flex flex-col max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6">
+            <main className="flex-1 flex flex-col max-w-6xl mx-auto w-full px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
                 {/* Quick Actions */}
                 {messages.length === 0 && (
                     <QuickActions onActionClick={handleQuickAction} />
@@ -1202,9 +1213,9 @@ export default function ChatInterface() {
                         </AnimatePresence>
 
                         {/* Main input row */}
-                        <div className="flex items-end gap-3">
-                            {/* Left controls */}
-                            <div className="flex items-center gap-1">
+                        <div className="flex items-end gap-2 sm:gap-3">
+                                {/* Left controls */}
+                            <div className="flex items-center gap-1 sm:gap-2">
                                 {/* Voice input */}
                                 {sttSupported && (
                                     <motion.button
@@ -1212,14 +1223,14 @@ export default function ChatInterface() {
                                         whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}
                                         onClick={isListening ? stopListening : startListening}
-                                        className={clsx(
-                                            'p-3 rounded-xl transition-all duration-200',
-                                            isListening
-                                                ? 'bg-red-500 text-white shadow-lg'
-                                                : isDarkMode
-                                                    ? 'hover:bg-slate-700 text-slate-400'
-                                                    : 'hover:bg-slate-200 text-slate-600'
-                                        )}
+                                    className={clsx(
+                                        'p-2.5 sm:p-3 rounded-xl transition-all duration-200 min-h-[48px] min-w-[48px] touch-manipulation',
+                                        isListening
+                                            ? 'bg-red-500 text-white shadow-lg'
+                                            : isDarkMode
+                                                ? 'hover:bg-slate-700 text-slate-400'
+                                                : 'hover:bg-slate-200 text-slate-600'
+                                    )}
                                         disabled={isSubmitting}
                                         aria-label={isListening ? 'Stop listening' : 'Start voice input'}
                                     >
@@ -1232,7 +1243,7 @@ export default function ChatInterface() {
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
                                     className={clsx(
-                                        "p-3 rounded-xl cursor-pointer transition-colors",
+                                        "p-2.5 sm:p-3 rounded-xl cursor-pointer transition-colors min-h-[48px] min-w-[48px] touch-manipulation",
                                         isDarkMode
                                             ? "hover:bg-slate-700 text-slate-400"
                                             : "hover:bg-slate-200 text-slate-600"
@@ -1252,7 +1263,7 @@ export default function ChatInterface() {
 
                             {/* Text input */}
                             <div className="flex-1 relative">
-                                <input
+                                <textarea
                                     ref={inputRef}
                                     value={input}
                                     onChange={(e) => setInput(e.target.value)}
@@ -1262,16 +1273,27 @@ export default function ChatInterface() {
                                                 'Ask me anything about the environment...'
                                     }
                                     className={clsx(
-                                        "w-full rounded-2xl border px-4 py-3 sm:px-6 sm:py-4 text-base outline-none transition-all focus:ring-2 focus:ring-emerald-500/60",
+                                        "w-full rounded-2xl border px-4 py-3 sm:px-6 sm:py-4 text-base outline-none transition-all focus:ring-2 focus:ring-emerald-500/60 resize-none",
                                         isDarkMode
                                             ? "bg-slate-800 border-slate-700 text-white placeholder-slate-400"
                                             : "bg-white border-slate-300 text-slate-900 placeholder-slate-500"
                                     )}
                                     disabled={isSubmitting || !canSendMessage}
                                     maxLength={2000}
+                                    rows={1}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' && !e.shiftKey) {
+                                            e.preventDefault()
+                                            handleSubmit(e)
+                                        }
+                                    }}
                                     autoFocus
                                 />
-                                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Press Enter to send</p>
+                                {input.length > 0 && (
+                                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                                        Press Enter to send, Shift+Enter for new line
+                                    </p>
+                                )}
 
                                 {/* Character count */}
                                 {input.length > 1500 && (
@@ -1291,7 +1313,7 @@ export default function ChatInterface() {
                                 whileTap={{ scale: 0.98 }}
                                 disabled={isSubmitting || !canSendMessage || (!input.trim() && !imageFile)}
                                 className={clsx(
-                                    'px-6 py-4 rounded-2xl font-medium transition-all duration-200 flex items-center gap-2 flex-shrink-0',
+                                    'px-4 sm:px-6 py-4 rounded-2xl font-medium transition-all duration-200 flex items-center gap-2 flex-shrink-0 min-h-[48px]',
                                     isSubmitting || !canSendMessage || (!input.trim() && !imageFile)
                                         ? 'bg-slate-300 dark:bg-slate-700 text-slate-500 cursor-not-allowed'
                                         : 'bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white shadow-lg hover:shadow-xl'

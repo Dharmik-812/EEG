@@ -306,11 +306,11 @@ export default function App() {
 
           <div
             className={`${
-              adminMode ? 'pt-6 px-4' : 
+              adminMode ? 'pt-6 px-2 sm:px-4' : 
               location.pathname.startsWith('/editor') ? 'h-screen' :
               'pt-16 sm:pt-20'
             } ${
-              location.pathname.startsWith('/editor') ? '' : 'mx-auto max-w-screen-2xl px-4 sm:px-6 lg:px-8 xl:px-12'
+              location.pathname.startsWith('/editor') ? '' : 'mx-auto max-w-screen-2xl px-3 sm:px-4 md:px-6 lg:px-8 xl:px-12'
             } relative`}
           >
             {isNavigating && (

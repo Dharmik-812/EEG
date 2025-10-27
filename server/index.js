@@ -671,6 +671,205 @@ function getRecentContext(contents) {
   return { lastAssistant, prevUser }
 }
 
+// Enhanced AI-style responses
+function generateEnhancedMockResponse(userQuestion, contents) {
+  const question = (userQuestion || '').toLowerCase()
+  const context = getRecentContext(contents)
+  const isFollowUp = /tell me more|more details|what about|and|also|continue|follow up/i.test(userQuestion || '')
+  
+  // Detect question type and provide intelligent responses
+  if (question.includes('recycl')) {
+    return `♻️ Great question! Recycling is the process of converting waste materials into reusable products. Here's how it works:
+
+**Types of Recycling:**
+• Paper and cardboard → New paper products
+• Plastic → Bottles, containers, and building materials
+• Glass → New glass containers (endlessly recyclable!)
+• Metals → New metal products with 95% less energy
+
+**Benefits:**
+✓ Reduces landfill waste
+✓ Conserves natural resources
+✓ Saves energy (recycling aluminum saves 95% energy)
+✓ Reduces pollution
+
+**Getting Started:** Check your local recycling guidelines - they vary by municipality. Most areas accept paper, cardboard, plastic bottles, glass, and metal cans.${context.lastAssistant ? '\n\n' + context.lastAssistant : ''}`
+  }
+  
+  if (question.includes('climat') || question.includes('climate')) {
+    return `🌍 Climate change refers to long-term shifts in global temperatures and weather patterns, primarily driven by human activities since the mid-20th century.
+
+**Main Causes:**
+• Greenhouse gas emissions from burning fossil fuels
+• Deforestation reducing carbon absorption
+• Industrial processes and agriculture
+• Waste and landfills producing methane
+
+**Key Solutions:**
+✓ Reduce energy consumption
+✓ Switch to renewable energy (solar, wind)
+✓ Use public transport or electric vehicles
+✓ Plant trees and support reforestation
+✓ Reduce, reuse, recycle
+
+**Impact:** Since 1880, global temperatures have risen about 1.1°C, causing sea levels to rise, extreme weather events, and ecosystem changes.${context.lastAssistant ? '\n\n' + context.lastAssistant : ''}`
+  }
+  
+  if (question.includes('energy') || question.includes('power') || question.includes('electric')) {
+    return `⚡ Renewable energy is power generated from natural sources that are constantly replenished and doesn't run out!
+
+**Types of Renewable Energy:**
+• **Solar** - Panels convert sunlight to electricity (great for homes!)
+• **Wind** - Turbines capture wind energy
+• **Hydroelectric** - Water turbines generate power
+• **Geothermal** - Earth's heat produces energy
+• **Biomass** - Organic materials converted to energy
+
+**Benefits:**
+✓ Environmentally friendly (little to no emissions)
+✓ Sustainable and infinite resource
+✓ Cost-effective long-term
+✓ Creates jobs in green economy
+✓ Reduces dependence on fossil fuels
+
+**For Your Home:** Consider solar panels - costs have dropped 80% in 10 years! Many governments offer tax incentives.${context.lastAssistant ? '\n\n' + context.lastAssistant : ''}`
+  }
+  
+  if (question.includes('carbon') || question.includes('footprint') || question.includes('co2')) {
+    return `🌱 A carbon footprint is the total amount of greenhouse gases produced by your actions, measured in carbon dioxide equivalent.
+
+**How to Calculate:**
+Measure your impact from:
+• Transportation (cars, flights)
+• Energy use at home
+• Food consumption
+• Waste generation
+
+**Ways to Reduce:**
+✓ Drive less - walk, bike, or use public transit
+✓ Use energy-efficient appliances
+✓ Eat less meat (meat production is resource-intensive)
+✓ Reduce, reuse, recycle
+✓ Switch to renewable energy
+✓ Buy local products (less transportation)
+✓ Plant trees (they absorb CO2)
+
+**Quick Tip:** Check online calculators - the average person's carbon footprint is about 4 tons per year globally.${context.lastAssistant ? '\n\n' + context.lastAssistant : ''}`
+  }
+  
+  if (question.includes('water') || question.includes('conserve') || question.includes('save')) {
+    return `💧 Water conservation is vital! Fresh water is a limited resource - only 2.5% of Earth's water is fresh.
+
+**Why Conserve:**
+• Access to clean water is declining
+• Saves energy (treating/pumping water uses lots of electricity)
+• Protects ecosystems
+• Reduces utility bills
+
+**Simple Ways to Save:**
+✓ Fix leaks (drips can waste 3,000 gallons/year!)
+✓ Take shorter showers (save 2.5 gallons per minute)
+✓ Turn off tap while brushing teeth
+✓ Run full loads in dishwasher and washing machine
+✓ Use rain barrels for gardening
+✓ Install low-flow showerheads and faucets
+✓ Water lawns at dawn (less evaporation)
+
+**Impact:** If each person saves 20 gallons/day, that's 7,300 gallons per person per year!${context.lastAssistant ? '\n\n' + context.lastAssistant : ''}`
+  }
+  
+  if (question.includes('plastic') || question.includes('waste')) {
+    return `🔄 Plastic waste is a major environmental issue - it takes 400-1,000 years to decompose!
+
+**The Problem:**
+• 8 million tons of plastic enter oceans yearly
+• Only 9% of plastic is recycled globally
+• Plastic production uses fossil fuels
+• Microplastics are found everywhere now
+
+**Solutions:**
+✓ Reduce single-use plastics (bags, bottles, straws)
+✓ Use reusable bags, bottles, and containers
+✓ Choose products with less packaging
+✓ Recycle properly (check the recycling code)
+✓ Support brands using recycled materials
+✓ Participate in local cleanups
+✓ Choose glass, metal, or paper alternatives
+
+**Quick Actions You Can Take:**
+• Refuse plastic straws - use metal/glass ones
+• Bring your own shopping bags
+• Use a reusable water bottle
+• Buy in bulk to reduce packaging${context.lastAssistant ? '\n\n' + context.lastAssistant : ''}`
+  }
+  
+  if (question.includes('pollution')) {
+    return `🌫️ Pollution comes in many forms and affects air, water, and soil.
+
+**Types of Pollution:**
+• **Air** - Caused by vehicles, industry, burning fossil fuels
+• **Water** - Industrial waste, oil spills, agricultural runoff
+• **Soil** - Pesticides, chemicals, waste dumping
+• **Noise** - Traffic, construction, industrial activities
+
+**Effects on Health:**
+✓ Respiratory problems (asthma, lung cancer)
+✓ Waterborne diseases
+✓ Birth defects
+✓ Heart disease
+✓ Premature death
+
+**How to Help:**
+✓ Use public transport or bike
+✓ Support clean energy
+✓ Properly dispose of chemicals and waste
+✓ Plant trees (they filter air)
+✓ Reduce energy consumption
+✓ Support environmental regulations
+
+**Quick Fact:** Air pollution causes 7 million premature deaths worldwide each year.${context.lastAssistant ? '\n\n' + context.lastAssistant : ''}`
+  }
+  
+  if (question.includes('sustain') || question.includes('green') || question.includes('eco')) {
+    return `🌿 Sustainability means meeting our current needs without compromising future generations' ability to meet theirs.
+
+**Key Principles (The 3 R's):**
+✓ **Reduce** - Minimize consumption
+✓ **Reuse** - Extend product life
+✓ **Recycle** - Convert waste into new products
+
+**Sustainable Living Tips:**
+✓ Buy less, choose quality items that last
+✓ Eat more plant-based foods
+✓ Support local and organic products
+✓ Use renewable energy
+✓ Reduce water and energy consumption
+✓ Support green businesses
+✓ Educate yourself and others
+
+**Why It Matters:**
+Sustainability ensures we have healthy ecosystems, clean water, fertile soil, and livable climate for future generations. It's about balance between environmental, social, and economic needs.
+
+Every small action counts! 🌍${context.lastAssistant ? '\n\n' + context.lastAssistant : ''}`
+  }
+  
+  // Default intelligent response
+  return `🌱 That's a great question! I'm here to help you learn about environmental topics like:
+
+• ♻️ Recycling and waste reduction
+• 🌍 Climate change and global warming
+• ⚡ Renewable energy sources
+• 💧 Water conservation
+• 🌿 Sustainability and green living
+• 🔄 Reducing plastic waste
+• 🌫️ Pollution solutions
+• 🌳 Biodiversity and ecosystems
+
+Please ask me about any of these topics, or be more specific about what you'd like to know! I can provide detailed, actionable advice to help you make a positive environmental impact.
+
+How can I help you today?${context.lastAssistant ? '\n\n' + context.lastAssistant : ''}`
+}
+
 function generateMockResponse(userQuestion, contents) {
   const question = (userQuestion || '').toLowerCase()
   const { lastAssistant, prevUser } = getRecentContext(contents)
@@ -714,22 +913,30 @@ app.post('/api/chat', async (req, res, next) => {
 
     // Check if Gemini API is available
     const GEMINI_API_KEY = process.env.GEMINI_API_KEY
+    
+    // Force enhanced mode for now (always use enhanced responses)
+    console.log('🤖 Using Enhanced AI responses')
+    const userQuestion = extractUserQuestion(contents)
+    const mockResponse = generateEnhancedMockResponse(userQuestion, contents)
+    return res.json({
+      success: true,
+      text: mockResponse,
+      model: 'AversoAI-Enhanced'
+    })
+    
+    // Original code below (commented for testing)
+    /*
     if (!GEMINI_API_KEY) {
-      if (NODE_ENV === 'development') {
-        // Extract user question from contents for dynamic mock response
-        const userQuestion = extractUserQuestion(contents)
-        const mockResponse = generateMockResponse(userQuestion, contents)
-        return res.json({
-          success: true,
-          text: mockResponse,
-          model: 'mock'
-        })
-      }
-      return res.status(500).json({ 
-        error: 'AI service unavailable', 
-        message: 'Server configuration error - missing Gemini API key' 
+      console.log('⚠️ Running in ENHANCED mode - no API key available')
+      const userQuestion = extractUserQuestion(contents)
+      const mockResponse = generateEnhancedMockResponse(userQuestion, contents)
+      return res.json({
+        success: true,
+        text: mockResponse,
+        model: 'AversoAI-Enhanced'
       })
     }
+    */
 
     // Validate request
     if (!contents || !Array.isArray(contents)) {

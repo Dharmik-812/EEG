@@ -241,15 +241,15 @@ export default function Dashboard() {
       </AnimatePresence>
 
       {/* Welcome Header */}
-      <div className="bg-gradient-to-br from-emerald-50 via-blue-50 to-purple-50 dark:from-slate-800 dark:via-slate-900 dark:to-slate-800 -mx-6 -mt-6 px-6 pt-6 pb-8 mb-10 border-b border-slate-200 dark:border-slate-700">
+      <div className="bg-gradient-to-br from-emerald-50 via-blue-50 to-purple-50 dark:from-slate-800 dark:via-slate-900 dark:to-slate-800 -mx-3 sm:-mx-6 -mt-6 px-3 sm:px-6 pt-4 sm:pt-6 pb-6 sm:pb-8 mb-6 sm:mb-10 border-b border-slate-200 dark:border-slate-700">
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-            <div className="space-y-4">
-              <h1 className="text-4xl lg:text-5xl font-black text-slate-800 dark:text-white leading-tight">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 sm:gap-6">
+            <div className="space-y-3 sm:space-y-4">
+              <h1 className="text-2xl sm:text-3xl lg:text-5xl font-black text-slate-800 dark:text-white leading-tight">
                 Welcome back,{' '}
                 <span className="bg-gradient-to-r from-emerald-600 via-blue-600 to-purple-600 bg-clip-text text-transparent">
                   {currentUser?.name || 'Eco Learner'}
@@ -292,27 +292,27 @@ export default function Dashboard() {
         </motion.div>
       </div>
       
-    <section className="space-y-8">
+    <section className="space-y-6 sm:space-y-8">
       {/* Quick Actions Section */}
-      <div className="mb-10">
+      <div className="mb-8 sm:mb-10">
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.3 }}
-          className="mb-8"
+          className="mb-6 sm:mb-8"
         >
-          <h2 className="text-3xl font-bold text-slate-800 dark:text-white mb-3 flex items-center gap-3">
+          <h2 className="text-2xl sm:text-3xl font-bold text-slate-800 dark:text-white mb-3 flex items-center gap-3">
             <div className="p-2 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-xl">
-              <Zap className="h-6 w-6 text-white" />
+              <Zap className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
             </div>
             Quick Actions
           </h2>
-          <p className="text-slate-600 dark:text-slate-400 text-lg">
+          <p className="text-slate-600 dark:text-slate-400 text-base sm:text-lg">
             Get started with these essential tools and features
           </p>
         </motion.div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
           {roleSpecificData.quickActions.map((action, i) => (
             <QuickActionCard 
               key={action.id} 
@@ -324,7 +324,7 @@ export default function Dashboard() {
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -415,7 +415,7 @@ export default function Dashboard() {
               <GraduationCap className="h-5 w-5 text-emerald-500" />
               Teaching Dashboard
             </h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
               <div className="text-center">
                 <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
                   {roleSpecificData.teacherStats.studentsCount}
@@ -509,7 +509,7 @@ export default function Dashboard() {
             </div>
           </div>
           <div className="relative">
-            <div style={{ width: '100%', height: 280 }}>
+            <div style={{ width: '100%', height: window.innerWidth < 640 ? 200 : 280 }}>
               <ResponsiveContainer>
                 <AreaChart data={last7days} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                   <defs>
@@ -599,7 +599,7 @@ export default function Dashboard() {
 
       <Card>
         <div className="font-semibold mb-4">Badges</div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           {badgesData.map(b => (
             <motion.div key={b.id} initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
               <BadgeComp name={b.name} description={b.description} acquired={badges.includes(b.id)} />
