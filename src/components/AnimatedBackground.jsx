@@ -1,14 +1,15 @@
 import { useEffect, useMemo } from 'react'
+import { Leaf, Sprout, Droplets, Flower, Sparkles } from 'lucide-react'
 
 const particles = Array.from({ length: 25 }, (_, i) => i)
-const environmentalEmojis = ['🍃', '🌿', '💧', '🌱', '🦋', '🌸', '✨']
+const environmentalIcons = [Leaf, Sprout, Droplets, Sprout, Flower, Flower, Sparkles]
 
 export default function AnimatedBackground() {
   const positions = useMemo(() => particles.map((_, index) => ({
     left: Math.random() * 100,
     duration: 6 + Math.random() * 12,
     delay: Math.random() * 8,
-    emoji: environmentalEmojis[index % environmentalEmojis.length],
+    Icon: environmentalIcons[index % environmentalIcons.length],
     size: 0.8 + Math.random() * 0.6,
     drift: (Math.random() - 0.5) * 20
   })), [])
@@ -30,25 +31,33 @@ export default function AnimatedBackground() {
       <div className="absolute inset-0 opacity-[0.06] mix-blend-overlay" style={{ backgroundImage: 'repeating-linear-gradient(45deg, rgba(255,255,255,.2) 0, rgba(255,255,255,.2) 1px, transparent 1px, transparent 4px)' }} />
 
       <div className="absolute inset-0" style={{ willChange: 'transform, opacity', transform: 'translateZ(0)' }}>
-        {positions.map((p, idx) => (
-          <span
-            key={idx}
-            className="absolute animate-fall transition-opacity duration-1000"
-            style={{
-              left: `${p.left}%`,
-              animationDuration: `${p.duration}s`,
-              animationDelay: `${p.delay}s`,
-              top: '-5%',
-              fontSize: `${p.size * 18}px`,
-              filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1))',
-              opacity: 0.7,
-              willChange: 'transform, opacity',
-              transform: 'translateZ(0)'
-            }}
-          >
-            {p.emoji}
-          </span>
-        ))}
+        {positions.map((p, idx) => {
+          const IconComponent = p.Icon
+          return (
+            <div
+              key={idx}
+              className="absolute animate-fall transition-opacity duration-1000"
+              style={{
+                left: `${p.left}%`,
+                animationDuration: `${p.duration}s`,
+                animationDelay: `${p.delay}s`,
+                top: '-5%',
+                filter: 'drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1))',
+                opacity: 0.7,
+                willChange: 'transform, opacity',
+                transform: 'translateZ(0)'
+              }}
+            >
+              <IconComponent 
+                className="text-emerald-400 dark:text-emerald-500" 
+                style={{ 
+                  width: `${p.size * 18}px`, 
+                  height: `${p.size * 18}px` 
+                }} 
+              />
+            </div>
+          )
+        })}
       </div>
       
       {/* Floating bubbles for water theme */}

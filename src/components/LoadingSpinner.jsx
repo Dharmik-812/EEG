@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { Leaf, Droplets, Sun, Recycle } from 'lucide-react'
+import { Leaf, Droplets, Sun, RefreshCw as Recycle } from 'lucide-react'
 
 const LoadingSpinner = ({ size = 'md', message = 'Loading...', variant = 'leaf' }) => {
   const sizeClasses = {

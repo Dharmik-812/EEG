@@ -1,5 +1,8 @@
 // Applies keyframed timeline tracks to entities
 export class TimelineSystem {
+  /**
+   * @param {import('../Engine').Engine} engine
+   */
   constructor(engine) { this.engine = engine }
 
   static lerp(a, b, t) { return a + (b - a) * t }

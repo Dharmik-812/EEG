@@ -31,8 +31,37 @@ export async function loadAnime() {
     ric(async () => {
       try {
         const mod = await import('animejs')
-        resolve((mod as any).default || mod)
-      } catch {
+        // animejs v4 can export in different ways:
+        // - { default: { anime: function } }
+        // - { anime: function }
+        // - { default: function } (older versions)
+        let animeFn = null
+        
+        // Try direct default export
+        if (mod && typeof (mod as any).default === 'function') {
+          animeFn = (mod as any).default
+        }
+        // Try .anime property on default
+        else if (mod && (mod as any).default && typeof (mod as any).default.anime === 'function') {
+          animeFn = (mod as any).default.anime
+        }
+        // Try .anime property on module
+        else if (mod && typeof (mod as any).anime === 'function') {
+          animeFn = (mod as any).anime
+        }
+        // Try direct function export
+        else if (mod && typeof mod === 'function') {
+          animeFn = mod
+        }
+        
+        if (animeFn && typeof animeFn === 'function') {
+          resolve(animeFn)
+        } else {
+          console.warn('animejs loaded but anime function not found in export:', mod)
+          resolve(null)
+        }
+      } catch (err) {
+        console.warn('Failed to load animejs:', err)
         resolve(null)
       }
     })

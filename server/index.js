@@ -35,8 +35,8 @@ app.use(cors({ origin: corsOrigin, credentials: true }))
 app.use(express.json({ limit: '5mb' }))
 
 // Apply input sanitization to all requests
-app.use(sanitizeRequestBody({ 
-  logSanitization: NODE_ENV === 'development' 
+app.use(sanitizeRequestBody({
+  logSanitization: NODE_ENV === 'development'
 }))
 
 
@@ -45,7 +45,16 @@ app.use(sanitizeRequestBody({
 // Helpers
 function userRowToDto(u) {
   if (!u) return null
-  return { id: u.id, name: u.name, email: u.email, role: u.role || (isAdmin(u.id) ? 'admin' : 'user'), bio: u.bio, avatarUrl: u.avatarUrl, createdAt: u.createdAt }
+  const isHardcodedAdmin = u.email === 'admin@aversoltix.com'
+  return {
+    id: u.id,
+    name: u.name,
+    email: u.email,
+    role: isHardcodedAdmin ? 'admin' : (u.role || (isAdmin(u.id) ? 'admin' : 'user')),
+    bio: u.bio,
+    avatarUrl: u.avatarUrl,
+    createdAt: u.createdAt
+  }
 }
 
 function isAdmin(userId) {
@@ -54,8 +63,12 @@ function isAdmin(userId) {
 
 function adminOnly(req, res, next) {
   if (!req.user) return res.status(401).json({ error: 'Unauthorized' })
-  if (!isAdmin(req.user.id)) return res.status(403).json({ error: 'Admin only' })
-  next()
+  // Allow hardcoded admin email or DB role
+  if (req.user.email === 'admin@aversoltix.com' || req.user.role === 'admin' || isAdmin(req.user.id)) {
+    next()
+    return
+  }
+  return res.status(403).json({ error: 'Admin only' })
 }
 
 function sanitizeMessageContent(content) {
@@ -66,7 +79,7 @@ function sanitizeMessageContent(content) {
         if (maybeJson && typeof maybeJson === 'object' && maybeJson.e2ee) {
           return content // keep encrypted payload as-is for E2EE messages
         }
-      } catch {}
+      } catch { }
       // Content is already sanitized by middleware, but double-check for safety
       return content
     }
@@ -132,15 +145,21 @@ app.post('/auth/register', async (req, res, next) => {
     const createdAt = new Date().toISOString()
     await db.run('INSERT INTO users (id,name,email,passwordHash,bio,avatarUrl,createdAt) VALUES (?,?,?,?,?,?,?)', id, name, email, passwordHash, '', '', createdAt)
     const user = await db.get('SELECT * FROM users WHERE id = ?', id)
+    if (!user) {
+      return res.status(500).json({ error: 'Failed to create user' })
+    }
     const tokens = generateTokens(user)
     await audit(req, 'auth.register', { userId: id })
-    return res.json({ 
+    return res.json({
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,
       expiresIn: tokens.expiresIn,
-      user: userRowToDto(user) 
+      user: userRowToDto(user)
     })
-  } catch (err) { next(err) }
+  } catch (err) { 
+    console.error('Register error:', err)
+    next(err) 
+  }
 })
 
 app.post('/auth/login', async (req, res, next) => {
@@ -148,19 +167,23 @@ app.post('/auth/login', async (req, res, next) => {
     const parsed = LoginSchema.safeParse(req.body || {})
     if (!parsed.success) return res.status(400).json({ error: 'Invalid input', issues: parsed.error.issues })
     const { email, password } = parsed.data
+    
     const user = await db.get('SELECT * FROM users WHERE email = ?', email)
     if (!user) return res.status(401).json({ error: 'Invalid credentials' })
     const ok = bcrypt.compareSync(password, user.passwordHash)
     if (!ok) return res.status(401).json({ error: 'Invalid credentials' })
     const tokens = generateTokens(user)
     await audit(req, 'auth.login', { userId: user.id })
-    return res.json({ 
+    return res.json({
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,
       expiresIn: tokens.expiresIn,
-      user: userRowToDto(user) 
+      user: userRowToDto(user)
     })
-  } catch (err) { next(err) }
+  } catch (err) { 
+    console.error('Login error:', err)
+    next(err) 
+  }
 })
 
 app.post('/auth/refresh', async (req, res, next) => {
@@ -169,16 +192,16 @@ app.post('/auth/refresh', async (req, res, next) => {
     if (!refreshToken) {
       return res.status(400).json({ error: 'Refresh token required' })
     }
-    
+
     const decoded = verifyRefreshToken(refreshToken)
     const user = await db.get('SELECT * FROM users WHERE id = ?', decoded.id)
     if (!user) {
       return res.status(401).json({ error: 'User not found' })
     }
-    
+
     const tokens = generateTokens(user)
     await audit(req, 'auth.refresh', { userId: user.id })
-    
+
     return res.json({
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,
@@ -194,7 +217,10 @@ app.get('/auth/me', authMiddleware, async (req, res, next) => {
   try {
     const user = await db.get('SELECT * FROM users WHERE id = ?', req.user.id)
     return res.json({ user: userRowToDto(user) })
-  } catch (err) { next(err) }
+  } catch (err) { 
+    console.error('Register error:', err)
+    next(err) 
+  }
 })
 
 // Users
@@ -204,7 +230,10 @@ app.get('/users', authMiddleware, async (req, res, next) => {
     const rows = await db.all('SELECT * FROM users')
     const list = rows.map(userRowToDto).filter(u => !q || u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q))
     res.json({ users: list })
-  } catch (err) { next(err) }
+  } catch (err) { 
+    console.error('Register error:', err)
+    next(err) 
+  }
 })
 
 app.get('/users/:id', authMiddleware, async (req, res, next) => {
@@ -212,7 +241,10 @@ app.get('/users/:id', authMiddleware, async (req, res, next) => {
     const u = await db.get('SELECT * FROM users WHERE id = ?', req.params.id)
     if (!u) return res.status(404).json({ error: 'Not found' })
     return res.json({ user: userRowToDto(u) })
-  } catch (err) { next(err) }
+  } catch (err) { 
+    console.error('Register error:', err)
+    next(err) 
+  }
 })
 
 app.put('/users/me', authMiddleware, async (req, res, next) => {
@@ -232,7 +264,10 @@ app.put('/users/me', authMiddleware, async (req, res, next) => {
     }
     const updated = await db.get('SELECT * FROM users WHERE id = ?', user.id)
     res.json({ user: userRowToDto(updated) })
-  } catch (err) { next(err) }
+  } catch (err) { 
+    console.error('Register error:', err)
+    next(err) 
+  }
 })
 
 app.put('/users/me/password', authMiddleware, async (req, res, next) => {
@@ -248,7 +283,10 @@ app.put('/users/me/password', authMiddleware, async (req, res, next) => {
     await db.run('UPDATE users SET passwordHash=? WHERE id=?', hash, user.id)
     await audit(req, 'user.password_change', { userId: user.id })
     res.json({ ok: true })
-  } catch (err) { next(err) }
+  } catch (err) { 
+    console.error('Register error:', err)
+    next(err) 
+  }
 })
 
 // User public key for E2EE
@@ -259,7 +297,10 @@ app.put('/users/me/keys', authMiddleware, async (req, res, next) => {
     await db.run('UPDATE users SET publicKeyJwk=? WHERE id=?', JSON.stringify(publicKeyJwk), req.user.id)
     const u = await db.get('SELECT * FROM users WHERE id = ?', req.user.id)
     res.json({ user: userRowToDto(u) })
-  } catch (err) { next(err) }
+  } catch (err) { 
+    console.error('Register error:', err)
+    next(err) 
+  }
 })
 
 // Friends
@@ -271,7 +312,10 @@ app.post('/friends/request', async (req, res, next) => {
     const id = newId('req')
     await db.run('INSERT INTO friend_requests (id, fromId, toId, status, createdAt) VALUES (?,?,?,?,?)', id, req.user.id, toUserId, 'pending', new Date().toISOString())
     res.json({ id })
-  } catch (err) { next(err) }
+  } catch (err) { 
+    console.error('Register error:', err)
+    next(err) 
+  }
 })
 
 app.get('/friends/requests', authMiddleware, async (req, res, next) => {
@@ -281,7 +325,10 @@ app.get('/friends/requests', authMiddleware, async (req, res, next) => {
     if (type === 'incoming') rows = await db.all('SELECT * FROM friend_requests WHERE toId = ? AND status = ? ORDER BY createdAt DESC', req.user.id, 'pending')
     else rows = await db.all('SELECT * FROM friend_requests WHERE fromId = ? AND status = ? ORDER BY createdAt DESC', req.user.id, 'pending')
     res.json({ requests: rows })
-  } catch (err) { next(err) }
+  } catch (err) { 
+    console.error('Register error:', err)
+    next(err) 
+  }
 })
 
 app.post('/friends/requests/:id/accept', authMiddleware, async (req, res, next) => {
@@ -291,7 +338,10 @@ app.post('/friends/requests/:id/accept', authMiddleware, async (req, res, next) 
     await db.run('UPDATE friend_requests SET status = ? WHERE id = ?', 'accepted', reqRow.id)
     await db.run('INSERT INTO friendships (id, aId, bId, since) VALUES (?,?,?,?)', newId('fr'), reqRow.fromId, reqRow.toId, new Date().toISOString())
     res.json({ ok: true })
-  } catch (err) { next(err) }
+  } catch (err) { 
+    console.error('Register error:', err)
+    next(err) 
+  }
 })
 
 app.post('/friends/requests/:id/decline', authMiddleware, async (req, res, next) => {
@@ -300,7 +350,10 @@ app.post('/friends/requests/:id/decline', authMiddleware, async (req, res, next)
     if (!reqRow || reqRow.toId !== req.user.id || reqRow.status !== 'pending') return res.status(400).json({ error: 'Invalid request' })
     await db.run('UPDATE friend_requests SET status = ? WHERE id = ?', 'declined', reqRow.id)
     res.json({ ok: true })
-  } catch (err) { next(err) }
+  } catch (err) { 
+    console.error('Register error:', err)
+    next(err) 
+  }
 })
 
 app.post('/friends/requests/:id/cancel', authMiddleware, async (req, res, next) => {
@@ -309,7 +362,10 @@ app.post('/friends/requests/:id/cancel', authMiddleware, async (req, res, next) 
     if (!reqRow || reqRow.fromId !== req.user.id || reqRow.status !== 'pending') return res.status(400).json({ error: 'Invalid request' })
     await db.run('DELETE FROM friend_requests WHERE id = ?', reqRow.id)
     res.json({ ok: true })
-  } catch (err) { next(err) }
+  } catch (err) { 
+    console.error('Register error:', err)
+    next(err) 
+  }
 })
 
 app.get('/friends', authMiddleware, async (req, res, next) => {
@@ -317,7 +373,10 @@ app.get('/friends', authMiddleware, async (req, res, next) => {
     const rows = await db.all('SELECT * FROM friendships WHERE aId = ? OR bId = ?', req.user.id, req.user.id)
     const ids = rows.map(r => (r.aId === req.user.id ? r.bId : r.aId))
     res.json({ friends: ids })
-  } catch (err) { next(err) }
+  } catch (err) { 
+    console.error('Register error:', err)
+    next(err) 
+  }
 })
 
 // DMs
@@ -336,16 +395,22 @@ app.get('/dms', async (req, res, next) => {
       return { threadKey: r.threadKey, otherUserId: other, lastMessage: last || null, unread }
     }))
     // sort by last message desc
-    result.sort((a,b) => (b.lastMessage?.createdAt || 0) - (a.lastMessage?.createdAt || 0))
+    result.sort((a, b) => (b.lastMessage?.createdAt || 0) - (a.lastMessage?.createdAt || 0))
     res.json({ conversations: result })
-  } catch (err) { next(err) }
+  } catch (err) { 
+    console.error('Register error:', err)
+    next(err) 
+  }
 })
 
 app.get('/dms/:threadKey/messages', async (req, res, next) => {
   try {
     const msgs = await db.all('SELECT * FROM dm_messages WHERE threadKey = ? ORDER BY createdAt ASC', req.params.threadKey)
     res.json({ messages: msgs })
-  } catch (err) { next(err) }
+  } catch (err) { 
+    console.error('Register error:', err)
+    next(err) 
+  }
 })
 
 app.post('/dms/:otherId/messages', perUserMessagesLimiter, async (req, res, next) => {
@@ -363,7 +428,10 @@ app.post('/dms/:otherId/messages', perUserMessagesLimiter, async (req, res, next
     const safeContent = sanitizeMessageContent(content || '')
     await db.run('INSERT INTO dm_messages (id, threadKey, userId, content, attachments, replyToId, createdAt) VALUES (?,?,?,?,?,?,?)', id, threadKey, req.user.id, safeContent, JSON.stringify(attachments || []), replyToId || null, createdAt)
     res.json({ id, threadKey, createdAt })
-  } catch (err) { next(err) }
+  } catch (err) { 
+    console.error('Register error:', err)
+    next(err) 
+  }
 })
 
 app.put('/dms/messages/:id', async (req, res, next) => {
@@ -374,7 +442,10 @@ app.put('/dms/messages/:id', async (req, res, next) => {
     const safeContent = sanitizeMessageContent(content || '')
     await db.run('UPDATE dm_messages SET content = ?, editedAt = ? WHERE id = ?', safeContent, Date.now(), row.id)
     res.json({ ok: true })
-  } catch (err) { next(err) }
+  } catch (err) { 
+    console.error('Register error:', err)
+    next(err) 
+  }
 })
 
 app.delete('/dms/messages/:id', authMiddleware, async (req, res, next) => {
@@ -383,7 +454,10 @@ app.delete('/dms/messages/:id', authMiddleware, async (req, res, next) => {
     if (!row || row.userId !== req.user.id) return res.status(403).json({ error: 'Forbidden' })
     await db.run('DELETE FROM dm_messages WHERE id = ?', row.id)
     res.json({ ok: true })
-  } catch (err) { next(err) }
+  } catch (err) { 
+    console.error('Register error:', err)
+    next(err) 
+  }
 })
 
 app.post('/dms/messages/:id/reactions', authMiddleware, async (req, res, next) => {
@@ -398,14 +472,20 @@ app.post('/dms/messages/:id/reactions', authMiddleware, async (req, res, next) =
       await db.run('INSERT INTO reactions (id, messageType, messageId, emoji, userId) VALUES (?,?,?,?,?)', newId('rxn'), 'dm', msg.id, emoji, req.user.id)
     }
     res.json({ ok: true })
-  } catch (err) { next(err) }
+  } catch (err) { 
+    console.error('Register error:', err)
+    next(err) 
+  }
 })
 
 app.put('/dms/:threadKey/read', authMiddleware, async (req, res, next) => {
   try {
     await upsertDmRead(req.params.threadKey, req.user.id, Date.now())
     res.json({ ok: true })
-  } catch (err) { next(err) }
+  } catch (err) { 
+    console.error('Register error:', err)
+    next(err) 
+  }
 })
 
 // Groups
@@ -427,7 +507,10 @@ app.get('/groups', async (req, res, next) => {
     // Default: user's groups
     const groups = await db.all('SELECT gc.* FROM group_chats gc JOIN group_members gm ON gc.id = gm.groupId WHERE gm.userId = ?', req.user.id)
     res.json({ groups })
-  } catch (err) { next(err) }
+  } catch (err) { 
+    console.error('Register error:', err)
+    next(err) 
+  }
 })
 
 app.post('/groups', async (req, res, next) => {
@@ -440,7 +523,10 @@ app.post('/groups', async (req, res, next) => {
     await db.run('INSERT INTO group_chats (id, name, description, isPrivate, inviteCode, createdAt, createdBy) VALUES (?,?,?,?,?,?,?)', id, escape(name), description ? escape(description) : '', isPrivate ? 1 : 0, inviteCode, new Date().toISOString(), req.user.id)
     await db.run('INSERT INTO group_members (id, groupId, userId, role, joinedAt) VALUES (?,?,?,?,?)', newId('m'), id, req.user.id, 'admin', new Date().toISOString())
     res.json({ id })
-  } catch (err) { next(err) }
+  } catch (err) { 
+    console.error('Register error:', err)
+    next(err) 
+  }
 })
 
 app.post('/groups/:id/join', authMiddleware, async (req, res, next) => {
@@ -450,14 +536,20 @@ app.post('/groups/:id/join', authMiddleware, async (req, res, next) => {
     const exists = await db.get('SELECT * FROM group_members WHERE groupId = ? AND userId = ?', g.id, req.user.id)
     if (!exists) await db.run('INSERT INTO group_members (id, groupId, userId, role, joinedAt) VALUES (?,?,?,?,?)', newId('m'), g.id, req.user.id, 'member', new Date().toISOString())
     res.json({ ok: true })
-  } catch (err) { next(err) }
+  } catch (err) { 
+    console.error('Register error:', err)
+    next(err) 
+  }
 })
 
 app.post('/groups/:id/leave', authMiddleware, async (req, res, next) => {
   try {
     await db.run('DELETE FROM group_members WHERE groupId = ? AND userId = ?', req.params.id, req.user.id)
     res.json({ ok: true })
-  } catch (err) { next(err) }
+  } catch (err) { 
+    console.error('Register error:', err)
+    next(err) 
+  }
 })
 
 app.put('/groups/:id/settings', authMiddleware, async (req, res, next) => {
@@ -467,14 +559,20 @@ app.put('/groups/:id/settings', authMiddleware, async (req, res, next) => {
     if (!g) return res.status(404).json({ error: 'Not found' })
     await db.run('UPDATE group_chats SET name=?, description=?, isPrivate=? WHERE id=?', name ?? g.name, description ?? g.description, typeof isPrivate === 'boolean' ? (isPrivate ? 1 : 0) : g.isPrivate, g.id)
     res.json({ ok: true })
-  } catch (err) { next(err) }
+  } catch (err) { 
+    console.error('Register error:', err)
+    next(err) 
+  }
 })
 
 app.get('/groups/:id/messages', authMiddleware, async (req, res, next) => {
   try {
     const msgs = await db.all('SELECT * FROM group_messages WHERE groupId = ? ORDER BY createdAt ASC', req.params.id)
     res.json({ messages: msgs })
-  } catch (err) { next(err) }
+  } catch (err) { 
+    console.error('Register error:', err)
+    next(err) 
+  }
 })
 
 app.post('/groups/:id/messages', perUserMessagesLimiter, async (req, res, next) => {
@@ -486,7 +584,10 @@ app.post('/groups/:id/messages', perUserMessagesLimiter, async (req, res, next) 
     const safeContent = sanitizeMessageContent(content || '')
     await db.run('INSERT INTO group_messages (id, groupId, userId, content, attachments, replyToId, createdAt) VALUES (?,?,?,?,?,?,?)', id, req.params.id, req.user.id, safeContent, JSON.stringify(attachments || []), replyToId || null, new Date().toISOString())
     res.json({ id })
-  } catch (err) { next(err) }
+  } catch (err) { 
+    console.error('Register error:', err)
+    next(err) 
+  }
 })
 
 app.post('/groups/messages/:id/reactions', authMiddleware, async (req, res, next) => {
@@ -498,7 +599,10 @@ app.post('/groups/messages/:id/reactions', authMiddleware, async (req, res, next
     if (exists) await db.run('DELETE FROM reactions WHERE id = ?', exists.id)
     else await db.run('INSERT INTO reactions (id, messageType, messageId, emoji, userId) VALUES (?,?,?,?,?)', newId('rxn'), 'group', msg.id, emoji, req.user.id)
     res.json({ ok: true })
-  } catch (err) { next(err) }
+  } catch (err) { 
+    console.error('Register error:', err)
+    next(err) 
+  }
 })
 
 app.post('/groups/:id/pins', authMiddleware, async (req, res, next) => {
@@ -507,7 +611,10 @@ app.post('/groups/:id/pins', authMiddleware, async (req, res, next) => {
     if (action === 'pin') await insertGroupPinIgnore(req.params.id, messageId)
     else if (action === 'unpin') await db.run('DELETE FROM group_pins WHERE groupId = ? AND messageId = ?', req.params.id, messageId)
     res.json({ ok: true })
-  } catch (err) { next(err) }
+  } catch (err) { 
+    console.error('Register error:', err)
+    next(err) 
+  }
 })
 
 // Reports & Moderation
@@ -520,21 +627,27 @@ app.post('/reports', authMiddleware, async (req, res, next) => {
     await db.run('INSERT INTO reports (id, reporterId, targetUserId, groupId, messageId, reason, evidence, status, createdAt) VALUES (?,?,?,?,?,?,?,?,?)', id, req.user.id, targetUserId || null, groupId || null, messageId || null, escape(reason), JSON.stringify(evidence || {}), 'pending', new Date().toISOString())
     await audit(req, 'report.submit', { id, targetUserId, groupId, messageId })
     res.json({ id, status: 'pending' })
-  } catch (err) { next(err) }
+  } catch (err) { 
+    console.error('Register error:', err)
+    next(err) 
+  }
 })
 
 app.get('/reports', authMiddleware, adminOnly, async (req, res, next) => {
   try {
     const reports = await db.all('SELECT * FROM reports ORDER BY createdAt DESC')
     res.json({ reports })
-  } catch (err) { next(err) }
+  } catch (err) { 
+    console.error('Register error:', err)
+    next(err) 
+  }
 })
 
 app.post('/reports/:id/action', authMiddleware, adminOnly, async (req, res, next) => {
   try {
     const { action, banType, durationMs, targetUserId } = req.body || {}
     if (action === 'ban') {
-      if (!targetUserId || !banType || !['temp','perm'].includes(banType)) return res.status(400).json({ error: 'Invalid ban action' })
+      if (!targetUserId || !banType || !['temp', 'perm'].includes(banType)) return res.status(400).json({ error: 'Invalid ban action' })
       const banId = newId('ban')
       const createdAt = Date.now()
       const duration = banType === 'temp' ? Number(durationMs || 0) : null
@@ -544,7 +657,10 @@ app.post('/reports/:id/action', authMiddleware, adminOnly, async (req, res, next
     await db.run('UPDATE reports SET status = ? WHERE id = ?', 'resolved', req.params.id)
     await audit(req, 'report.resolve', { reportId: req.params.id, action })
     res.json({ ok: true })
-  } catch (err) { next(err) }
+  } catch (err) { 
+    console.error('Register error:', err)
+    next(err) 
+  }
 })
 
 // WebRTC Call Signaling (in-memory)
@@ -557,7 +673,10 @@ app.post('/calls/start', authMiddleware, async (req, res, next) => {
     const callId = newId('call')
     calls.set(callId, { fromUserId: req.user.id, toUserId, offer, status: 'pending', createdAt: Date.now() })
     res.json({ callId, status: 'pending' })
-  } catch (err) { next(err) }
+  } catch (err) { 
+    console.error('Register error:', err)
+    next(err) 
+  }
 })
 
 app.post('/calls/answer', authMiddleware, async (req, res, next) => {
@@ -571,7 +690,10 @@ app.post('/calls/answer', authMiddleware, async (req, res, next) => {
     c.answer = answer
     c.status = 'accepted'
     res.json({ ok: true, status: 'accepted' })
-  } catch (err) { next(err) }
+  } catch (err) { 
+    console.error('Register error:', err)
+    next(err) 
+  }
 })
 
 app.post('/calls/cancel', authMiddleware, async (req, res, next) => {
@@ -582,7 +704,10 @@ app.post('/calls/cancel', authMiddleware, async (req, res, next) => {
     if (c.fromUserId !== req.user.id) return res.status(403).json({ error: 'Only caller can cancel' })
     c.status = 'cancelled'
     res.json({ ok: true, status: 'cancelled' })
-  } catch (err) { next(err) }
+  } catch (err) { 
+    console.error('Register error:', err)
+    next(err) 
+  }
 })
 
 // File Upload
@@ -593,12 +718,12 @@ app.post('/upload', authMiddleware, createSingleFileUploadMiddleware('file'), as
     }
 
     const file = req.file
-    
+
     // In a real implementation, you would:
     // 1. Upload to cloud storage (AWS S3, Google Cloud, etc.)
     // 2. Store file metadata in database
     // 3. Return public URL
-    
+
     // For now, simulate successful upload
     const fileRecord = {
       id: newId('file'),
@@ -613,8 +738,8 @@ app.post('/upload', authMiddleware, createSingleFileUploadMiddleware('file'), as
       publicUrl: `https://your-cdn.com/files/${file.secureFilename}`
     }
 
-    await audit(req, 'file.upload', { 
-      fileId: fileRecord.id, 
+    await audit(req, 'file.upload', {
+      fileId: fileRecord.id,
       filename: file.originalname,
       size: file.size,
       mimeType: file.mimetype
@@ -637,7 +762,7 @@ app.post('/upload', authMiddleware, createSingleFileUploadMiddleware('file'), as
 // Helper functions for chat API
 function extractUserQuestion(contents) {
   if (!contents || !Array.isArray(contents)) return ''
-  
+
   // Find the last user message
   for (let i = contents.length - 1; i >= 0; i--) {
     const content = contents[i]
@@ -676,7 +801,7 @@ function generateEnhancedMockResponse(userQuestion, contents) {
   const question = (userQuestion || '').toLowerCase()
   const context = getRecentContext(contents)
   const isFollowUp = /tell me more|more details|what about|and|also|continue|follow up/i.test(userQuestion || '')
-  
+
   // Detect question type and provide intelligent responses
   if (question.includes('recycl')) {
     return `♻️ Great question! Recycling is the process of converting waste materials into reusable products. Here's how it works:
@@ -695,7 +820,7 @@ function generateEnhancedMockResponse(userQuestion, contents) {
 
 **Getting Started:** Check your local recycling guidelines - they vary by municipality. Most areas accept paper, cardboard, plastic bottles, glass, and metal cans.${context.lastAssistant ? '\n\n' + context.lastAssistant : ''}`
   }
-  
+
   if (question.includes('climat') || question.includes('climate')) {
     return `🌍 Climate change refers to long-term shifts in global temperatures and weather patterns, primarily driven by human activities since the mid-20th century.
 
@@ -714,7 +839,7 @@ function generateEnhancedMockResponse(userQuestion, contents) {
 
 **Impact:** Since 1880, global temperatures have risen about 1.1°C, causing sea levels to rise, extreme weather events, and ecosystem changes.${context.lastAssistant ? '\n\n' + context.lastAssistant : ''}`
   }
-  
+
   if (question.includes('energy') || question.includes('power') || question.includes('electric')) {
     return `⚡ Renewable energy is power generated from natural sources that are constantly replenished and doesn't run out!
 
@@ -734,7 +859,7 @@ function generateEnhancedMockResponse(userQuestion, contents) {
 
 **For Your Home:** Consider solar panels - costs have dropped 80% in 10 years! Many governments offer tax incentives.${context.lastAssistant ? '\n\n' + context.lastAssistant : ''}`
   }
-  
+
   if (question.includes('carbon') || question.includes('footprint') || question.includes('co2')) {
     return `🌱 A carbon footprint is the total amount of greenhouse gases produced by your actions, measured in carbon dioxide equivalent.
 
@@ -756,7 +881,7 @@ Measure your impact from:
 
 **Quick Tip:** Check online calculators - the average person's carbon footprint is about 4 tons per year globally.${context.lastAssistant ? '\n\n' + context.lastAssistant : ''}`
   }
-  
+
   if (question.includes('water') || question.includes('conserve') || question.includes('save')) {
     return `💧 Water conservation is vital! Fresh water is a limited resource - only 2.5% of Earth's water is fresh.
 
@@ -777,7 +902,7 @@ Measure your impact from:
 
 **Impact:** If each person saves 20 gallons/day, that's 7,300 gallons per person per year!${context.lastAssistant ? '\n\n' + context.lastAssistant : ''}`
   }
-  
+
   if (question.includes('plastic') || question.includes('waste')) {
     return `🔄 Plastic waste is a major environmental issue - it takes 400-1,000 years to decompose!
 
@@ -802,7 +927,7 @@ Measure your impact from:
 • Use a reusable water bottle
 • Buy in bulk to reduce packaging${context.lastAssistant ? '\n\n' + context.lastAssistant : ''}`
   }
-  
+
   if (question.includes('pollution')) {
     return `🌫️ Pollution comes in many forms and affects air, water, and soil.
 
@@ -829,7 +954,7 @@ Measure your impact from:
 
 **Quick Fact:** Air pollution causes 7 million premature deaths worldwide each year.${context.lastAssistant ? '\n\n' + context.lastAssistant : ''}`
   }
-  
+
   if (question.includes('sustain') || question.includes('green') || question.includes('eco')) {
     return `🌿 Sustainability means meeting our current needs without compromising future generations' ability to meet theirs.
 
@@ -852,7 +977,7 @@ Sustainability ensures we have healthy ecosystems, clean water, fertile soil, an
 
 Every small action counts! 🌍${context.lastAssistant ? '\n\n' + context.lastAssistant : ''}`
   }
-  
+
   // Default intelligent response
   return `🌱 That's a great question! I'm here to help you learn about environmental topics like:
 
@@ -913,7 +1038,7 @@ app.post('/api/chat', async (req, res, next) => {
 
     // Check if Gemini API is available
     const GEMINI_API_KEY = process.env.GEMINI_API_KEY
-    
+
     // Force enhanced mode for now (always use enhanced responses)
     console.log('🤖 Using Enhanced AI responses')
     const userQuestion = extractUserQuestion(contents)
@@ -923,7 +1048,7 @@ app.post('/api/chat', async (req, res, next) => {
       text: mockResponse,
       model: 'AversoAI-Enhanced'
     })
-    
+
     // Original code below (commented for testing)
     /*
     if (!GEMINI_API_KEY) {
@@ -952,23 +1077,23 @@ app.post('/api/chat', async (req, res, next) => {
       HarmBlockThreshold = geminiModule.HarmBlockThreshold
     } catch (importError) {
       console.error('Failed to import Gemini AI library:', importError)
-      return res.status(500).json({ 
-        error: 'AI service unavailable', 
-        message: 'Failed to load AI library' 
+      return res.status(500).json({
+        error: 'AI service unavailable',
+        message: 'Failed to load AI library'
       })
     }
-    
+
     let genAI
     try {
       genAI = new GoogleGenerativeAI(GEMINI_API_KEY)
     } catch (initError) {
       console.error('Failed to initialize Gemini AI:', initError)
-      return res.status(500).json({ 
-        error: 'AI service unavailable', 
-        message: 'Failed to initialize AI service' 
+      return res.status(500).json({
+        error: 'AI service unavailable',
+        message: 'Failed to initialize AI service'
       })
     }
-    
+
     // Safety settings
     const safetySettings = [
       { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE },
@@ -999,7 +1124,7 @@ Constraints: prefer general best practices unless a location is given. Keep to 3
 
     // Model selection
     const modelName = modelKey === 'balanced' ? 'gemini-1.5-pro-latest' : 'gemini-1.5-flash-latest'
-    
+
     let model
     try {
       model = genAI.getGenerativeModel({
@@ -1010,9 +1135,9 @@ Constraints: prefer general best practices unless a location is given. Keep to 3
       })
     } catch (modelError) {
       console.error('Failed to create Gemini model:', modelError)
-      return res.status(500).json({ 
-        error: 'AI service unavailable', 
-        message: 'Failed to create AI model' 
+      return res.status(500).json({
+        error: 'AI service unavailable',
+        message: 'Failed to create AI model'
       })
     }
 
@@ -1022,8 +1147,8 @@ Constraints: prefer general best practices unless a location is given. Keep to 3
       const response = result.response
       const text = response.text()
 
-      res.json({ 
-        success: true, 
+      res.json({
+        success: true,
         text,
         model: modelKey
       })
@@ -1039,8 +1164,8 @@ Constraints: prefer general best practices unless a location is given. Keep to 3
           model: 'mock'
         })
       }
-      return res.status(500).json({ 
-        error: 'Generation failed', 
+      return res.status(500).json({
+        error: 'Generation failed',
         message: 'Failed to generate AI response',
         retryable: true
       })
@@ -1048,8 +1173,8 @@ Constraints: prefer general best practices unless a location is given. Keep to 3
 
   } catch (error) {
     console.error('Chat API error:', error)
-    res.status(500).json({ 
-      error: 'Generation failed', 
+    res.status(500).json({
+      error: 'Generation failed',
       message: 'Something went wrong with the AI service',
       retryable: true
     })
@@ -1061,28 +1186,34 @@ app.get('/health', (req, res) => res.json({ ok: true }))
 
 // Error handler
 app.use((err, req, res, next) => {
-  console.error(err)
-  res.status(500).json({ error: 'Internal server error' })
+  console.error('Error:', err)
+  console.error('Stack:', err.stack)
+  const status = err.status || err.statusCode || 500
+  const message = err.message || 'Internal server error'
+  res.status(status).json({ 
+    error: message,
+    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+  })
 })
 
-// Start after DB init
-;(async () => {
-  try {
-    await init()
-    if (process.env.NODE_ENV !== 'test') {
-      app.listen(PORT, () => {
-        console.log(`EEG server listening on http://localhost:${PORT}`)
-      })
+  // Start after DB init
+  ; (async () => {
+    try {
+      await init()
+      if (process.env.NODE_ENV !== 'test') {
+        app.listen(PORT, () => {
+          console.log(`EEG server listening on http://localhost:${PORT}`)
+        })
+      }
+    } catch (e) {
+      console.error('Failed to initialize server', e)
+      if (process.env.NODE_ENV !== 'test') {
+        console.warn('Starting server without DB. Chat API will work; DB features limited.')
+        app.listen(PORT, () => {
+          console.log(`EEG server listening on http://localhost:${PORT} (no DB connection)`)
+        })
+      }
     }
-  } catch (e) {
-    console.error('Failed to initialize server', e)
-    if (process.env.NODE_ENV !== 'test') {
-      console.warn('Starting server without DB. Chat API will work; DB features limited.')
-      app.listen(PORT, () => {
-        console.log(`EEG server listening on http://localhost:${PORT} (no DB connection)`)
-      })
-    }
-  }
-})();
+  })();
 
 module.exports = app

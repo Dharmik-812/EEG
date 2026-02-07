@@ -13,12 +13,24 @@ import { ScriptSystem } from './systems/ScriptSystem.js'
 import { TimelineSystem } from './systems/TimelineSystem.js'
 import { WebGLRenderSystem } from './systems/WebGLRenderSystem.js'
 import { ParticleSystem } from './systems/ParticleSystem.js'
+import { DebugSystem } from './systems/DebugSystem.js'
 
+/**
+ * Main Engine class.
+ * Manages the game loop, systems, and global state.
+ */
 export class Engine {
+  /**
+   * @param {HTMLCanvasElement} canvas
+   * @param {object} project - Project JSON
+   * @param {object} opts - Configuration options
+   */
   constructor(canvas, project, opts = {}) {
     this.canvas = canvas
     this.project = project
     this.opts = opts
+    this.debug = false // Debug mode toggle
+
 
     // Device pixel ratio for crisp rendering
     this.dpr = Math.max(1, Math.floor((window.devicePixelRatio || 1) * 100) / 100)
@@ -37,7 +49,7 @@ export class Engine {
     this.audio = new AudioManager(this.assets)
     this.scenes = new SceneManager(project, this.assets)
 
-    // Systems order: timeline -> animation -> physics -> collisions -> scripts -> render -> particles
+    // Systems order: timeline -> animation -> physics -> collisions -> scripts -> render -> particles -> debug
     this.systems = [
       new TimelineSystem(this),
       new AnimationSystem(this),
@@ -49,6 +61,10 @@ export class Engine {
     // Particle system appended last so particles draw above sprites/UI
     this.particles = new ParticleSystem(this)
     this.systems.push(this.particles)
+
+    // Debug system last (overlays)
+    this.debugSystem = new DebugSystem(this)
+    this.systems.push(this.debugSystem)
 
     this.running = false
     this.paused = false
@@ -76,6 +92,15 @@ export class Engine {
     this._timers = [] // { at, cb, repeat, interval }
     this._events = new Map() // name -> Set(callback)
 
+    // Shared global state for scripts
+    this.globals = {}
+
+    // API Cache to reduce GC
+    this._apiCache = new WeakMap()
+
+    // Camera shake state
+    this._shake = { intensity: 0, duration: 0 }
+
     // Resize canvas to current scene
     const scene = this.scenes.current()
     if (scene) {
@@ -95,16 +120,16 @@ export class Engine {
     this._onResize = () => {
       const sc = this.scenes.current(); if (sc) this._applyCanvasSize(sc)
     }
-    try { document.addEventListener('visibilitychange', this._onVisibility) } catch {}
-    try { window.addEventListener('resize', this._onResize) } catch {}
+    try { document.addEventListener('visibilitychange', this._onVisibility) } catch { }
+    try { window.addEventListener('resize', this._onResize) } catch { }
   }
 
   destroy() {
     this.running = false
     this.canvas.removeEventListener('click', this._onClick)
-    try { document.removeEventListener('visibilitychange', this._onVisibility) } catch {}
-    try { window.removeEventListener('resize', this._onResize) } catch {}
-    try { this.input?.destroy() } catch {}
+    try { document.removeEventListener('visibilitychange', this._onVisibility) } catch { }
+    try { window.removeEventListener('resize', this._onResize) } catch { }
+    try { this.input?.destroy() } catch { }
     this.audio.stopBGM()
   }
 
@@ -129,19 +154,19 @@ export class Engine {
       if (e.components?.tilemap) {
         const tm = e.components.tilemap
         const tw = tm.cols * tm.tileWidth, th = tm.rows * tm.tileHeight
-        return x >= t.x - tw/2 && x <= t.x + tw/2 && y >= t.y - th/2 && y <= t.y + th/2
+        return x >= t.x - tw / 2 && x <= t.x + tw / 2 && y >= t.y - th / 2 && y <= t.y + th / 2
       }
-      return x >= t.x - t.w/2 && x <= t.x + t.w/2 && y >= t.y - t.h/2 && y <= t.y + t.h/2
+      return x >= t.x - t.w / 2 && x <= t.x + t.w / 2 && y >= t.y - t.h / 2 && y <= t.y + t.h / 2
     })
     if (hit) {
       // rudimentary UI handling
       if (hit.components?.ui) {
-        try { if (navigator.vibrate) navigator.vibrate(10) } catch {}
+        try { if (navigator.vibrate) navigator.vibrate(10) } catch { }
         const ui = hit.components.ui
         if (ui.type === 'checkbox') { ui.checked = !ui.checked }
         if (ui.type === 'slider') {
           const t = hit.components.transform
-          const ratio = Math.max(0, Math.min(1, (x - (t.x - t.w/2)) / t.w))
+          const ratio = Math.max(0, Math.min(1, (x - (t.x - t.w / 2)) / t.w))
           const min = ui.min ?? 0, max = ui.max ?? 100
           ui.value = Math.round(min + ratio * (max - min))
         }
@@ -154,7 +179,10 @@ export class Engine {
     // Script component handlers first
     const script = entity.components?.script
     if (script?.code && typeof script._fn === 'function') {
-      try { script._fn(event, payload, this.api(entity)) } catch (e) { console.error('Script error', e) }
+      try { script._fn(event, payload, this.api(entity)) } catch (e) {
+        console.error('Script error', e)
+        this.opts.onError?.(e)
+      }
     }
 
     // Interactable action list support (compat with old project model)
@@ -178,10 +206,10 @@ export class Engine {
             const next = this.scenes.current()
             if (next) {
               this._applyCanvasSize(next)
-              try { this.systems.find(s => typeof s.onSceneChange === 'function')?.onSceneChange() } catch {}
+              try { this.systems.find(s => typeof s.onSceneChange === 'function')?.onSceneChange() } catch { }
               this.audio.stopBGM()
               if (next.bgm) this.audio.playBGM(next.bgm, { loop: true, volume: next.bgmVolume ?? 0.6 })
-              try { this.opts.onSceneChange?.(next, prevId) } catch {}
+              try { this.opts.onSceneChange?.(next, prevId) } catch { }
             }
             break
           }
@@ -200,8 +228,11 @@ export class Engine {
 
   // Minimal API exposed to scripts attached to an entity
   api(entity) {
+    if (!entity) return null
+    if (this._apiCache.has(entity)) return this._apiCache.get(entity)
+
     const engine = this
-    return {
+    const api = {
       entity,
       input: engine.input,
       // Deterministic RNG
@@ -215,10 +246,11 @@ export class Engine {
         resume: () => engine.resume(),
       },
       camera: {
-        set: (x, y) => { engine.camera = engine.camera || { x:0, y:0, zoom:1 }; engine.camera.x = x; engine.camera.y = y },
-        zoom: (z) => { engine.camera = engine.camera || { x:0, y:0, zoom:1 }; engine.camera.zoom = Math.max(0.25, Math.min(4, z)) },
-        follow: (id, lerp=0.15) => { engine.camera = engine.camera || { x:0, y:0, zoom:1 }; engine.camera.followId = typeof id === 'string' ? id : id?.id; engine.camera.lerp = lerp },
+        set: (x, y) => { engine.camera = engine.camera || { x: 0, y: 0, zoom: 1 }; engine.camera.x = x; engine.camera.y = y },
+        zoom: (z) => { engine.camera = engine.camera || { x: 0, y: 0, zoom: 1 }; engine.camera.zoom = Math.max(0.25, Math.min(4, z)) },
+        follow: (id, lerp = 0.15) => { engine.camera = engine.camera || { x: 0, y: 0, zoom: 1 }; engine.camera.followId = typeof id === 'string' ? id : id?.id; engine.camera.lerp = lerp },
         clearFollow: () => { if (engine.camera) engine.camera.followId = null },
+        shake: (intensity = 5, duration = 0.5) => { engine._shake.intensity = intensity; engine._shake.duration = duration },
       },
       audio: {
         play: (assetId, opts) => engine.audio.playSFX(assetId, opts),
@@ -240,8 +272,8 @@ export class Engine {
         if (t) { t.x += dx || 0; t.y += dy || 0 }
       },
       gotoScene: (sceneId) => engine.scenes.goto(sceneId),
-      setAnimation: (name) => { const a = entity.components?.animation; if (a) { a.current = name; a.time=0; a.frameIndex=0 } },
-      blendTo: (name, duration=0.25) => { const a = entity.components?.animation; if (a) { a.blend = { target: name, duration, elapsed: 0, frameIndex: 0, time: 0 } } },
+      setAnimation: (name) => { const a = entity.components?.animation; if (a) { a.current = name; a.time = 0; a.frameIndex = 0 } },
+      blendTo: (name, duration = 0.25) => { const a = entity.components?.animation; if (a) { a.blend = { target: name, duration, elapsed: 0, frameIndex: 0, time: 0 } } },
       message: (textOrOpts, maybeOpts) => {
         const opts = typeof textOrOpts === 'string' ? (maybeOpts || {}) : (textOrOpts || {})
         const text = typeof textOrOpts === 'string' ? textOrOpts : (textOrOpts?.text || '')
@@ -264,7 +296,7 @@ export class Engine {
       // Scene/entity helpers for gameplay scripts
       addEntity: (spec) => {
         const scene = engine.scenes.current()
-        const id = spec?.id || `e-${Date.now()}-${Math.floor(engine.random()*9999)}`
+        const id = spec?.id || `e-${Date.now()}-${Math.floor(engine.random() * 9999)}`
         const ent = { id, name: spec?.name || 'Entity', components: spec?.components || {} }
         scene.entities.push(ent)
         return ent
@@ -276,7 +308,17 @@ export class Engine {
         if (idx >= 0) scene.entities.splice(idx, 1)
       },
       entities: () => engine.scenes.current().entities,
+      // New Scripting Features
+      setTimeout: (cb, ms) => engine.setTimeout(cb, ms / 1000),
+      setInterval: (cb, ms) => engine.setInterval(cb, ms / 1000),
+      clearTimer: (t) => engine.clearTimer(t),
+      on: (name, cb) => engine.on(name, cb),
+      emit: (name, data) => engine.emit(name, data),
+      globals: engine.globals,
     }
+
+    this._apiCache.set(entity, api)
+    return api
   }
 
   start() {
@@ -291,7 +333,7 @@ export class Engine {
     let dt = (ts - this.lastTs) / 1000
     this.lastTs = ts
     // Clamp large dt spikes (tab restore, breakpoint) for stability
-    const maxDt = this.opts.maxDt || 1/15 // ~15 FPS upper dt bound
+    const maxDt = this.opts.maxDt || 1 / 15 // ~15 FPS upper dt bound
     if (dt > maxDt) dt = maxDt
 
     // Fixed-step update for determinism in physics
@@ -322,13 +364,29 @@ export class Engine {
     const scene = this.scenes.current()
     if (!scene) return
 
+    // Update screen shake
+    if (this._shake.duration > 0) {
+      this._shake.duration -= dt
+      if (this._shake.duration <= 0) {
+        this._shake.intensity = 0
+        if (this.camera) { this.camera.shakeX = 0; this.camera.shakeY = 0 }
+      } else {
+        // Apply shake offset to camera
+        const x = (this.random() - 0.5) * 2 * this._shake.intensity
+        const y = (this.random() - 0.5) * 2 * this._shake.intensity
+        this.camera = this.camera || { x: 0, y: 0, zoom: 1 }
+        this.camera.shakeX = x
+        this.camera.shakeY = y
+      }
+    }
+
     // Camera follow (center on followed entity)
     if (this.camera?.followId) {
       const ent = scene.entities.find(e => e.id === this.camera.followId)
       if (ent?.components?.transform) {
         const t = ent.components.transform
-        const targetX = Math.max(0, t.x - (scene.width/2))
-        const targetY = Math.max(0, t.y - (scene.height/2))
+        const targetX = Math.max(0, t.x - (scene.width / 2))
+        const targetY = Math.max(0, t.y - (scene.height / 2))
         const lerp = this.camera.lerp ?? 0.15
         this.camera.x = (this.camera.x || 0) + (targetX - (this.camera.x || 0)) * lerp
         this.camera.y = (this.camera.y || 0) + (targetY - (this.camera.y || 0)) * lerp
@@ -341,7 +399,7 @@ export class Engine {
       for (let i = this._timers.length - 1; i >= 0; i--) {
         const t = this._timers[i]
         if (now >= t.at) {
-          try { t.cb() } catch {}
+          try { t.cb() } catch { }
           if (t.repeat && t.interval) {
             t.at += t.interval
           } else {
@@ -356,7 +414,18 @@ export class Engine {
   draw() {
     const scene = this.scenes.current()
     if (!scene) return
+
+    // Apply camera shake to context if needed
+    if (this.camera && (this.camera.shakeX || this.camera.shakeY)) {
+      this.ctx.save()
+      this.ctx.translate(this.camera.shakeX, this.camera.shakeY)
+    }
+
     for (const sys of this.systems) if (sys.draw) sys.draw(scene, this.ctx)
+
+    if (this.camera && (this.camera.shakeX || this.camera.shakeY)) {
+      this.ctx.restore()
+    }
   }
 
   async preloadAssets(onProgress) {
@@ -384,7 +453,7 @@ export class Engine {
       this.canvas.style.imageRendering = 'auto'
     }
     // Reset any previous transforms
-    if (this.ctx?.setTransform) this.ctx.setTransform(1,0,0,1,0,0)
+    if (this.ctx?.setTransform) this.ctx.setTransform(1, 0, 0, 1, 0, 0)
   }
 
   pause() { this.paused = true }
@@ -398,7 +467,7 @@ export class Engine {
       return () => Math.random()
     }
     const seedStr = String(seedLike)
-    function xfnv1a(str){
+    function xfnv1a(str) {
       let h = 2166136261 >>> 0
       for (let i = 0; i < str.length; i++) {
         h ^= str.charCodeAt(i)
@@ -406,8 +475,8 @@ export class Engine {
       }
       return () => h >>> 0
     }
-    function mulberry32(a){
-      return function(){
+    function mulberry32(a) {
+      return function () {
         let t = a += 0x6D2B79F5
         t = Math.imul(t ^ (t >>> 15), t | 1)
         t ^= t + Math.imul(t ^ (t >>> 7), t | 61)
@@ -423,8 +492,8 @@ export class Engine {
 
   // Event/message/timer API for scripts
   on(name, cb) { const set = this._events.get(name) || new Set(); set.add(cb); this._events.set(name, set); return () => set.delete(cb) }
-  emit(name, payload) { const set = this._events.get(name); if (!set) return; for (const cb of set) { try { cb(payload) } catch {} } }
-  setTimeout(cb, delaySec) { const t = { at: this.time.elapsed + Math.max(0, delaySec||0), cb }; this._timers.push(t); return t }
-  setInterval(cb, intervalSec) { const t = { at: this.time.elapsed + Math.max(0, intervalSec||0), cb, repeat: true, interval: Math.max(0, intervalSec||0) }; this._timers.push(t); return t }
+  emit(name, payload) { const set = this._events.get(name); if (!set) return; for (const cb of set) { try { cb(payload) } catch { } } }
+  setTimeout(cb, delaySec) { const t = { at: this.time.elapsed + Math.max(0, delaySec || 0), cb }; this._timers.push(t); return t }
+  setInterval(cb, intervalSec) { const t = { at: this.time.elapsed + Math.max(0, intervalSec || 0), cb, repeat: true, interval: Math.max(0, intervalSec || 0) }; this._timers.push(t); return t }
   clearTimer(timerRef) { const i = this._timers.indexOf(timerRef); if (i >= 0) this._timers.splice(i, 1) }
 }

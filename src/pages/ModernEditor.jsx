@@ -9,6 +9,7 @@ import ModernSceneToolbar from '../components/editor/ModernSceneToolbar'
 import ModernHierarchyPanel from '../components/editor/ModernHierarchyPanel'
 import ModernInspector from '../components/editor/ModernInspector'
 import ModernConsolePanel from '../components/editor/ModernConsolePanel'
+import TimelinePanel from '../components/editor/TimelinePanel'
 import EnhancedViewport from '../components/editor/EnhancedViewport'
 import TutorialTour from '../components/editor/TutorialTour'
 import toast from 'react-hot-toast'
@@ -20,35 +21,35 @@ import SEO from '../components/SEO.jsx'
 import AchievementNotification from '../components/AchievementNotification'
 
 // Minimal runtime schema validation to ensure only supported editor projects are loaded
-function validateProjectSchema(data){
-  try{
-    if(typeof data !== 'object' || !data) return false
-    if(!Array.isArray(data.scenes) || data.scenes.length === 0) return false
-    for(const s of data.scenes){
-      if(typeof s.id !== 'string') return false
-      if(!Array.isArray(s.entities)) return false
-      for(const e of s.entities){
-        if(typeof e !== 'object' || !e) return false
-        if(typeof e.id !== 'string') return false
-        if(typeof e.components !== 'object' || !e.components) return false
+function validateProjectSchema(data) {
+  try {
+    if (typeof data !== 'object' || !data) return false
+    if (!Array.isArray(data.scenes) || data.scenes.length === 0) return false
+    for (const s of data.scenes) {
+      if (typeof s.id !== 'string') return false
+      if (!Array.isArray(s.entities)) return false
+      for (const e of s.entities) {
+        if (typeof e !== 'object' || !e) return false
+        if (typeof e.id !== 'string') return false
+        if (typeof e.components !== 'object' || !e.components) return false
         // only allow known component keys
-        const allowed = new Set(['transform','sprite','text','ui','rigidbody','collider','tilemap','script','emitter','audioSource'])
-        for(const k of Object.keys(e.components)){
-          if(!allowed.has(k)) return false
+        const allowed = new Set(['transform', 'sprite', 'text', 'ui', 'rigidbody', 'collider', 'tilemap', 'script', 'emitter', 'audioSource'])
+        for (const k of Object.keys(e.components)) {
+          if (!allowed.has(k)) return false
         }
       }
     }
     // assets must be images or audio only
-    if(data.assets && !Array.isArray(data.assets)) return false
-    if(Array.isArray(data.assets)){
-      for(const a of data.assets){
-        if(typeof a.id !== 'string') return false
-        if(a.type !== 'image' && a.type !== 'audio') return false
-        if(typeof a.src !== 'string') return false
+    if (data.assets && !Array.isArray(data.assets)) return false
+    if (Array.isArray(data.assets)) {
+      for (const a of data.assets) {
+        if (typeof a.id !== 'string') return false
+        if (a.type !== 'image' && a.type !== 'audio') return false
+        if (typeof a.src !== 'string') return false
       }
     }
     return true
-  }catch{ return false }
+  } catch { return false }
 }
 
 export default function ModernEditor() {
@@ -61,17 +62,18 @@ export default function ModernEditor() {
   const [showTutorial, setShowTutorial] = useState(false)
   const [showGrid, setShowGrid] = useState(true)
   const [showRulers, setShowRulers] = useState(false)
-  
+
   // Modern layout state
   const [leftCollapsed, setLeftCollapsed] = useState(false)
   const [rightCollapsed, setRightCollapsed] = useState(false)
   const [bottomCollapsed, setBottomCollapsed] = useState(false)
   const [hierarchyTab, setHierarchyTab] = useState('hierarchy')
   const [consoleTab, setConsoleTab] = useState('console')
+  const [bottomTab, setBottomTab] = useState('console')
 
   const { currentUser } = useAuthStore(s => ({ currentUser: s.currentUser }))
   const { submitGame, approvedGames, seedDemos } = useSubmissionsStore(s => ({ submitGame: s.submitGame, approvedGames: s.approvedGames, seedDemos: s.seedDemos }))
-  const { project, mode, setMode, selectedEntityId, selectEntity, addEntity, deleteSelected, loadProject, importAsset } = useEditorStore(s => ({
+  const { project, mode, setMode, selectedEntityId, selectEntity, addEntity, deleteSelected, loadProject, importAsset, updateEntity, transformMode, setTransformMode, setParent, duplicateEntity, renameEntity } = useEditorStore(s => ({
     project: s.project,
     mode: s.mode,
     setMode: s.setMode,
@@ -80,7 +82,13 @@ export default function ModernEditor() {
     addEntity: s.addEntity,
     deleteSelected: s.deleteSelected,
     loadProject: s.loadProject,
-    importAsset: s.importAsset
+    importAsset: s.importAsset,
+    updateEntity: s.updateEntity,
+    transformMode: s.transformMode || 'select',
+    setTransformMode: s.setTransformMode,
+    setParent: s.setParent,
+    duplicateEntity: s.duplicateEntity,
+    renameEntity: s.renameEntity
   }))
 
   // Get logs from store
@@ -225,10 +233,10 @@ export default function ModernEditor() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-900">
-        <LoadingSpinner 
-          size="xl" 
-          message="Initializing Modern Game Engine..." 
-          variant="recycle" 
+        <LoadingSpinner
+          size="xl"
+          message="Initializing Modern Game Engine..."
+          variant="recycle"
         />
       </div>
     )
@@ -237,7 +245,7 @@ export default function ModernEditor() {
   return (
     <>
       <SEO title="Modern Game Engine" description="Professional 2D game engine with modern dark theme interface for creating environmental education games." />
-      
+
       <ModernLayout
         leftPanel={
           <ModernHierarchyPanel
@@ -248,6 +256,9 @@ export default function ModernEditor() {
             onSelectEntity={selectEntity}
             onAddEntity={addEntity}
             onDeleteEntity={deleteSelected}
+            onSetParent={setParent}
+            onDuplicateEntity={duplicateEntity}
+            onRenameEntity={renameEntity}
             onSelectAsset={(assetId) => console.log('Select asset:', assetId)}
             onDeleteAsset={(assetId) => console.log('Delete asset:', assetId)}
             onImportAsset={async (file) => {
@@ -261,10 +272,12 @@ export default function ModernEditor() {
           />
         }
         centerPanel={
-          <div className="flex-1 flex flex-col">
+          <div className="flex-1 flex flex-col min-h-0 min-w-0 overflow-hidden">
             <ModernSceneToolbar
               mode={mode}
               onModeChange={setMode}
+              transformMode={transformMode}
+              onTransformModeChange={setTransformMode}
               isPlaying={mode === 'play'}
               onPlay={() => setMode('play')}
               onPause={() => setMode('edit')}
@@ -348,7 +361,7 @@ export default function ModernEditor() {
                 if (parent) {
                   const w = parent.clientWidth - 64
                   const h = parent.clientHeight - 140
-                  const fit = Math.max(0.25, Math.min(3, Math.min(w/800, h/600)))
+                  const fit = Math.max(0.25, Math.min(3, Math.min(w / 800, h / 600)))
                   useEditorStore.getState().setZoom?.(fit)
                 }
               }}
@@ -356,9 +369,16 @@ export default function ModernEditor() {
               onShowHelp={() => setShowTutorial(true)}
               onHome={() => navigate('/')}
             />
-            
-            <div className="flex-1 flex items-center justify-center p-4">
-              <div className="relative bg-slate-800 rounded-lg shadow-2xl border-2 border-slate-600 overflow-hidden" style={{ width: 960, height: 600 }}>
+
+            <div className="flex-1 flex items-center justify-center p-4 min-h-0 overflow-hidden" style={{ minHeight: 0 }}>
+              <div className="relative bg-slate-800 rounded-lg shadow-2xl border-2 border-slate-600 overflow-hidden" style={{ 
+                width: '100%', 
+                height: '100%', 
+                maxWidth: '100%', 
+                maxHeight: '100%',
+                aspectRatio: '16/9',
+                objectFit: 'contain'
+              }}>
                 <EnhancedViewport mode={mode} canvasRef={canvasRef} showGrid={showGrid} showRulers={showRulers} />
               </div>
             </div>
@@ -368,17 +388,8 @@ export default function ModernEditor() {
           <ModernInspector
             selectedEntity={project?.scenes?.[0]?.entities?.find(e => e.id === selectedEntityId)}
             onUpdateEntity={(id, entity) => {
-              const scene = project?.scenes?.[0]
-              if (!scene) return
-              const updated = { ...project }
-              const sidx = updated.scenes.findIndex(s => s.id === scene.id)
-              const eidx = scene.entities.findIndex(e => e.id === id)
-              if (eidx === -1) return
-              const newScene = { ...scene }
-              newScene.entities = [...scene.entities]
-              newScene.entities[eidx] = entity
-              updated.scenes[sidx] = newScene
-              useEditorStore.getState().loadProject(updated)
+              // Use updateEntity instead of loadProject to preserve selection
+              updateEntity?.(id, entity, false)
             }}
             onRemoveComponent={(componentType) => {
               if (!selectedEntityId) return
@@ -388,13 +399,10 @@ export default function ModernEditor() {
               if (!entity) return
               const updated = { ...entity }
               delete updated.components[componentType]
-              const updatedProject = { ...project }
-              const sidx = updatedProject.scenes.findIndex(s => s.id === scene.id)
-              const eidx = scene.entities.findIndex(e => e.id === selectedEntityId)
-              updatedProject.scenes[sidx].entities[eidx] = updated
-              useEditorStore.getState().loadProject(updatedProject)
+              // Use updateEntity instead of loadProject to preserve selection
+              updateEntity?.(selectedEntityId, updated, false)
             }}
-            onAddComponent={(componentType) => {
+            onAddComponent={(componentType, defaultProps) => {
               if (!selectedEntityId) return
               const scene = project?.scenes?.[0]
               if (!scene) return
@@ -403,47 +411,64 @@ export default function ModernEditor() {
               const updated = { ...entity }
               updated.components = { ...updated.components }
               const defaults = {
-                rigidbody: { vx: 0, vy: 0, ax: 0, ay: 0, gravity: 0, friction: 0 },
+                rigidbody: { vx: 0, vy: 0, ax: 0, ay: 0, gravity: 0, friction: 0, angularVelocity: 0, torque: 0, angularDrag: 0 },
                 collider: { type: 'aabb', w: 100, h: 100, isTrigger: false, layer: 0 },
                 script: { code: "function onUpdate(event, payload, api) { /* called every frame */ }" },
-                audioSource: { assetId: null, volume: 1.0, loop: false }
+                audioSource: { assetId: null, volume: 1.0, loop: false, playOnAwake: true },
+                animation: { current: '', speed: 10 },
+                emitter: { rate: 10, speed: 80, life: 0.6, size: 2, color: '#ffffff', gravity: 0 },
+                sprite: { fill: '#34d399' },
+                text: { value: 'New Text', size: 24, color: '#065f46' },
+                tilemap: { tileWidth: 32, tileHeight: 32, cols: 10, rows: 10, data: [] }
               }
-              if (defaults[componentType]) {
-                updated.components[componentType] = defaults[componentType]
-                const updatedProject = { ...project }
-                const sidx = updatedProject.scenes.findIndex(s => s.id === scene.id)
-                const eidx = scene.entities.findIndex(e => e.id === selectedEntityId)
-                updatedProject.scenes[sidx].entities[eidx] = updated
-                useEditorStore.getState().loadProject(updatedProject)
-              }
+              updated.components[componentType] = defaultProps || defaults[componentType] || {}
+              // Use updateEntity instead of loadProject to preserve selection
+              updateEntity?.(selectedEntityId, updated, false)
             }}
+            project={project}
+            onImportAsset={importAsset}
           />
         }
         bottomPanel={
-          <ModernConsolePanel
-            activeTab={consoleTab}
-            onTabChange={setConsoleTab}
-            logs={logs}
-            onClearLogs={clearLogs}
-            selectedEntity={project?.scenes?.[0]?.entities?.find(e => e.id === selectedEntityId)}
-            onUpdateScript={(id, code) => {
+          bottomTab === 'console' ? (
+            <ModernConsolePanel
+              activeTab={consoleTab}
+              onTabChange={setConsoleTab}
+              logs={logs}
+              onClearLogs={clearLogs}
+              selectedEntity={project?.scenes?.[0]?.entities?.find(e => e.id === selectedEntityId)}
+            onUpdateScript={(id, code, language, originalCode) => {
               const scene = project?.scenes?.[0]
               if (!scene) return
               const entity = scene.entities.find(e => e.id === id)
               if (!entity) return
               const updated = { ...entity }
-              updated.components = { ...updated.components, script: { ...updated.components.script, code } }
-              const updatedProject = { ...project }
-              const sidx = updatedProject.scenes.findIndex(s => s.id === scene.id)
-              const eidx = scene.entities.findIndex(e => e.id === id)
-              updatedProject.scenes[sidx].entities[eidx] = updated
-              useEditorStore.getState().loadProject(updatedProject)
+              updated.components = { 
+                ...updated.components, 
+                script: { 
+                  ...updated.components.script, 
+                  code,
+                  language: language || 'javascript',
+                  originalCode: originalCode || undefined
+                } 
+              }
+              // Use updateEntity instead of loadProject to preserve selection
+              updateEntity?.(id, updated, false)
             }}
-            onRunScript={(id) => console.log('Run script:', id)}
-            onStopScript={(id) => console.log('Stop script:', id)}
-            isRunning={false}
-          />
+              onRunScript={(id) => console.log('Run script:', id)}
+              onStopScript={(id) => console.log('Stop script:', id)}
+              isRunning={false}
+            />
+          ) : (
+            <TimelinePanel />
+          )
         }
+        bottomPanelTabs={[
+          { id: 'console', label: 'Console' },
+          { id: 'timeline', label: 'Timeline' }
+        ]}
+        activeTab={bottomTab}
+        onTabChange={setBottomTab}
         leftCollapsed={leftCollapsed}
         rightCollapsed={rightCollapsed}
         bottomCollapsed={bottomCollapsed}

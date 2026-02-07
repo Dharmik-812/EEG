@@ -20,8 +20,10 @@ export default function ViewportCanvas() {
   const [resizing, setResizing] = useState(false)
   const [polyDrag, setPolyDrag] = useState(null) // { entityId, index }
 
-  // cache images for project assets
+  // cache images for project assets and primitive SVGs
   const imagesRef = useRef({})
+  const primitiveImagesRef = useRef({})
+  
   useEffect(() => {
     const map = {}
     for (const a of project.assets) {
@@ -34,9 +36,41 @@ export default function ViewportCanvas() {
     imagesRef.current = map
   }, [project.assets])
 
+  // Cache primitive SVG images from entities
+  const [primitiveImagesLoaded, setPrimitiveImagesLoaded] = useState(0)
+  useEffect(() => {
+    const scene = currentScene()
+    if (!scene) return
+    const map = { ...primitiveImagesRef.current }
+    let needsUpdate = false
+    
+    for (const e of scene.entities) {
+      const spr = e.components?.sprite
+      if (spr?.primitiveSVG) {
+        if (!map[spr.primitiveSVG]) {
+          needsUpdate = true
+          const img = new Image()
+          img.onload = () => {
+            setPrimitiveImagesLoaded(prev => prev + 1)
+          }
+          img.onerror = () => {
+            setPrimitiveImagesLoaded(prev => prev + 1)
+          }
+          img.src = spr.primitiveSVG
+          map[spr.primitiveSVG] = img
+        }
+      }
+    }
+    if (needsUpdate) {
+      primitiveImagesRef.current = map
+    }
+  }, [project, currentScene])
+
   useEffect(() => {
     const canvas = canvasRef.current
+    if (!canvas) return
     const ctx = canvas.getContext('2d')
+    let animationFrameId
 
     function draw() {
       const scene = currentScene()
@@ -62,7 +96,15 @@ export default function ViewportCanvas() {
       // draw by layer order for WYSIWYG
       const layers = scene.layers && scene.layers.length ? scene.layers : [{ id: null }]
       for (const layer of layers) {
-        for (const e of scene.entities.filter(en => (en.layerId||null) === (layer.id||null))) {
+        // Sort entities by collider layer property (higher layer = drawn on top)
+        const layerEntities = scene.entities
+          .filter(en => (en.layerId||null) === (layer.id||null))
+          .sort((a, b) => {
+            const layerA = a.components?.collider?.layer ?? 0
+            const layerB = b.components?.collider?.layer ?? 0
+            return layerA - layerB
+          })
+        for (const e of layerEntities) {
           const t = e.components.transform
           ctx.save()
           ctx.translate(t.x, t.y)
@@ -99,6 +141,22 @@ export default function ViewportCanvas() {
             const spr = e.components.sprite
             if (spr.assetId && imagesRef.current[spr.assetId]) {
               ctx.drawImage(imagesRef.current[spr.assetId], -t.w/2, -t.h/2, t.w, t.h)
+            } else if (spr.primitiveSVG) {
+              // Render primitive shapes from SVG data URL
+              const img = primitiveImagesRef.current[spr.primitiveSVG]
+              if (img) {
+                if (img.complete && img.naturalWidth > 0) {
+                  ctx.drawImage(img, -t.w/2, -t.h/2, t.w, t.h)
+                } else {
+                  // Fallback to fill color while loading
+                  ctx.fillStyle = spr.fill || '#94a3b8'
+                  ctx.fillRect(-t.w/2, -t.h/2, t.w, t.h)
+                }
+              } else {
+                // Image not cached yet, use fill color
+                ctx.fillStyle = spr.fill || '#94a3b8'
+                ctx.fillRect(-t.w/2, -t.h/2, t.w, t.h)
+              }
             } else {
               ctx.fillStyle = spr.fill || '#94a3b8'
               ctx.fillRect(-t.w/2, -t.h/2, t.w, t.h)
@@ -154,7 +212,7 @@ export default function ViewportCanvas() {
       requestAnimationFrame(draw)
     }
     requestAnimationFrame(draw)
-  }, [currentScene, selectedEntityId, zoom, grid])
+  }, [currentScene, selectedEntityId, zoom, grid, camera, project, dragging, resizing, polyDrag, primitiveImagesLoaded])
 
   function pointToScene(evt) {
     const rect = canvasRef.current.getBoundingClientRect()

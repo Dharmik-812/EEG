@@ -1,5 +1,6 @@
 import { motion, useReducedMotion } from 'framer-motion'
 import { useMemo } from 'react'
+import { Sprout } from 'lucide-react'
 
 export default function SplashScreen() {
   const reduce = useReducedMotion()
@@ -105,12 +106,13 @@ export default function SplashScreen() {
         {/* Enhanced loading bar with environmental messaging */}
         <div className="absolute -bottom-16 left-1/2 -translate-x-1/2 w-[75%] max-w-[520px]" style={{ willChange: 'transform, opacity', transform: 'translateZ(0)' }}>
           <motion.div
-            className="text-xs text-center text-emerald-600 dark:text-emerald-400 mb-2 font-medium"
+            className="text-xs text-center text-emerald-600 dark:text-emerald-400 mb-2 font-medium flex items-center justify-center gap-1.5"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.8 }}
           >
-            🌱 Loading your eco-adventure...
+            <Sprout className="h-3 w-3" />
+            <span>Loading your eco-adventure...</span>
           </motion.div>
           <div className="relative h-2 rounded-full bg-emerald-200/50 dark:bg-emerald-900/50 overflow-hidden shadow-inner" style={{ contain: 'paint' }}>
             <motion.div

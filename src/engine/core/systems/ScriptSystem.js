@@ -1,6 +1,10 @@
 // Runs script components (user-provided JS) each frame and handles events
 export class ScriptSystem {
+  /**
+   * @param {import('../Engine').Engine} engine
+   */
   constructor(engine) { this.engine = engine }
+
   _ensureCompiled(script) {
     if (script._fn && script._lastCode === script.code) return true
     try {
@@ -18,18 +22,19 @@ export class ScriptSystem {
       script._lastCode = script.code
       script._state = script._state || {}
       script._started = false
-      script._fn = function(event, payload, api) {
+      script._fn = function (event, payload, api) {
         const h = handlers[event] || null
         if (typeof h === 'function') return h(payload, api, script._state)
       }
       return true
     } catch (e) {
       console.error('Script compile error', e)
-      try { this.engine.opts?.onError?.(e) } catch {}
+      try { this.engine.opts?.onError?.(e) } catch { }
       script._fn = null
       return false
     }
   }
+
   update(scene, dt) {
     for (const e of scene.entities) {
       const script = e.components?.script
@@ -45,7 +50,7 @@ export class ScriptSystem {
         }
       } catch (err) {
         console.error('Script runtime error', err)
-        try { this.engine.opts?.onError?.(err) } catch {}
+        try { this.engine.opts?.onError?.(err) } catch { }
       }
     }
   }

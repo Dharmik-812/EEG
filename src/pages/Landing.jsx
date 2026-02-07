@@ -1,10 +1,33 @@
 import { Link } from 'react-router-dom'
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion'
-import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react'
+import { 
+  ArrowRight, ChevronLeft, ChevronRight, Sprout, Flower, Leaf, Globe, 
+  Zap, Trophy, FlaskConical, Fish, Microscope, Laptop, Map, Scale, 
+  Wheat, GraduationCap, User, Puzzle, Flame, Award, RefreshCw
+} from 'lucide-react'
 import { useRef, useState, useEffect } from 'react'
 import SEO from '../components/SEO.jsx'
 import { useScrollReveal, useSplitText, useGSAP } from '../animations'
+
+// Avatar icon mapping
+const avatarIconMap = {
+  sprout: Sprout,
+  butterfly: Flower,
+  leaf: Leaf,
+  globe: Globe,
+  zap: Zap,
+  trophy: Trophy,
+  flask: FlaskConical,
+  fish: Fish,
+  microscope: Microscope,
+  laptop: Laptop,
+  map: Map,
+  scale: Scale,
+  wheat: Wheat,
+  graduation: GraduationCap,
+  user: User
+}
 
 // Testimonials data for the slider
 const testimonialsData = [
@@ -13,7 +36,7 @@ const testimonialsData = [
     role: "Environmental Science Student",
     school: "Green Tech University",
     content: "AverSoltix transformed how I understand climate change. The interactive games make complex topics so much clearer!",
-    avatar: "🌱"
+    avatarIcon: 'sprout'
   },
 
   {
@@ -21,42 +44,42 @@ const testimonialsData = [
     role: "Biology Teacher",
     school: "Nature Academy",
     content: "My classroom has never been more interactive. Students are asking deeper questions about biodiversity.",
-    avatar: "🦋"
+    avatarIcon: 'butterfly'
   },
   {
     name: "Riya",
     role: "Sustainability Coordinator",
     school: "EcoVision College",
     content: "The gamified approach keeps our students engaged for hours. They're learning while having fun!",
-    avatar: "🌿"
+    avatarIcon: 'leaf'
   },
   {
     name: "Sneha",
     role: "Environmental Club President",
     school: "Eco Warriors College",
     content: "We use AverSoltix for our club activities. It's amazing how it connects classroom learning with real action.",
-    avatar: "🌍"
+    avatarIcon: 'globe'
   },
   {
     name: "Prit",
     role: "Engineering Student",
     school: "Tech Institute",
     content: "The renewable energy challenges helped me understand solar and wind power like never before!",
-    avatar: "⚡"
+    avatarIcon: 'zap'
   },
   {
     name: "Aryan",
     role: "High School Student",
     school: "Future Leaders School",
     content: "Earning badges and competing on leaderboards makes learning about the environment addictive!",
-    avatar: "🏆"
+    avatarIcon: 'trophy'
   },
   {
     name: "Henil",
     role: "Chemistry Teacher",
     school: "Innovation High",
     content: "The platform beautifully explains carbon cycles and chemical processes. My students love the visual approach.",
-    avatar: "🧪"
+    avatarIcon: 'flask'
   },
 
   {
@@ -64,63 +87,63 @@ const testimonialsData = [
     role: "Marine Biology Student",
     school: "Ocean Studies University",
     content: "The ocean conservation modules opened my eyes to marine ecosystems. The underwater simulations are incredible!",
-    avatar: "🐠"
+    avatarIcon: 'fish'
   },
   {
     name: "Abdullah",
     role: "Physics Teacher",
     school: "Science Pioneers Academy",
     content: "Teaching energy conservation has never been easier. The platform makes abstract concepts tangible.",
-    avatar: "🔬"
+    avatarIcon: 'microscope'
   },
   {
     name: "Aditya",
     role: "Computer Science Student",
     school: "Digital Innovation Institute",
     content: "The coding challenges for environmental modeling got me interested in climate data analysis!",
-    avatar: "💻"
+    avatarIcon: 'laptop'
   },
   {
     name: "Shreena",
     role: "Geography Teacher",
     school: "Global Awareness School",
     content: "My students now understand weather patterns and climate zones through interactive maps and games.",
-    avatar: "🗺️"
+    avatarIcon: 'map'
   },
   {
     name: "Shaista",
     role: "Environmental Law Student",
     school: "Justice & Environment College",
     content: "The platform helped me understand the scientific basis for environmental policies. Excellent resource!",
-    avatar: "⚖️"
+    avatarIcon: 'scale'
   },
   {
     name: "Prince",
     role: "Agricultural Science Student",
     school: "Sustainable Farming Institute",
     content: "Learning about sustainable agriculture through gamification changed my perspective on farming practices.",
-    avatar: "🌾"
+    avatarIcon: 'wheat'
   },
   {
     name: "Paula",
     role: "International Student",
     school: "Global Green University",
     content: "AverSoltix helped me understand environmental issues from a global perspective. The diversity is amazing!",
-    avatar: "🌎"
+    avatarIcon: 'globe'
   },
   {
     name: "Nimisha Ma'am",
     role: "Principal",
     school: "Eco Excellence Academy",
     content: "This platform has revolutionized environmental education at our school. Student engagement is at an all-time high!",
-    avatar: "👩‍🏫"
+    avatarIcon: 'graduation'
   },
   {
     name: "Vipul Sir",
     role: "Environmental Science Professor",
     school: "Research & Innovation University",
     content: "As an educator for 20 years, I've never seen students so excited about environmental science. Truly remarkable!",
-    avatar: "👨‍🔬"
+    avatarIcon: 'user'
   }
 ]
 
@@ -321,12 +344,15 @@ function TestimonialSlider() {
                           transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
                         />
                         <motion.div
-                          className="relative text-5xl sm:text-6xl grid place-items-center h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-white/70 dark:bg-slate-800/70 border border-white/30 dark:border-slate-700/50 shadow-inner"
+                          className="relative grid place-items-center h-16 w-16 sm:h-20 sm:w-20 rounded-full bg-white/70 dark:bg-slate-800/70 border border-white/30 dark:border-slate-700/50 shadow-inner"
                           whileHover={{ rotateY: [0, -8, 8, 0] }}
                           animate={{ y: [-2, 2, -2] }}
                           transition={{ y: { duration: 6, repeat: Infinity, ease: 'easeInOut' }, rotateY: { duration: 0.6 } }}
                         >
-                          {testimonial.avatar}
+                          {(() => {
+                            const IconComponent = avatarIconMap[testimonial.avatarIcon] || User
+                            return <IconComponent className="h-8 w-8 sm:h-10 sm:w-10 text-emerald-600 dark:text-emerald-400" />
+                          })()}
                         </motion.div>
                       </motion.div>
 
@@ -381,19 +407,22 @@ function TestimonialSlider() {
 
           {/* Avatar Navigation */}
           <div className="flex justify-center mt-10 flex-wrap gap-2 sm:gap-3">
-            {testimonialsData.map((t, index) => (
-              <button
-                key={index}
-                onClick={() => { setCurrentIndex(index); resetTimer() }}
-                className={`relative grid place-items-center w-10 h-10 sm:w-9 sm:h-9 rounded-full transition-all duration-300 focus:outline-none touch-manipulation ${index === currentIndex ? 'ring-2 ring-emerald-400 scale-110' : 'opacity-70 hover:opacity-100'}`}
-                aria-label={`Go to testimonial ${index + 1}`}
-              >
-                <span className="text-lg sm:text-base">{t.avatar}</span>
-                {index === currentIndex && (
-                  <motion.span layoutId="active-avatar-ring" className="absolute inset-0 rounded-full border-2 border-emerald-400/60" />
-                )}
-              </button>
-            ))}
+            {testimonialsData.map((t, index) => {
+              const IconComponent = avatarIconMap[t.avatarIcon] || User
+              return (
+                <button
+                  key={index}
+                  onClick={() => { setCurrentIndex(index); resetTimer() }}
+                  className={`relative grid place-items-center w-10 h-10 sm:w-9 sm:h-9 rounded-full transition-all duration-300 focus:outline-none touch-manipulation ${index === currentIndex ? 'ring-2 ring-emerald-400 scale-110' : 'opacity-70 hover:opacity-100'}`}
+                  aria-label={`Go to testimonial ${index + 1}`}
+                >
+                  <IconComponent className="h-5 w-5 sm:h-4 sm:w-4 text-emerald-600 dark:text-emerald-400" />
+                  {index === currentIndex && (
+                    <motion.span layoutId="active-avatar-ring" className="absolute inset-0 rounded-full border-2 border-emerald-400/60" />
+                  )}
+                </button>
+              )
+            })}
           </div>
         </div>
       </div>
@@ -563,19 +592,19 @@ export default function Landing() {
 
                 {/* Floating elements */}
                 <motion.div
-                  className="absolute -top-2 sm:-top-4 -right-2 sm:-right-4 w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-full flex items-center justify-center text-lg sm:text-xl lg:text-2xl"
+                  className="absolute -top-2 sm:-top-4 -right-2 sm:-right-4 w-12 h-12 sm:w-16 sm:h-16 lg:w-20 lg:h-20 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-full flex items-center justify-center"
                   animate={{ y: [-10, 10, -10], rotate: [0, 5, -5, 0] }}
                   transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                 >
-                  🌍
+                  <Globe className="h-6 w-6 sm:h-8 sm:w-8 lg:h-10 lg:w-10 text-white" />
                 </motion.div>
 
                 <motion.div
-                  className="absolute -bottom-1 sm:-bottom-2 -left-3 sm:-left-6 w-10 h-10 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-gradient-to-br from-sky-400 to-sky-600 rounded-full flex items-center justify-center text-base sm:text-lg lg:text-xl"
+                  className="absolute -bottom-1 sm:-bottom-2 -left-3 sm:-left-6 w-10 h-10 sm:w-14 sm:h-14 lg:w-16 lg:h-16 bg-gradient-to-br from-sky-400 to-sky-600 rounded-full flex items-center justify-center"
                   animate={{ y: [10, -10, 10], rotate: [0, -5, 5, 0] }}
                   transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 1 }}
                 >
-                  ♻️
+                  <RefreshCw className="h-5 w-5 sm:h-7 sm:w-7 lg:h-8 lg:w-8 text-white" />
                 </motion.div>
               </motion.div>
             </motion.div>
@@ -603,10 +632,12 @@ export default function Landing() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {[
-              { title: 'Quests & Challenges', desc: 'Interactive missions that teach climate science.', emoji: '🧩', gradient: 'from-emerald-500 to-teal-600' },
-              { title: 'Daily Streaks', desc: 'Build consistent learning habits with rewards.', emoji: '🔥', gradient: 'from-orange-500 to-red-600' },
-              { title: 'Badges & Leaderboards', desc: 'Compete and unlock achievements as you learn.', emoji: '🏆', gradient: 'from-yellow-500 to-amber-600' },
-            ].map((feature, i) => (
+              { title: 'Quests & Challenges', desc: 'Interactive missions that teach climate science.', icon: Puzzle, gradient: 'from-emerald-500 to-teal-600' },
+              { title: 'Daily Streaks', desc: 'Build consistent learning habits with rewards.', icon: Flame, gradient: 'from-orange-500 to-red-600' },
+              { title: 'Badges & Leaderboards', desc: 'Compete and unlock achievements as you learn.', icon: Trophy, gradient: 'from-yellow-500 to-amber-600' },
+            ].map((feature, i) => {
+              const IconComponent = feature.icon
+              return (
               <motion.div
                 key={i}
                 className="hero-card group cursor-pointer"
@@ -635,7 +666,7 @@ export default function Landing() {
                     whileHover={{ scale: 1.2, rotate: 5 }}
                     transition={{ type: "spring", stiffness: 400 }}
                   >
-                    {feature.emoji}
+                    <IconComponent className="h-8 w-8 sm:h-10 sm:w-10 text-white" />
                   </motion.div>
 
                   {/* Content */}
@@ -675,7 +706,8 @@ export default function Landing() {
                   />
                 </div>
               </motion.div>
-            ))}
+              )
+            })}
           </div>
 
 

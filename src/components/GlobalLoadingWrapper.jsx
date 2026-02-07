@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import AnimatedLoadingScreen from './AnimatedLoadingScreen'
 import SimpleLoadingScreen from './SimpleLoadingScreen'
@@ -8,16 +8,23 @@ const GlobalLoadingWrapper = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true)
   const [isInitialized, setIsInitialized] = useState(false)
   const [useFallback, setUseFallback] = useState(false)
+  const hasLoadedRef = useRef(false)
 
   useEffect(() => {
+    // Only show loading screen on first load, not on tab switches
+    if (hasLoadedRef.current) {
+      setIsLoading(false)
+      return
+    }
+
     // Show loading screen immediately
     setIsInitialized(true)
     
     // Simulate app initialization tasks
     const initializeApp = async () => {
       try {
-        // Ensure minimum 3-second loading time for the full animation
-        const minLoadTime = 3000
+        // Ensure minimum 2-second loading time for the animation
+        const minLoadTime = 2000
         const startTime = Date.now()
         
         // Simulate loading tasks (you can add real initialization here)
@@ -30,7 +37,7 @@ const GlobalLoadingWrapper = ({ children }) => {
           new Promise(resolve => setTimeout(resolve, 300)),
         ])
         
-        // Ensure we've shown the loading screen for at least 3 seconds
+        // Ensure we've shown the loading screen for at least 2 seconds
         const elapsedTime = Date.now() - startTime
         const remainingTime = Math.max(0, minLoadTime - elapsedTime)
         
@@ -38,9 +45,13 @@ const GlobalLoadingWrapper = ({ children }) => {
           await new Promise(resolve => setTimeout(resolve, remainingTime))
         }
         
+        // Mark as loaded
+        hasLoadedRef.current = true
+        
         // Loading tasks complete - this will trigger the loading screen completion
       } catch (error) {
         console.error('App initialization failed:', error)
+        hasLoadedRef.current = true
         // Still proceed to show loading screen
       }
     }
@@ -49,8 +60,9 @@ const GlobalLoadingWrapper = ({ children }) => {
     
     // Safety: never let the app get stuck behind the loading screen
     const safetyTimer = setTimeout(() => {
+      hasLoadedRef.current = true
       setIsLoading(false)
-    }, 4000)
+    }, 3500)
     return () => clearTimeout(safetyTimer)
   }, [])
 

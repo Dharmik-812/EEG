@@ -219,17 +219,15 @@ export default function App() {
       window.lastUserInteraction = Date.now()
     }
 
-    // Minimal delay to ensure stores are initialized
-    const initTimer = setTimeout(() => {
-      // This helps with new tab navigation by ensuring stores are ready
-      if (typeof window !== 'undefined') {
-        window.dispatchEvent(new Event('storage'))
-        // Trigger a small user interaction to prevent false stuck detection
-        window.lastUserInteraction = Date.now()
-      }
-      setIsAppReady(true)
-    }, 100) // Reduced delay for faster loading
-    return () => clearTimeout(initTimer)
+    // Set app ready immediately - no delay needed
+    setIsAppReady(true)
+    
+    // This helps with new tab navigation by ensuring stores are ready
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('storage'))
+      // Trigger a small user interaction to prevent false stuck detection
+      window.lastUserInteraction = Date.now()
+    }
   }, [])
 
   // Handle browser navigation events for better tab support
@@ -275,18 +273,8 @@ export default function App() {
     return () => clearTimeout(splashTimer)
   }, [])
 
-  // Don't render main app until it's ready to prevent blank screens
-  if (!isAppReady) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-slate-900">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-sm text-slate-600 dark:text-slate-400">Initializing AverSoltix...</p>
-          <p className="text-xs text-slate-500 mt-2">Loading your eco-adventure...</p>
-        </div>
-      </div>
-    )
-  }
+  // Always render the app - don't block on isAppReady
+  // The GlobalLoadingWrapper will handle the loading screen
 
   return (
     <ErrorBoundary>

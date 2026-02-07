@@ -4,7 +4,7 @@ import toast from 'react-hot-toast'
 import { useNavigate, Link } from 'react-router-dom'
 import Card from '../components/Card'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Rocket, Eye, EyeOff, Stars, TreePine, Leaf, Globe, Award, Gamepad2, Users, GraduationCap, School, User, BookOpen } from 'lucide-react'
+import { Rocket, Eye, EyeOff, Stars, TreePine, Leaf, Globe, Award, Gamepad2, Users, GraduationCap, School, User, BookOpen, Sprout } from 'lucide-react'
 import SEO from '../components/SEO.jsx'
 
 const USER_ROLES = [
@@ -463,7 +463,10 @@ export default function Register() {
               >
                 <p className="text-xs text-slate-600 dark:text-slate-400 text-center leading-relaxed">
                   By creating an account, you agree to join our mission of environmental education and sustainability.
-                  Let's build a greener future together! 🌱
+                  <span className="flex items-center justify-center gap-1.5 mt-1">
+                    <span>Let's build a greener future together!</span>
+                    <Sprout className="h-4 w-4 text-emerald-600" />
+                  </span>
                 </p>
               </motion.div>
             </form>

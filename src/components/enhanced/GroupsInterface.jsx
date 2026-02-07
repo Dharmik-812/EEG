@@ -32,6 +32,7 @@ import {
 
 import Modal from '../Modal'
 import GroupSettingsDrawer from '../GroupSettingsDrawer'
+import '../../styles/messages-groups.css'
 
 const GroupsInterface = () => {
   const { currentUser } = useAuthStore()
@@ -176,29 +177,57 @@ const GroupsInterface = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 sm:space-y-8 min-h-screen bg-gradient-to-br from-slate-50 via-emerald-50/20 to-blue-50/20 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 -m-6 sm:-m-8 p-6 sm:p-8">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <motion.div 
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 sm:gap-6"
+      >
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+          <motion.h1 
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.1 }}
+            className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-emerald-600 via-teal-600 to-blue-600 bg-clip-text text-transparent"
+          >
             Groups
-          </h1>
-          <p className="text-slate-600 dark:text-slate-400">
+          </motion.h1>
+          <motion.p 
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.2 }}
+            className="text-slate-600 dark:text-slate-400 mt-2 text-sm sm:text-base"
+          >
             Discover and join communities around your interests
-          </p>
+          </motion.p>
         </div>
         
-        <Button
-          onClick={() => setShowCreateModal(true)}
-          icon={Plus}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.3 }}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
         >
-          Create Group
-        </Button>
-      </div>
+          <Button
+            onClick={() => setShowCreateModal(true)}
+            icon={Plus}
+            className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white shadow-lg shadow-emerald-500/50 font-semibold"
+          >
+            Create Group
+          </Button>
+        </motion.div>
+      </motion.div>
 
       {/* Search and filters */}
-      <Card>
-        <CardContent className="space-y-4">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+      >
+        <Card className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl border-2 border-slate-200/50 dark:border-slate-700/50 shadow-2xl">
+          <CardContent className="space-y-4 sm:space-y-6 p-4 sm:p-6">
           {/* Search bar */}
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
@@ -249,28 +278,34 @@ const GroupsInterface = () => {
           </div>
 
           {/* Category filters */}
-          <div className="flex flex-wrap gap-2">
-            {categories.map(category => {
+          <div className="flex flex-wrap gap-2 sm:gap-3">
+            {categories.map((category, index) => {
               const Icon = category.icon
               return (
-                <button
+                <motion.button
                   key={category.id}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.1 * index }}
                   onClick={() => setSelectedCategory(category.id)}
+                  whileHover={{ scale: 1.05, y: -2 }}
+                  whileTap={{ scale: 0.95 }}
                   className={clsx(
-                    'flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all',
+                    'flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 shadow-sm',
                     selectedCategory === category.id
-                      ? 'bg-emerald-600 text-white shadow-md'
-                      : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600'
+                      ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/50'
+                      : 'bg-white/80 dark:bg-slate-700/80 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-600 border border-slate-200 dark:border-slate-600'
                   )}
                 >
                   <Icon className="h-4 w-4" />
                   {category.label}
-                </button>
+                </motion.button>
               )
             })}
           </div>
         </CardContent>
       </Card>
+      </motion.div>
 
       {/* Groups list */}
       {loading.groups ? (
@@ -347,8 +382,14 @@ const GroupCard = ({
 
   if (viewMode === 'list') {
     return (
-      <Card hover className="p-4">
-        <div className="flex items-center gap-4">
+      <motion.div
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        whileHover={{ x: 4, scale: 1.01 }}
+        transition={{ duration: 0.3 }}
+      >
+        <Card hover className="p-4 sm:p-6 bg-white/90 dark:bg-slate-800/90 backdrop-blur-xl border-2 border-slate-200/50 dark:border-slate-700/50 shadow-lg hover:shadow-xl transition-all duration-300">
+          <div className="flex items-center gap-4 sm:gap-6">
           <div className="w-16 h-16 bg-gradient-to-br from-emerald-400 to-blue-500 rounded-xl flex items-center justify-center text-white text-xl font-bold">
             {group.name[0]?.toUpperCase()}
           </div>
@@ -380,44 +421,72 @@ const GroupCard = ({
           
           <div className="flex items-center gap-2">
             {isOwner && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onSettings}
-                icon={Settings}
-              />
+              <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onSettings}
+                  icon={Settings}
+                  className="hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
+                />
+              </motion.div>
             )}
             
             {isJoined ? (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={onLeave}
-              >
-                Leave
-              </Button>
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={onLeave}
+                  className="border-2 border-slate-300 dark:border-slate-600 hover:border-red-400 hover:text-red-600"
+                >
+                  Leave
+                </Button>
+              </motion.div>
             ) : (
-              <Button
-                size="sm"
-                onClick={onJoin}
-                icon={UserPlus}
-              >
-                Join
-              </Button>
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button
+                  size="sm"
+                  onClick={onJoin}
+                  icon={UserPlus}
+                  className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white shadow-lg shadow-emerald-500/50"
+                >
+                  Join
+                </Button>
+              </motion.div>
             )}
           </div>
         </div>
       </Card>
+      </motion.div>
     )
   }
 
   return (
-    <Card hover className="overflow-hidden">
-      <div className="aspect-video bg-gradient-to-br from-emerald-400 to-blue-500 flex items-center justify-center">
-        <div className="text-4xl font-bold text-white">
-          {group.name[0]?.toUpperCase()}
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={{ y: -8, scale: 1.02 }}
+      transition={{ duration: 0.3 }}
+    >
+      <Card hover className="overflow-hidden bg-white/90 dark:bg-slate-800/90 backdrop-blur-xl border-2 border-slate-200/50 dark:border-slate-700/50 shadow-xl hover:shadow-2xl transition-all duration-300">
+        <div className="aspect-video bg-gradient-to-br from-emerald-400 via-teal-500 to-blue-500 flex items-center justify-center relative overflow-hidden">
+          <motion.div 
+            animate={{ 
+              backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
+            }}
+            transition={{
+              duration: 10,
+              repeat: Infinity,
+              ease: "linear"
+            }}
+            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+            style={{ backgroundSize: '200% 100%' }}
+          />
+          <div className="text-5xl font-bold text-white drop-shadow-lg relative z-10">
+            {group.name[0]?.toUpperCase()}
+          </div>
         </div>
-      </div>
       
       <CardContent>
         <div className="flex items-start justify-between mb-2">
@@ -466,39 +535,53 @@ const GroupCard = ({
         <div className="flex gap-2">
           {isJoined ? (
             <>
-              <Button
-                variant="outline"
-                size="sm"
-                fullWidth
-                onClick={onLeave}
-              >
-                Leave
-              </Button>
-              <Button
-                size="sm"
-                fullWidth
-                icon={MessageCircle}
-                onClick={() => {
-                  // Navigate to group chat
-                  window.location.href = `/messages?group=${group.id}`
-                }}
-              >
-                Chat
-              </Button>
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="flex-1">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  fullWidth
+                  onClick={onLeave}
+                  className="border-2 border-slate-300 dark:border-slate-600 hover:border-red-400 hover:text-red-600"
+                >
+                  Leave
+                </Button>
+              </motion.div>
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="flex-1">
+                <Button
+                  size="sm"
+                  fullWidth
+                  icon={MessageCircle}
+                  onClick={() => {
+                    // Navigate to group chat
+                    window.location.href = `/messages?group=${group.id}`
+                  }}
+                  className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white shadow-lg shadow-emerald-500/50"
+                >
+                  Chat
+                </Button>
+              </motion.div>
             </>
           ) : (
-            <Button
-              size="sm"
-              fullWidth
-              onClick={onJoin}
-              icon={UserPlus}
+            <motion.div 
+              whileHover={{ scale: 1.05 }} 
+              whileTap={{ scale: 0.95 }}
+              className="w-full"
             >
-              Join Group
-            </Button>
+              <Button
+                size="sm"
+                fullWidth
+                onClick={onJoin}
+                icon={UserPlus}
+                className="bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white shadow-lg shadow-emerald-500/50 font-semibold"
+              >
+                Join Group
+              </Button>
+            </motion.div>
           )}
         </div>
       </CardContent>
     </Card>
+    </motion.div>
   )
 }
 

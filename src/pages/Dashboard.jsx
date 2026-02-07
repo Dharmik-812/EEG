@@ -14,7 +14,7 @@ import {
   TrendingUp, Award, Zap, Target, Users, BookOpen, Gamepad2, 
   Calendar, Clock, Star, GraduationCap, School, Building, 
   BarChart3, PieChart as PieChartIcon, Activity, Plus, 
-  ChevronRight, Globe, Leaf, TreePine
+  ChevronRight, Globe, Leaf, TreePine, Sprout, Flame
 } from 'lucide-react'
 
 const ROLE_COLORS = {
@@ -254,7 +254,7 @@ export default function Dashboard() {
                 <span className="bg-gradient-to-r from-emerald-600 via-blue-600 to-purple-600 bg-clip-text text-transparent">
                   {currentUser?.name || 'Eco Learner'}
                 </span>!
-                <span className="inline-block ml-2 text-3xl">🌱</span>
+                <Sprout className="inline-block ml-2 h-8 w-8 text-emerald-600 dark:text-emerald-400" />
               </h1>
               
               <div className="flex flex-wrap items-center gap-3">
@@ -374,8 +374,9 @@ export default function Dashboard() {
             <div className="text-4xl font-extrabold xp-counter text-gradient">
               {xp.toLocaleString()}
             </div>
-            <div className="mt-4 text-sm text-slate-500">
-              🌱 Keep growing! Every action helps save the planet.
+            <div className="mt-4 text-sm text-slate-500 flex items-center gap-2">
+              <Sprout className="h-4 w-4 text-emerald-600" />
+              <span>Keep growing! Every action helps save the planet.</span>
             </div>
           </Card>
         </motion.div>
@@ -396,8 +397,9 @@ export default function Dashboard() {
             <div className="mt-2 streak-flame">
               <StreakFlame streak={streak} />
             </div>
-            <div className="mt-3 text-xs text-slate-500">
-              🔥 {streak > 0 ? `${streak} days strong!` : 'Start your streak today!'}
+            <div className="mt-3 text-xs text-slate-500 flex items-center gap-2">
+              <Flame className="h-4 w-4 text-orange-500" />
+              <span>{streak > 0 ? `${streak} days strong!` : 'Start your streak today!'}</span>
             </div>
           </Card>
         </motion.div>

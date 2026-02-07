@@ -5,7 +5,8 @@ import {
     History, RefreshCw, Edit3, Image as ImageIcon, Mic, MicOff,
     Volume2, VolumeX, X, Send, Plus, Trash2, Settings, 
     AlertCircle, Wifi, WifiOff, Clock, Shield, Bot, User,
-    Zap, ZapOff, Loader2, Search, Moon, Sun, Download, Upload
+    Zap, ZapOff, Loader2, Search, Moon, Sun, Download, Upload,
+    Globe, Sprout, Lightbulb, RefreshCw as Recycle, BarChart3, Leaf, TrendingUp
 } from 'lucide-react'
 import { loadGSAP } from '../animations/lazy'
 import { useAnimationStore } from '../store/animationStore'
@@ -222,6 +223,132 @@ const Avatar = React.memo(({
 })
 Avatar.displayName = 'Avatar'
 
+// Enhanced Message Content Renderer with Markdown Support
+const MessageContent = React.memo(({ content }) => {
+    const [copied, setCopied] = useState(false)
+    const contentRef = useRef(null)
+
+    const handleCopy = useCallback(async () => {
+        if (!content) return
+        try {
+            await navigator.clipboard.writeText(content)
+            setCopied(true)
+            setTimeout(() => setCopied(false), 2000)
+        } catch (err) {
+            console.error('Failed to copy:', err)
+        }
+    }, [content])
+
+    // Simple markdown-like rendering
+    const renderContent = useCallback((text) => {
+        if (!text) return null
+        
+        // Split by code blocks first
+        const codeBlockRegex = /```(\w+)?\n([\s\S]*?)```/g
+        const parts = []
+        let lastIndex = 0
+        let match
+        let key = 0
+
+        while ((match = codeBlockRegex.exec(text)) !== null) {
+            // Add text before code block
+            if (match.index > lastIndex) {
+                const beforeText = text.slice(lastIndex, match.index)
+                parts.push(
+                    <span key={`text-${key++}`}>
+                        {renderInlineMarkdown(beforeText)}
+                    </span>
+                )
+            }
+
+            // Add code block
+            const language = match[1] || 'text'
+            const code = match[2]
+            parts.push(
+                <div key={`code-${key++}`} className="my-3 relative group">
+                    <div className="flex items-center justify-between px-3 py-2 bg-slate-800 rounded-t-lg border-b border-slate-700">
+                        <span className="text-xs text-slate-400 font-mono">{language}</span>
+                        <button
+                            onClick={() => {
+                                navigator.clipboard.writeText(code)
+                                setCopied(true)
+                                setTimeout(() => setCopied(false), 2000)
+                            }}
+                            className="text-xs text-slate-400 hover:text-white transition-colors px-2 py-1 rounded"
+                        >
+                            {copied ? 'Copied!' : 'Copy'}
+                        </button>
+                    </div>
+                    <pre className="bg-slate-900 p-4 rounded-b-lg overflow-x-auto">
+                        <code className="text-sm text-slate-200 font-mono whitespace-pre">
+                            {code}
+                        </code>
+                    </pre>
+                </div>
+            )
+
+            lastIndex = match.index + match[0].length
+        }
+
+        // Add remaining text
+        if (lastIndex < text.length) {
+            const remainingText = text.slice(lastIndex)
+            parts.push(
+                <span key={`text-${key++}`}>
+                    {renderInlineMarkdown(remainingText)}
+                </span>
+            )
+        }
+
+        return parts.length > 0 ? parts : renderInlineMarkdown(text)
+    }, [copied])
+
+    const renderInlineMarkdown = useCallback((text) => {
+        // Handle inline code
+        text = text.replace(/`([^`]+)`/g, '<code class="px-1.5 py-0.5 bg-slate-200 dark:bg-slate-700 rounded text-sm font-mono">$1</code>')
+        
+        // Handle links
+        text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer" class="text-emerald-600 dark:text-emerald-400 hover:underline">$1</a>')
+        
+        // Handle bold
+        text = text.replace(/\*\*([^*]+)\*\*/g, '<strong class="font-semibold">$1</strong>')
+        
+        // Handle italic
+        text = text.replace(/\*([^*]+)\*/g, '<em class="italic">$1</em>')
+        
+        // Handle line breaks
+        text = text.replace(/\n/g, '<br />')
+        
+        return <div className="whitespace-pre-wrap break-words text-slate-900 dark:text-slate-100" dangerouslySetInnerHTML={{ __html: text }} />
+    }, [])
+
+    return (
+        <div ref={contentRef} className="relative group">
+            {renderContent(content)}
+            <motion.button
+                initial={{ opacity: 0 }}
+                whileHover={{ opacity: 1 }}
+                className="absolute top-0 right-0 p-2 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors opacity-0 group-hover:opacity-100"
+                onClick={handleCopy}
+                title="Copy message"
+            >
+                {copied ? (
+                    <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        className="text-emerald-600"
+                    >
+                        ✓
+                    </motion.div>
+                ) : (
+                    <Download className="h-4 w-4 text-slate-600 dark:text-slate-400" />
+                )}
+            </motion.button>
+        </div>
+    )
+})
+MessageContent.displayName = 'MessageContent'
+
 // Enhanced Message Bubble with performance optimizations
 const MessageBubble = React.memo(({
     message,
@@ -302,10 +429,10 @@ const MessageBubble = React.memo(({
                     onMouseEnter={handleMouseEnter}
                     onMouseLeave={handleMouseLeave}
                     className={clsx(
-                        'eco-bubble relative group transition-all duration-300 p-4 rounded-2xl',
+                        'eco-bubble relative group transition-all duration-300 p-5 rounded-2xl',
                         role === 'user' 
-                            ? 'eco-bubble-user bg-white dark:bg-slate-800 border border-blue-200 dark:border-blue-800 shadow-lg' 
-                            : 'eco-bubble-bot bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 shadow-md'
+                            ? 'eco-bubble-user bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 border border-blue-400 dark:border-blue-500 shadow-xl shadow-blue-500/20 text-white' 
+                            : 'eco-bubble-bot bg-gradient-to-br from-emerald-50 to-white dark:from-emerald-900/30 dark:to-slate-800/50 border border-emerald-200 dark:border-emerald-800 shadow-lg shadow-emerald-500/10'
                     )}
                 >
                     {image && (
@@ -320,14 +447,15 @@ const MessageBubble = React.memo(({
                     )}
 
                     <div className="prose prose-sm max-w-none dark:prose-invert prose-p:leading-relaxed">
-                        <div className="whitespace-pre-wrap break-words text-slate-900 dark:text-slate-100">
-                            {content}
-                        </div>
+                        <MessageContent content={content} />
                     </div>
 
                     <div className="flex items-center justify-between mt-4 pt-3 border-t border-emerald-100/50 dark:border-emerald-800/30">
-                        <div className="flex items-center gap-3 text-xs">
-                            <div className="flex items-center gap-1 text-slate-500 dark:text-slate-400">
+                            <div className="flex items-center gap-3 text-xs flex-wrap">
+                            <div className={clsx(
+                                "flex items-center gap-1",
+                                role === 'user' ? 'text-blue-100' : 'text-slate-500 dark:text-slate-400'
+                            )}>
                                 <Clock className="h-3 w-3" />
                                 <span>{formatTime(timestamp)}</span>
                             </div>
@@ -483,25 +611,25 @@ ErrorDisplay.displayName = 'ErrorDisplay'
 const QuickActions = React.memo(({ onActionClick }) => {
     const quickActions = [
         {
-            icon: '🌱',
+            icon: Sprout,
             title: 'Carbon Footprint',
             question: 'How can I reduce my carbon footprint at home?',
             color: 'from-green-500 to-emerald-500'
         },
         {
-            icon: '♻️',
+            icon: Recycle,
             title: 'Recycling Guide',
             question: 'What materials can and cannot be recycled?',
             color: 'from-blue-500 to-cyan-500'
         },
         {
-            icon: '💡',
+            icon: Lightbulb,
             title: 'Energy Saving',
             question: 'What are the most effective ways to save energy?',
             color: 'from-amber-500 to-orange-500'
         },
         {
-            icon: '🌞',
+            icon: Sun,
             title: 'Renewable Energy',
             question: 'What are the benefits of solar energy for homes?',
             color: 'from-purple-500 to-pink-500'
@@ -514,31 +642,34 @@ const QuickActions = React.memo(({ onActionClick }) => {
             animate={{ opacity: 1, y: 0 }}
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6 sm:mb-8"
         >
-            {quickActions.map((action, index) => (
-                <motion.button
-                    key={action.title}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: index * 0.1 }}
-                    whileHover={{ scale: 1.02, y: -2 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => onActionClick(action.question)}
-                    className="p-4 rounded-xl bg-white/80 dark:bg-slate-800/80 border border-slate-200/50 dark:border-slate-700/50 hover:border-emerald-300 dark:hover:border-emerald-700 hover:shadow-lg transition-all text-left group backdrop-blur-sm"
-                >
-                    <div className={clsx(
-                        'w-12 h-12 rounded-lg flex items-center justify-center text-2xl mb-3 bg-gradient-to-br',
-                        action.color
-                    )}>
-                        {action.icon}
-                    </div>
+            {quickActions.map((action, index) => {
+                const IconComponent = action.icon
+                return (
+                    <motion.button
+                        key={action.title}
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: index * 0.1 }}
+                        whileHover={{ scale: 1.02, y: -2 }}
+                        whileTap={{ scale: 0.98 }}
+                        onClick={() => onActionClick(action.question)}
+                        className="p-4 rounded-xl bg-white/80 dark:bg-slate-800/80 border border-slate-200/50 dark:border-slate-700/50 hover:border-emerald-300 dark:hover:border-emerald-700 hover:shadow-lg transition-all text-left group backdrop-blur-sm"
+                    >
+                        <div className={clsx(
+                            'w-12 h-12 rounded-lg flex items-center justify-center mb-3 bg-gradient-to-br',
+                            action.color
+                        )}>
+                            <IconComponent className="h-6 w-6 text-white" />
+                        </div>
                     <div className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-2">
                         {action.title}
                     </div>
                     <div className="text-xs text-slate-600 dark:text-slate-400 line-clamp-2 leading-relaxed">
                         {action.question}
-                    </div>
+                                    </div>
                 </motion.button>
-            ))}
+                )
+            })}
         </motion.div>
     )
 })
@@ -1072,33 +1203,86 @@ export default function ChatInterface() {
 
                 {/* Chat Messages */}
                 <div className={clsx(
-                    "flex-1 overflow-auto rounded-2xl border shadow-lg backdrop-blur-sm transition-colors duration-300",
+                    "flex-1 overflow-auto rounded-2xl border shadow-2xl backdrop-blur-md transition-colors duration-300",
                     isDarkMode
-                        ? "bg-slate-800/80 border-slate-700"
-                        : "bg-white/80 border-slate-200"
+                        ? "bg-gradient-to-b from-slate-800/90 to-slate-900/90 border-slate-700"
+                        : "bg-gradient-to-b from-white/95 to-slate-50/95 border-slate-200"
                 )}>
-                    <div className="p-6 space-y-6">
+                    <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
                         {messages.length === 0 && (
                             <motion.div
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                className="text-center py-12"
+                                className="text-center py-12 sm:py-16"
                             >
-                                <Avatar 
-                                    role="assistant" 
-                                    size="xl" 
-                                    className="mx-auto mb-4"
-                                />
-                                <h2 className="text-2xl font-bold mb-3">
-                                    Welcome to AversoAI! 🌍
-                                </h2>
-                                <p className={clsx(
-                                    "max-w-md mx-auto leading-relaxed",
-                                    isDarkMode ? "text-slate-400" : "text-slate-600"
-                                )}>
+                                <motion.div
+                                    animate={{ 
+                                        scale: [1, 1.1, 1],
+                                        rotate: [0, 5, -5, 0]
+                                    }}
+                                    transition={{ 
+                                        duration: 3,
+                                        repeat: Infinity,
+                                        repeatDelay: 2
+                                    }}
+                                >
+                                    <Avatar 
+                                        role="assistant" 
+                                        size="xl" 
+                                        className="mx-auto mb-6 shadow-2xl"
+                                    />
+                                </motion.div>
+                                <motion.div
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.2 }}
+                                    className="flex items-center justify-center gap-3 mb-4"
+                                >
+                                    <h2 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
+                                        Welcome to AversoAI!
+                                    </h2>
+                                    <Globe className="h-8 w-8 sm:h-10 sm:w-10 text-emerald-600" />
+                                </motion.div>
+                                <motion.p 
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: 0.3 }}
+                                    className={clsx(
+                                        "max-w-lg mx-auto leading-relaxed text-base sm:text-lg",
+                                        isDarkMode ? "text-slate-300" : "text-slate-600"
+                                    )}
+                                >
                                     I'm your environmental education assistant. Ask me about sustainability, 
                                     climate change, renewable energy, or any eco-friendly topics!
-                                </p>
+                                </motion.p>
+                                <motion.div
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    transition={{ delay: 0.5 }}
+                                    className="mt-8 flex flex-wrap justify-center gap-2 text-xs sm:text-sm"
+                                >
+                                    <span className={clsx(
+                                        "px-3 py-1.5 rounded-full flex items-center gap-1.5",
+                                        isDarkMode ? "bg-slate-700 text-slate-300" : "bg-emerald-100 text-emerald-700"
+                                    )}>
+                                        <Lightbulb className="h-3 w-3 sm:h-4 sm:w-4" />
+                                        Expert Advice
+                                    </span>
+                                    <span className={clsx(
+                                        "px-3 py-1.5 rounded-full flex items-center gap-1.5",
+                                        isDarkMode ? "bg-slate-700 text-slate-300" : "bg-blue-100 text-blue-700"
+                                    )}>
+                                        <Sprout className="h-3 w-3 sm:h-4 sm:w-4" />
+                                        Eco Tips
+                                    </span>
+                                    <span className={clsx(
+                                        "px-3 py-1.5 rounded-full flex items-center gap-1.5",
+                                        isDarkMode ? "bg-slate-700 text-slate-300" : "bg-purple-100 text-purple-700"
+                                    )}>
+                                        <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4" />
+                                        Data Insights
+                                    </span>
+                                </motion.div>
                             </motion.div>
                         )}
 
@@ -1213,7 +1397,12 @@ export default function ChatInterface() {
                         </AnimatePresence>
 
                         {/* Main input row */}
-                        <div className="flex items-end gap-2 sm:gap-3">
+                        <div className={clsx(
+                            "flex items-end gap-2 sm:gap-3 p-4 rounded-2xl border backdrop-blur-sm transition-all duration-300",
+                            isDarkMode
+                                ? "bg-slate-800/80 border-slate-700 shadow-lg"
+                                : "bg-white/90 border-slate-200 shadow-xl"
+                        )}>
                                 {/* Left controls */}
                             <div className="flex items-center gap-1 sm:gap-2">
                                 {/* Voice input */}
@@ -1273,10 +1462,10 @@ export default function ChatInterface() {
                                                 'Ask me anything about the environment...'
                                     }
                                     className={clsx(
-                                        "w-full rounded-2xl border px-4 py-3 sm:px-6 sm:py-4 text-base outline-none transition-all focus:ring-2 focus:ring-emerald-500/60 resize-none",
+                                        "w-full rounded-xl border-2 px-4 py-3 sm:px-6 sm:py-4 text-base outline-none transition-all focus:ring-2 focus:ring-emerald-500/60 focus:border-emerald-500 resize-none shadow-inner",
                                         isDarkMode
-                                            ? "bg-slate-800 border-slate-700 text-white placeholder-slate-400"
-                                            : "bg-white border-slate-300 text-slate-900 placeholder-slate-500"
+                                            ? "bg-slate-900/50 border-slate-600 text-white placeholder-slate-500 focus:bg-slate-900"
+                                            : "bg-slate-50 border-slate-300 text-slate-900 placeholder-slate-500 focus:bg-white"
                                     )}
                                     disabled={isSubmitting || !canSendMessage}
                                     maxLength={2000}
@@ -1309,14 +1498,14 @@ export default function ChatInterface() {
                             {/* Send button */}
                             <motion.button
                                 type="submit"
-                                whileHover={{ scale: 1.02 }}
-                                whileTap={{ scale: 0.98 }}
+                                whileHover={{ scale: 1.05, rotate: 5 }}
+                                whileTap={{ scale: 0.95 }}
                                 disabled={isSubmitting || !canSendMessage || (!input.trim() && !imageFile)}
                                 className={clsx(
-                                    'px-4 sm:px-6 py-4 rounded-2xl font-medium transition-all duration-200 flex items-center gap-2 flex-shrink-0 min-h-[48px]',
+                                    'px-5 sm:px-6 py-4 rounded-xl font-semibold transition-all duration-200 flex items-center gap-2 flex-shrink-0 min-h-[48px] shadow-lg',
                                     isSubmitting || !canSendMessage || (!input.trim() && !imageFile)
-                                        ? 'bg-slate-300 dark:bg-slate-700 text-slate-500 cursor-not-allowed'
-                                        : 'bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white shadow-lg hover:shadow-xl'
+                                        ? 'bg-slate-300 dark:bg-slate-700 text-slate-500 cursor-not-allowed shadow-none'
+                                        : 'bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 active:from-emerald-700 active:to-emerald-800 text-white shadow-emerald-500/50 hover:shadow-xl hover:shadow-emerald-500/50'
                                 )}
                             >
                                 {isSubmitting ? (

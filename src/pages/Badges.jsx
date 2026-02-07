@@ -9,7 +9,7 @@ import { useState, useMemo } from 'react'
 import { 
   Award, Filter, Search, Trophy, Star, Target, 
   Zap, Flame, Leaf, BookOpen, Users, Calendar,
-  Crown, Medal, Shield, Sparkles, CheckCircle2
+  Crown, Medal, Shield, Sparkles, CheckCircle2, Lock
 } from 'lucide-react'
 
 export default function Badges() {
@@ -397,7 +397,11 @@ export default function Badges() {
                             ? `bg-gradient-to-br from-${categoryInfo.color}-400 to-${categoryInfo.color}-600 text-white shadow-lg`
                             : 'bg-slate-100 dark:bg-slate-700 text-slate-400 group-hover:bg-slate-200 dark:group-hover:bg-slate-600'
                         }`}>
-                          {isEarned ? '🏆' : '🔒'}
+                          {isEarned ? (
+                            <Trophy className="h-8 w-8 text-white" />
+                          ) : (
+                            <Lock className="h-8 w-8 text-slate-400" />
+                          )}
                         </div>
                         
                         {/* Badge Info */}
@@ -465,7 +469,7 @@ export default function Badges() {
                 exit={{ opacity: 0, scale: 0.9 }}
                 className="text-center py-16"
               >
-                <div className="text-8xl mb-6">🏆</div>
+                <Trophy className="h-20 w-20 mx-auto mb-6 text-slate-400" />
                 <h3 className="text-2xl font-bold mb-4 text-slate-800 dark:text-white">
                   No badges found
                 </h3>

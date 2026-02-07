@@ -5,6 +5,7 @@ import {
   Code2, Terminal, AlertCircle, CheckCircle, Info, 
   Copy, Download, Upload, Settings
 } from 'lucide-react'
+import { transpileCSharpToJS, validateCSharpSyntax } from '../../utils/csharpTranspiler'
 
 const LogEntry = ({ entry, index }) => {
   if (!entry) return null
@@ -125,30 +126,57 @@ const ScriptEditor = ({
   onStopScript, 
   isRunning 
 }) => {
-  const [code, setCode] = useState(selectedEntity?.components?.script?.code || '')
+  const [language, setLanguage] = useState(selectedEntity?.components?.script?.language || 'javascript')
+  const [code, setCode] = useState(selectedEntity?.components?.script?.originalCode || selectedEntity?.components?.script?.code || '')
   const [isDirty, setIsDirty] = useState(false)
+  const [errors, setErrors] = useState([])
 
   useEffect(() => {
-    const newCode = selectedEntity?.components?.script?.code || ''
+    const script = selectedEntity?.components?.script
+    const newCode = script?.originalCode || script?.code || ''
+    const newLanguage = script?.language || 'javascript'
     setCode(newCode)
+    setLanguage(newLanguage)
     setIsDirty(false)
+    setErrors([])
   }, [selectedEntity])
 
   const handleCodeChange = (newCode) => {
     setCode(newCode)
     setIsDirty(true)
+    
+    if (language === 'csharp') {
+      const validationErrors = validateCSharpSyntax(newCode)
+      setErrors(validationErrors)
+    } else {
+      setErrors([])
+    }
   }
 
   const handleSave = () => {
-    if (selectedEntity && isDirty) {
-      onUpdateScript(selectedEntity.id, code)
-      setIsDirty(false)
+    if (!selectedEntity || !isDirty) return
+    
+    let finalCode = code
+    
+    if (language === 'csharp') {
+      try {
+        finalCode = transpileCSharpToJS(code)
+        setErrors([])
+      } catch (error) {
+        setErrors([`Transpilation error: ${error.message}`])
+        return
+      }
     }
+    
+    onUpdateScript(selectedEntity.id, finalCode, language, language === 'csharp' ? code : undefined)
+    setIsDirty(false)
   }
 
   const handleRun = () => {
     handleSave()
-    onRunScript?.(selectedEntity.id)
+    if (errors.length === 0) {
+      onRunScript?.(selectedEntity.id)
+    }
   }
 
   return (
@@ -160,6 +188,19 @@ const ScriptEditor = ({
           {isDirty && (
             <span className="text-xs text-yellow-400">• Unsaved</span>
           )}
+        </div>
+        <div className="flex items-center gap-2">
+          <select
+            value={language}
+            onChange={(e) => {
+              setLanguage(e.target.value)
+              setIsDirty(true)
+            }}
+            className="px-2 py-1 text-xs bg-slate-700 border border-slate-600 rounded text-slate-200 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+          >
+            <option value="javascript">JavaScript</option>
+            <option value="csharp">C#</option>
+          </select>
         </div>
         <div className="flex items-center gap-1">
           {isRunning ? (
@@ -202,27 +243,38 @@ const ScriptEditor = ({
         ) : (
           <div className="flex-1 flex flex-col">
             <div className="p-2 bg-slate-750 border-b border-slate-700">
-              <div className="text-xs text-slate-400">
-                Entity: <span className="text-slate-300">{selectedEntity.name || 'Untitled'}</span>
+              <div className="flex items-center justify-between">
+                <div className="text-xs text-slate-400">
+                  Entity: <span className="text-slate-300">{selectedEntity.name || 'Untitled'}</span>
+                </div>
+                {language === 'csharp' && (
+                  <div className="text-xs text-emerald-400">
+                    ✨ C# will be transpiled to JavaScript
+                  </div>
+                )}
               </div>
             </div>
+            {errors.length > 0 && (
+              <div className="p-2 bg-red-900/30 border-b border-red-700 text-xs text-red-400">
+                {errors.map((error, i) => (
+                  <div key={i}>⚠ {error}</div>
+                ))}
+              </div>
+            )}
             <textarea
               value={code}
               onChange={(e) => handleCodeChange(e.target.value)}
+              onKeyDown={(e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                  e.preventDefault()
+                  handleSave()
+                }
+              }}
               className="flex-1 w-full p-3 bg-slate-900 text-slate-200 font-mono text-sm resize-none focus:outline-none"
-              placeholder="// Enter your script code here...
-function onUpdate(event, payload, api) {
-  // Called every frame
-}
-
-function onCollision(event, payload, api) {
-  // Called when collision occurs
-  // payload.other contains the other entity
-}
-
-function onClick(event, payload, api) {
-  // Called when clicked
-}"
+              placeholder={language === 'csharp' 
+                ? "// Enter your C# script code here...\npublic void OnUpdate(string event, object payload, object api) {\n  // Called every frame\n}\n\npublic void OnCollision(string event, object payload, object api) {\n  // Called when collision occurs\n  // payload.other contains the other entity\n}\n\npublic void OnClick(string event, object payload, object api) {\n  // Called when clicked\n}"
+                : "// Enter your script code here...\nfunction onUpdate(event, payload, api) {\n  // Called every frame\n}\n\nfunction onCollision(event, payload, api) {\n  // Called when collision occurs\n  // payload.other contains the other entity\n}\n\nfunction onClick(event, payload, api) {\n  // Called when clicked\n}"
+              }
               spellCheck={false}
             />
           </div>

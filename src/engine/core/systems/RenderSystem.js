@@ -46,8 +46,12 @@ export class RenderSystem {
 
     for (const layer of layers) {
       let ents = scene.entities.filter(en => (en.layerId||null) === (layer.id||null))
-      // Optional z-index sort within layer
-      ents = ents.sort((a,b) => (a.zIndex||0) - (b.zIndex||0))
+      // Sort by collider layer property (higher layer = drawn on top)
+      ents = ents.sort((a,b) => {
+        const layerA = a.components?.collider?.layer ?? 0
+        const layerB = b.components?.collider?.layer ?? 0
+        return layerA - layerB
+      })
       // Tilemaps
       for (const e of ents.filter(en => en.components?.tilemap)) {
         const t = e.components?.transform
@@ -129,7 +133,23 @@ export class RenderSystem {
       // Sprite
       if (e.components?.sprite) {
         const spr = e.components.sprite
-        const img = spr.assetId ? this.engine.assets.getImage(spr.assetId) : null
+        let img = spr.assetId ? this.engine.assets.getImage(spr.assetId) : null
+        
+        // Check for primitive SVG if no asset image
+        if (!img && spr.primitiveSVG) {
+          // Try to get cached primitive image or create one
+          if (!this._primitiveCache) this._primitiveCache = new Map()
+          if (!this._primitiveCache.has(spr.primitiveSVG)) {
+            const primImg = new Image()
+            primImg.src = spr.primitiveSVG
+            this._primitiveCache.set(spr.primitiveSVG, primImg)
+          }
+          const primImg = this._primitiveCache.get(spr.primitiveSVG)
+          if (primImg && primImg.complete && primImg.naturalWidth > 0) {
+            img = primImg
+          }
+        }
+        
         if (img) {
           if (e.components?.animation?.current && spr.spritesheet) {
             // Sprite sheet frame draw with optional blending

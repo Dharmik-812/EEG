@@ -1,21 +1,41 @@
 import { motion } from 'framer-motion'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
+import { Globe, Sprout, Sparkles } from 'lucide-react'
 
 const SimpleLoadingScreen = ({ onComplete }) => {
   const [progress, setProgress] = useState(0)
+  const animationRef = useRef(null)
+  const isVisibleRef = useRef(true)
+
+  // Handle visibility change to restart animations
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      isVisibleRef.current = !document.hidden
+      if (!document.hidden && animationRef.current) {
+        // Restart animations when tab becomes visible
+        setProgress(prev => Math.min(prev, 95))
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+  }, [])
 
   useEffect(() => {
     const timer = setInterval(() => {
+      if (!isVisibleRef.current) return // Pause when tab is hidden
+
       setProgress(prev => {
         if (prev >= 100) {
           clearInterval(timer)
           setTimeout(() => onComplete?.(), 500)
           return 100
         }
-        return prev + (100 / 30) // Complete in 3 seconds (30 intervals of 100ms)
+        return prev + (100 / 30) // Complete in 3 seconds
       })
     }, 100)
 
+    animationRef.current = timer
     return () => clearInterval(timer)
   }, [onComplete])
 
@@ -29,11 +49,11 @@ const SimpleLoadingScreen = ({ onComplete }) => {
       <div className="text-center">
         {/* Logo */}
         <motion.div
-          className="mb-8 text-6xl"
+          className="mb-8 flex justify-center"
           animate={{ rotate: 360 }}
-          transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+          transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
         >
-          🌍
+          <Globe className="h-16 w-16 text-emerald-400" />
         </motion.div>
 
         {/* Brand name */}
@@ -47,12 +67,13 @@ const SimpleLoadingScreen = ({ onComplete }) => {
         </motion.h1>
 
         <motion.p
-          className="text-emerald-200 mb-8 text-lg"
+          className="text-emerald-200 mb-8 text-lg flex items-center justify-center gap-2"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.8 }}
         >
-          Learn • Play • Save the Planet
+          <Sprout className="h-5 w-5" />
+          <span>Learn • Play • Save the Planet</span>
         </motion.p>
 
         {/* Progress bar */}
@@ -64,8 +85,9 @@ const SimpleLoadingScreen = ({ onComplete }) => {
               transition={{ duration: 0.1 }}
             />
           </div>
-          <p className="text-emerald-300 text-sm">
-            Loading {Math.round(progress)}%
+          <p className="text-emerald-300 text-sm flex items-center justify-center gap-2">
+            <Sparkles className="h-4 w-4" />
+            <span>Loading {Math.round(progress)}%</span>
           </p>
         </div>
 

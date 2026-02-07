@@ -1,11 +1,12 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
   ChevronDown, ChevronRight, Plus, Search, 
   Square, Circle, Triangle, Type, 
   Image, Music, FileText, Code2,
   Eye, EyeOff, Lock, Unlock, Trash2,
-  TreePine, Users, Sparkles
+  TreePine, Users, Sparkles, Box, Cylinder, Layers,
+  Copy, Edit2, MoreVertical, Folder
 } from 'lucide-react'
 
 const SearchBar = ({ value, onChange, placeholder = "Search..." }) => (
@@ -28,10 +29,19 @@ const EntityItem = ({
   onToggleVisibility, 
   onToggleLock, 
   onDelete,
+  onSetParent,
+  onDuplicate,
+  onRename,
+  children = [],
   level = 0 
 }) => {
   const [isExpanded, setIsExpanded] = useState(true)
-  const hasChildren = entity.children && entity.children.length > 0
+  const [isDragging, setIsDragging] = useState(false)
+  const [isRenaming, setIsRenaming] = useState(false)
+  const [renameValue, setRenameValue] = useState(entity.name || '')
+  const [contextMenu, setContextMenu] = useState(null)
+  const renameInputRef = useRef(null)
+  const hasChildren = children && children.length > 0
 
   const getEntityIcon = (entity) => {
     if (entity.components?.sprite) return Square
@@ -43,71 +53,193 @@ const EntityItem = ({
 
   const Icon = getEntityIcon(entity)
 
+  const handleDragStart = (e) => {
+    setIsDragging(true)
+    // Set drag data in multiple formats for compatibility
+    e.dataTransfer.setData('entity/id', entity.id)
+    e.dataTransfer.setData('text/plain', entity.id)
+    e.dataTransfer.effectAllowed = 'move'
+    // Create a drag image
+    const dragImage = document.createElement('div')
+    dragImage.textContent = entity.name || 'Entity'
+    dragImage.style.position = 'absolute'
+    dragImage.style.top = '-1000px'
+    document.body.appendChild(dragImage)
+    e.dataTransfer.setDragImage(dragImage, 0, 0)
+    setTimeout(() => document.body.removeChild(dragImage), 0)
+  }
+
+  const handleDragEnd = () => {
+    setIsDragging(false)
+  }
+
+  const handleDragOver = (e) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+  }
+
+  const handleDrop = (e) => {
+    e.preventDefault()
+    const childId = e.dataTransfer.getData('entity/id')
+    if (childId && childId !== entity.id) {
+      onSetParent?.(childId, entity.id)
+    }
+  }
+
+  const handleRename = () => {
+    setIsRenaming(true)
+    setRenameValue(entity.name || '')
+    setTimeout(() => renameInputRef.current?.focus(), 0)
+  }
+
+  const handleRenameSubmit = () => {
+    if (renameValue.trim() && renameValue !== entity.name) {
+      onRename?.(entity.id, renameValue.trim())
+    }
+    setIsRenaming(false)
+  }
+
+  const handleRenameCancel = () => {
+    setRenameValue(entity.name || '')
+    setIsRenaming(false)
+  }
+
+  const handleContextMenu = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setContextMenu({ x: e.clientX, y: e.clientY })
+  }
+
   return (
-    <div className="select-none">
+    <div 
+      className="select-none relative"
+      draggable
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+      onDragOver={handleDragOver}
+      onDrop={handleDrop}
+    >
       <div
-        className={`flex items-center gap-2 py-1.5 px-3 hover:bg-slate-700 cursor-pointer transition-colors ${
+        className={`group flex items-center gap-2 py-1.5 px-3 hover:bg-slate-700 cursor-pointer transition-colors relative ${
           isSelected ? 'bg-emerald-600/20 border-r-2 border-emerald-500' : ''
-        }`}
-        style={{ paddingLeft: `${12 + level * 16}px` }}
+        } ${isDragging ? 'opacity-50' : ''}`}
+        style={{ paddingLeft: `${12 + level * 20}px` }}
         onClick={() => onSelect(entity.id)}
+        onContextMenu={handleContextMenu}
       >
-        {hasChildren && (
-          <button
-            onClick={(e) => {
-              e.stopPropagation()
-              setIsExpanded(!isExpanded)
-            }}
-            className="p-0.5 hover:bg-slate-600 rounded transition-colors"
-          >
-            {isExpanded ? (
-              <ChevronDown className="h-3 w-3 text-slate-400" />
-            ) : (
-              <ChevronRight className="h-3 w-3 text-slate-400" />
-            )}
-          </button>
+        {/* Tree lines for nested items */}
+        {level > 0 && (
+          <>
+            {/* Vertical line from parent */}
+            <div 
+              className="absolute left-0 top-0 bottom-0 w-px bg-slate-600/50"
+              style={{ left: `${12 + (level - 1) * 20 + 10}px` }}
+            />
+            {/* Horizontal line to this item */}
+            <div 
+              className="absolute left-0 top-1/2 h-px bg-slate-600/50"
+              style={{ 
+                left: `${12 + (level - 1) * 20 + 10}px`,
+                width: '10px'
+              }}
+            />
+          </>
         )}
-        {!hasChildren && <div className="w-4" />}
         
-        <Icon className="h-4 w-4 text-slate-400 flex-shrink-0" />
-        <span className="text-sm text-slate-200 truncate flex-1">
-          {entity.name || 'Untitled Entity'}
-        </span>
+        {/* Expand/Collapse button */}
+        <div className="w-4 flex items-center justify-center flex-shrink-0 relative z-10">
+          {hasChildren ? (
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                setIsExpanded(!isExpanded)
+              }}
+              className="p-0.5 hover:bg-slate-600 rounded transition-colors"
+            >
+              {isExpanded ? (
+                <ChevronDown className="h-3 w-3 text-slate-400" />
+              ) : (
+                <ChevronRight className="h-3 w-3 text-slate-400" />
+              )}
+            </button>
+          ) : (
+            <div className="w-3 h-3" />
+          )}
+        </div>
         
-        <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+        {/* Entity Icon */}
+        <Icon className={`h-4 w-4 flex-shrink-0 ${hasChildren ? 'text-emerald-400' : 'text-slate-400'}`} />
+        
+        {/* Entity Name - Inline Rename */}
+        {isRenaming ? (
+          <input
+            ref={renameInputRef}
+            type="text"
+            value={renameValue}
+            onChange={(e) => setRenameValue(e.target.value)}
+            onBlur={handleRenameSubmit}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handleRenameSubmit()
+              if (e.key === 'Escape') handleRenameCancel()
+            }}
+            className="flex-1 px-2 py-1 bg-slate-600 border border-emerald-500 rounded text-sm text-slate-200 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+            onClick={(e) => e.stopPropagation()}
+          />
+        ) : (
+          <span 
+            className={`text-sm truncate flex-1 ${hasChildren ? 'text-slate-100 font-medium' : 'text-slate-200'}`}
+            onDoubleClick={(e) => {
+              e.stopPropagation()
+              handleRename()
+            }}
+          >
+            {entity.name || 'Untitled Entity'}
+          </span>
+        )}
+        
+        {/* Parent indicator badge */}
+        {hasChildren && (
+          <span className="text-xs text-emerald-400 bg-emerald-900/30 px-1.5 py-0.5 rounded border border-emerald-700/50">
+            {children.length}
+          </span>
+        )}
+        
+        {/* Action buttons */}
+        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
           <button
             onClick={(e) => {
               e.stopPropagation()
               onToggleVisibility?.(entity.id)
             }}
-            className="p-2 hover:bg-slate-600 rounded-lg transition-colors"
+            className="p-1.5 hover:bg-slate-600 rounded transition-colors"
             title="Toggle visibility"
           >
-            <Eye className="h-4 w-4 text-slate-400" />
+            <Eye className="h-3.5 w-3.5 text-slate-400" />
           </button>
           <button
             onClick={(e) => {
               e.stopPropagation()
               onToggleLock?.(entity.id)
             }}
-            className="p-2 hover:bg-slate-600 rounded-lg transition-colors"
+            className="p-1.5 hover:bg-slate-600 rounded transition-colors"
             title="Toggle lock"
           >
-            <Lock className="h-4 w-4 text-slate-400" />
+            <Lock className="h-3.5 w-3.5 text-slate-400" />
           </button>
           <button
             onClick={(e) => {
               e.stopPropagation()
               onDelete?.(entity.id)
             }}
-            className="p-2 hover:bg-red-600 rounded-lg transition-colors"
+            className="p-1.5 hover:bg-red-600 rounded transition-colors"
             title="Delete entity"
           >
-            <Trash2 className="h-4 w-4 text-red-400" />
+            <Trash2 className="h-3.5 w-3.5 text-red-400" />
           </button>
         </div>
       </div>
       
+      {/* Children with tree lines */}
       <AnimatePresence>
         {hasChildren && isExpanded && (
           <motion.div
@@ -115,20 +247,85 @@ const EntityItem = ({
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="overflow-hidden"
+            className="overflow-hidden relative"
           >
-            {entity.children.map((child) => (
-              <EntityItem
-                key={child.id}
-                entity={child}
-                isSelected={isSelected}
-                onSelect={onSelect}
-                onToggleVisibility={onToggleVisibility}
-                onToggleLock={onToggleLock}
-                onDelete={onDelete}
-                level={level + 1}
-              />
+            {/* Vertical line connecting parent to children */}
+            <div 
+              className="absolute left-0 top-0 bottom-0 w-px bg-slate-600/50"
+              style={{ left: `${12 + level * 20 + 10}px` }}
+            />
+            
+            {children.map((child, index) => (
+              <div key={child.id} className="relative">
+                {/* Horizontal line to child */}
+                <div 
+                  className="absolute left-0 top-0 h-px bg-slate-600/50"
+                  style={{ 
+                    left: `${12 + level * 20 + 10}px`,
+                    width: '10px'
+                  }}
+                />
+                <EntityItem
+                  entity={child}
+                  isSelected={isSelected}
+                  onSelect={onSelect}
+                  onToggleVisibility={onToggleVisibility}
+                  onToggleLock={onToggleLock}
+                  onDelete={onDelete}
+                  onSetParent={onSetParent}
+                  onDuplicate={onDuplicate}
+                  onRename={onRename}
+                  children={child.children || []}
+                  level={level + 1}
+                />
+              </div>
             ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Entity Context Menu */}
+      <AnimatePresence>
+        {contextMenu && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="fixed z-50 bg-slate-800 border border-slate-700 rounded-lg shadow-xl py-2 min-w-[180px]"
+            style={{ left: `${contextMenu.x}px`, top: `${contextMenu.y}px` }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => {
+                handleRename()
+                setContextMenu(null)
+              }}
+              className="w-full flex items-center gap-3 px-3 py-2 text-sm text-slate-200 hover:bg-slate-700 transition-colors"
+            >
+              <Edit2 className="h-4 w-4 text-slate-400" />
+              <span>Rename</span>
+            </button>
+            <button
+              onClick={() => {
+                onDuplicate?.(entity.id)
+                setContextMenu(null)
+              }}
+              className="w-full flex items-center gap-3 px-3 py-2 text-sm text-slate-200 hover:bg-slate-700 transition-colors"
+            >
+              <Copy className="h-4 w-4 text-slate-400" />
+              <span>Duplicate</span>
+            </button>
+            <div className="h-px bg-slate-700 my-1" />
+            <button
+              onClick={() => {
+                onDelete?.(entity.id)
+                setContextMenu(null)
+              }}
+              className="w-full flex items-center gap-3 px-3 py-2 text-sm text-red-400 hover:bg-red-900/20 transition-colors"
+            >
+              <Trash2 className="h-4 w-4" />
+              <span>Delete</span>
+            </button>
           </motion.div>
         )}
       </AnimatePresence>
@@ -136,23 +333,247 @@ const EntityItem = ({
   )
 }
 
+// Primitive shapes similar to Unity's default primitives
+const PRIMITIVE_SHAPES = [
+  { id: 'cube', name: 'Cube', icon: Box, fill: '#3b82f6', description: '3D Cube (2D Square)' },
+  { id: 'sphere', name: 'Sphere', icon: Circle, fill: '#ef4444', description: '3D Sphere (2D Circle)' },
+  { id: 'cylinder', name: 'Cylinder', icon: Cylinder, fill: '#10b981', description: '3D Cylinder (2D Rounded Rectangle)' },
+  { id: 'plane', name: 'Plane', icon: Layers, fill: '#8b5cf6', description: 'Horizontal Line with Width' },
+]
+
+// Generate SVG data URL for primitive shapes
+const generatePrimitiveSVG = (shapeId, fill) => {
+  const svgContent = {
+    cube: `<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128"><rect width="128" height="128" fill="${fill}"/><rect x="16" y="16" width="96" height="96" fill="${fill}" opacity="0.8"/><rect x="32" y="32" width="96" height="96" fill="${fill}" opacity="0.6"/></svg>`,
+    sphere: `<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128"><circle cx="64" cy="64" r="56" fill="${fill}"/><ellipse cx="64" cy="40" rx="40" ry="20" fill="${fill}" opacity="0.6"/><ellipse cx="64" cy="88" rx="40" ry="20" fill="${fill}" opacity="0.3"/></svg>`,
+    cylinder: `<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128"><ellipse cx="64" cy="32" rx="48" ry="16" fill="${fill}"/><rect x="16" y="32" width="96" height="64" fill="${fill}"/><ellipse cx="64" cy="96" rx="48" ry="16" fill="${fill}" opacity="0.6"/></svg>`,
+    plane: `<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128"><rect x="0" y="56" width="128" height="16" fill="${fill}"/></svg>`,
+  }
+  const svg = svgContent[shapeId] || svgContent.cube
+  // Use encodeURIComponent for better compatibility
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
+}
+
+const ContextMenu = ({ x, y, onClose, onSelectShape, onCreateEmpty }) => {
+  const menuRef = useRef(null)
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        onClose()
+      }
+    }
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') onClose()
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    document.addEventListener('keydown', handleEscape)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('keydown', handleEscape)
+    }
+  }, [onClose])
+
+  return (
+    <motion.div
+      ref={menuRef}
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      className="fixed z-50 bg-slate-800 border border-slate-700 rounded-lg shadow-xl py-2 min-w-[200px]"
+      style={{ left: `${x}px`, top: `${y}px` }}
+    >
+      <div className="px-3 py-2 text-xs font-semibold text-slate-400 uppercase border-b border-slate-700">
+        Create
+      </div>
+      
+      {/* Empty Game Object */}
+      <button
+        onClick={() => {
+          onCreateEmpty?.()
+          onClose()
+        }}
+        className="w-full flex items-center gap-3 px-3 py-2 text-sm text-slate-200 hover:bg-slate-700 transition-colors"
+      >
+        <Box className="h-4 w-4 text-slate-400" />
+        <div className="flex-1 text-left">
+          <div className="font-medium">Empty Game Object</div>
+          <div className="text-xs text-slate-400">Create an empty entity</div>
+        </div>
+      </button>
+
+      <div className="h-px bg-slate-700 my-1" />
+
+      {/* Primitives */}
+      <div className="px-3 py-1 text-xs font-semibold text-slate-400 uppercase">
+        Primitives
+      </div>
+      {PRIMITIVE_SHAPES.map((shape) => {
+        const Icon = shape.icon
+        return (
+          <button
+            key={shape.id}
+            onClick={() => {
+              onSelectShape(shape)
+              onClose()
+            }}
+            className="w-full flex items-center gap-3 px-3 py-2 text-sm text-slate-200 hover:bg-slate-700 transition-colors"
+          >
+            <Icon className="h-4 w-4" style={{ color: shape.fill }} />
+            <div className="flex-1 text-left">
+              <div className="font-medium">{shape.name}</div>
+              <div className="text-xs text-slate-400">{shape.description}</div>
+            </div>
+          </button>
+        )
+      })}
+    </motion.div>
+  )
+}
+
+// Build tree structure from flat entity list
+const buildEntityTree = (entities) => {
+  const entityMap = new Map()
+  const rootEntities = []
+
+  // First pass: create map and identify roots
+  entities.forEach(entity => {
+    entityMap.set(entity.id, { ...entity, children: [] })
+    if (!entity.parentId) {
+      rootEntities.push(entity.id)
+    }
+  })
+
+  // Second pass: build tree
+  entities.forEach(entity => {
+    if (entity.parentId) {
+      const parent = entityMap.get(entity.parentId)
+      const child = entityMap.get(entity.id)
+      if (parent && child) {
+        parent.children.push(child)
+      }
+    }
+  })
+
+  // Return root entities with their children
+  return rootEntities.map(id => entityMap.get(id)).filter(Boolean)
+}
+
 const HierarchyTab = ({ 
   project, 
   selectedEntityId, 
   onSelectEntity, 
   onAddEntity, 
-  onDeleteEntity 
+  onDeleteEntity,
+  onSetParent,
+  onDuplicateEntity,
+  onRenameEntity
 }) => {
   const [searchQuery, setSearchQuery] = useState('')
+  const [contextMenu, setContextMenu] = useState(null)
+  const hierarchyRef = useRef(null)
   const currentScene = project?.scenes?.[0]
 
-  const filteredEntities = currentScene?.entities?.filter(entity =>
-    entity.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    entity.id?.toLowerCase().includes(searchQuery.toLowerCase())
-  ) || []
+  // Build tree structure - rebuild when entities change
+  // Use a key based on entity IDs and parent relationships to trigger rebuilds
+  const allEntities = currentScene?.entities || []
+  const entityTree = useMemo(() => {
+    return buildEntityTree(allEntities)
+  }, [allEntities.length, allEntities.map(e => `${e.id}:${e.parentId || 'null'}`).join(',')])
+
+  // Filter tree based on search (simple filter for now)
+  const filteredTree = useMemo(() => {
+    if (!searchQuery) return entityTree
+    // For search, we need to include parents of matching children
+    const matchingIds = new Set()
+    const findMatches = (entities) => {
+      entities.forEach(entity => {
+        const matches = entity.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                       entity.id?.toLowerCase().includes(searchQuery.toLowerCase())
+        if (matches) {
+          matchingIds.add(entity.id)
+          // Add all ancestors
+          let current = entity
+          while (current && current.parentId) {
+            matchingIds.add(current.parentId)
+            current = allEntities.find(e => e.id === current.parentId)
+          }
+        }
+        if (entity.children) {
+          findMatches(entity.children)
+        }
+      })
+    }
+    findMatches(entityTree)
+    
+    const filterTree = (entities) => {
+      return entities.filter(entity => matchingIds.has(entity.id))
+        .map(entity => ({
+          ...entity,
+          children: entity.children ? filterTree(entity.children) : []
+        }))
+    }
+    return filterTree(entityTree)
+  }, [entityTree, searchQuery, allEntities])
+
+  const handleContextMenu = (e) => {
+    e.preventDefault()
+    if (hierarchyRef.current && hierarchyRef.current.contains(e.target)) {
+      setContextMenu({ x: e.clientX, y: e.clientY })
+    }
+  }
+
+  const handleCreateEmpty = () => {
+    const newEntity = {
+      id: `e-${Date.now()}`,
+      name: 'GameObject',
+      layerId: currentScene?.layers?.[0]?.id || 'layer-default',
+      parentId: null,
+      components: {
+        transform: { x: 100, y: 100, w: 0, h: 0, rotation: 0 }
+      }
+    }
+    onAddEntity(newEntity)
+  }
+
+  const handleCreatePrimitive = (shape) => {
+    const svgDataUrl = generatePrimitiveSVG(shape.id, shape.fill)
+    
+    // Set appropriate dimensions based on shape type
+    let width = 100
+    let height = 100
+    if (shape.id === 'plane') {
+      // Plane is a horizontal line - wide but thin
+      width = 300
+      height = 16
+    }
+    
+    // Create a new entity with the primitive shape
+    const newEntity = {
+      id: `e-${Date.now()}`,
+      name: shape.name,
+      layerId: currentScene?.layers?.[0]?.id || 'layer-default',
+      parentId: null,
+      components: {
+        transform: { x: 100, y: 100, w: width, h: height, rotation: 0 },
+        sprite: { 
+          fill: shape.fill,
+          // Store the SVG as a data URL in a custom property for rendering
+          primitiveShape: shape.id,
+          primitiveSVG: svgDataUrl
+        }
+      }
+    }
+    
+    onAddEntity(newEntity)
+  }
 
   return (
-    <div className="h-full flex flex-col">
+    <div 
+      className="h-full flex flex-col"
+      onContextMenu={handleContextMenu}
+      ref={hierarchyRef}
+    >
       <SearchBar
         value={searchQuery}
         onChange={setSearchQuery}
@@ -174,19 +595,55 @@ const HierarchyTab = ({
             </button>
           </div>
           
-          <div className="space-y-1">
-            {filteredEntities.map((entity) => (
-              <EntityItem
-                key={entity.id}
-                entity={entity}
-                isSelected={selectedEntityId === entity.id}
-                onSelect={onSelectEntity}
-                onDelete={onDeleteEntity}
-              />
-            ))}
+          <div 
+            className="space-y-1"
+            onDragOver={(e) => {
+              e.preventDefault()
+              e.dataTransfer.dropEffect = 'move'
+            }}
+            onDrop={(e) => {
+              e.preventDefault()
+              const childId = e.dataTransfer.getData('entity/id')
+              if (childId) {
+                // Drop on empty space = unparent
+                onSetParent?.(childId, null)
+              }
+            }}
+          >
+            {filteredTree.length === 0 ? (
+              <div className="text-center py-8 text-slate-500 text-sm">
+                No entities found
+              </div>
+            ) : (
+              filteredTree.map((entity) => (
+                <EntityItem
+                  key={entity.id}
+                  entity={entity}
+                  children={entity.children || []}
+                  isSelected={selectedEntityId === entity.id}
+                  onSelect={onSelectEntity}
+                  onDelete={onDeleteEntity}
+                  onSetParent={onSetParent}
+                  onDuplicate={onDuplicateEntity}
+                  onRename={onRenameEntity}
+                />
+              ))
+            )}
           </div>
         </div>
       </div>
+
+      <AnimatePresence>
+        {contextMenu && (
+          <ContextMenu
+            x={contextMenu.x}
+            y={contextMenu.y}
+            onClose={() => setContextMenu(null)}
+            onSelectShape={handleCreatePrimitive}
+            onCreateEmpty={handleCreateEmpty}
+          />
+        )}
+      </AnimatePresence>
     </div>
   )
 }
@@ -609,8 +1066,9 @@ const AssetsTab = ({
           </div>
         )}
         {isDragOver && (
-          <div className="text-center py-4 text-emerald-500 font-medium">
-            📁 Drop files here to import
+          <div className="text-center py-4 text-emerald-500 font-medium flex items-center justify-center gap-2">
+            <Folder className="h-5 w-5" />
+            <span>Drop files here to import</span>
           </div>
         )}
       </div>
@@ -663,6 +1121,7 @@ const ModernHierarchyPanel = ({
   onSelectEntity, 
   onAddEntity, 
   onDeleteEntity,
+  onSetParent,
   onSelectAsset,
   onDeleteAsset,
   onImportAsset
@@ -704,6 +1163,7 @@ const ModernHierarchyPanel = ({
             onSelectEntity={onSelectEntity}
             onAddEntity={onAddEntity}
             onDeleteEntity={onDeleteEntity}
+            onSetParent={onSetParent}
           />
         ) : (
           <AssetsTab

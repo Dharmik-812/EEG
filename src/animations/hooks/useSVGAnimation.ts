@@ -10,7 +10,12 @@ export function useSVGAnimation(ref: React.RefObject<SVGElement | null>, options
     let cancelled = false
     ;(async () => {
       anime = await loadAnime()
-      if (!anime || !ref.current || cancelled) return
+      if (!anime || typeof anime !== 'function' || !ref.current || cancelled) {
+        if (!anime || typeof anime !== 'function') {
+          console.warn('animejs not available or not a function, skipping SVG animation')
+        }
+        return
+      }
 
       const paths = ref.current.querySelectorAll('path, circle, rect, line, polyline, polygon') as NodeListOf<SVGPathElement>
       const stack: any[] = []
@@ -18,14 +23,18 @@ export function useSVGAnimation(ref: React.RefObject<SVGElement | null>, options
         const length = (p as any).getTotalLength?.() ?? 300
         p.style.strokeDasharray = String(length)
         p.style.strokeDashoffset = String(length)
-        const anim = anime({
-          targets: p,
-          strokeDashoffset: [length, 0],
-          easing: 'easeInOutSine',
-          duration: options?.duration ?? 1200,
-          autoplay: true,
-        })
-        stack.push(anim)
+        try {
+          const anim = anime({
+            targets: p,
+            strokeDashoffset: [length, 0],
+            easing: 'easeInOutSine',
+            duration: options?.duration ?? 1200,
+            autoplay: true,
+          })
+          stack.push(anim)
+        } catch (err) {
+          console.warn('Failed to animate SVG path:', err)
+        }
       })
       instance = stack
     })()

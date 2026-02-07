@@ -1,66 +1,73 @@
 import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { ChevronLeft, ChevronRight, ChevronUp, ChevronDown, GripVertical, Layers, Settings, Terminal } from 'lucide-react'
+import { ChevronLeft, ChevronRight, ChevronUp, ChevronDown, GripVertical, Layers, Settings, Terminal, Maximize2, Minimize2 } from 'lucide-react'
 
 const ResizeHandle = ({ direction, onResize, className = '' }) => {
   const [isDragging, setIsDragging] = useState(false)
-  const [startPos, setStartPos] = useState({ x: 0, y: 0 })
-  const [startSize, setStartSize] = useState({ width: 0, height: 0 })
+  const startPosRef = useRef({ x: 0, y: 0 })
 
   const handleMouseDown = (e) => {
     setIsDragging(true)
-    setStartPos({ x: e.clientX, y: e.clientY })
-    setStartSize({
-      width: e.target.parentElement.offsetWidth,
-      height: e.target.parentElement.offsetHeight
-    })
+    startPosRef.current = { x: e.clientX, y: e.clientY }
     e.preventDefault()
+    e.stopPropagation()
   }
 
   useEffect(() => {
+    if (!isDragging) return
+
     const handleMouseMove = (e) => {
-      if (!isDragging) return
-      
-      const deltaX = e.clientX - startPos.x
-      const deltaY = e.clientY - startPos.y
+      const deltaX = e.clientX - startPosRef.current.x
+      const deltaY = e.clientY - startPosRef.current.y
       
       onResize({
         deltaX: direction.includes('horizontal') ? deltaX : 0,
         deltaY: direction.includes('vertical') ? deltaY : 0
       })
+      
+      // Update start position for smooth continuous dragging
+      startPosRef.current = { x: e.clientX, y: e.clientY }
     }
 
     const handleMouseUp = () => {
       setIsDragging(false)
     }
 
-    if (isDragging) {
-      document.addEventListener('mousemove', handleMouseMove)
-      document.addEventListener('mouseup', handleMouseUp)
-    }
+    document.addEventListener('mousemove', handleMouseMove)
+    document.addEventListener('mouseup', handleMouseUp)
 
     return () => {
       document.removeEventListener('mousemove', handleMouseMove)
       document.removeEventListener('mouseup', handleMouseUp)
     }
-  }, [isDragging, startPos, onResize, direction])
+  }, [isDragging, onResize, direction])
 
+  const isVertical = direction.includes('vertical')
+  const isHorizontal = direction.includes('horizontal')
+  
   return (
     <div
-      className={`absolute bg-slate-600 hover:bg-slate-500 transition-colors cursor-col-resize group ${className}`}
+      className={`absolute transition-colors group ${className} ${
+        isVertical ? 'cursor-ns-resize' : 'cursor-col-resize'
+      } bg-slate-600/50 hover:bg-slate-500`}
       onMouseDown={handleMouseDown}
       style={{
-        width: direction.includes('horizontal') ? '4px' : '100%',
-        height: direction.includes('vertical') ? '4px' : '100%',
+        width: isHorizontal ? '6px' : '100%',
+        height: isVertical ? '8px' : '100%',
         right: direction.includes('right') ? 0 : undefined,
         left: direction.includes('left') ? 0 : undefined,
         top: direction.includes('top') ? 0 : undefined,
         bottom: direction.includes('bottom') ? 0 : undefined,
-        zIndex: 10
+        zIndex: 30,
+        userSelect: 'none'
       }}
     >
-      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-        <GripVertical className="h-3 w-3 text-white" />
+      <div className="absolute inset-0 flex items-center justify-center opacity-50 group-hover:opacity-100 transition-opacity pointer-events-none">
+        {isVertical ? (
+          <GripVertical className="h-4 w-4 text-white rotate-90" />
+        ) : (
+          <GripVertical className="h-4 w-4 text-white" />
+        )}
       </div>
     </div>
   )
@@ -74,18 +81,21 @@ const CollapsiblePanel = ({
   onToggle, 
   className = '',
   defaultWidth = 350,
-  minWidth = 250,
-  maxWidth = 600,
+  minWidth = 200,
+  maxWidth = null,
   side = 'left'
 }) => {
   const [width, setWidth] = useState(defaultWidth)
   const panelRef = useRef(null)
+  
+  // Calculate max width based on viewport if not provided
+  const calculatedMaxWidth = maxWidth || (typeof window !== 'undefined' ? window.innerWidth * 0.5 : 800)
 
   const handleResize = ({ deltaX }) => {
     if (side === 'left') {
-      setWidth(prev => Math.max(minWidth, Math.min(maxWidth, prev + deltaX)))
+      setWidth(prev => Math.max(minWidth, Math.min(calculatedMaxWidth, prev + deltaX)))
     } else {
-      setWidth(prev => Math.max(minWidth, Math.min(maxWidth, prev - deltaX)))
+      setWidth(prev => Math.max(minWidth, Math.min(calculatedMaxWidth, prev - deltaX)))
     }
   }
 
@@ -165,22 +175,51 @@ const ModernLayout = ({
   bottomCollapsed = false,
   onLeftToggle,
   onRightToggle,
-  onBottomToggle
+  onBottomToggle,
+  bottomPanelTabs = null,
+  activeTab = null,
+  onTabChange = null
 }) => {
   const [leftWidth, setLeftWidth] = useState(350)
   const [rightWidth, setRightWidth] = useState(350)
-  const [bottomHeight, setBottomHeight] = useState(250)
+  const [bottomHeight, setBottomHeight] = useState(300)
+  const [isBottomMaximized, setIsBottomMaximized] = useState(false)
+
+  // Bottom panel limits: 85% of screen height max
+  const minBottomHeight = 150
+  const maxBottomHeight = typeof window !== 'undefined' ? window.innerHeight * 0.85 : 800
+  const maxBottomHeightForMaximize = typeof window !== 'undefined' ? window.innerHeight * 0.85 : 800
+
+  // Calculate max widths based on viewport (50% of screen width)
+  const maxPanelWidth = typeof window !== 'undefined' ? window.innerWidth * 0.5 : 800
+  const minPanelWidth = 200
 
   const handleLeftResize = ({ deltaX }) => {
-    setLeftWidth(prev => Math.max(250, Math.min(600, prev + deltaX)))
+    setLeftWidth(prev => Math.max(minPanelWidth, Math.min(maxPanelWidth, prev + deltaX)))
   }
 
   const handleRightResize = ({ deltaX }) => {
-    setRightWidth(prev => Math.max(250, Math.min(600, prev - deltaX)))
+    setRightWidth(prev => Math.max(minPanelWidth, Math.min(maxPanelWidth, prev - deltaX)))
   }
 
   const handleBottomResize = ({ deltaY }) => {
-    setBottomHeight(prev => Math.max(200, Math.min(500, prev - deltaY)))
+    if (isBottomMaximized) {
+      setIsBottomMaximized(false)
+      setBottomHeight(300) // Reset to default when resizing from maximized
+      return
+    }
+    // Limit to 85% of screen height
+    setBottomHeight(prev => Math.max(minBottomHeight, Math.min(maxBottomHeight, prev - deltaY)))
+  }
+
+  const toggleBottomMaximize = () => {
+    if (isBottomMaximized) {
+      setIsBottomMaximized(false)
+      setBottomHeight(300)
+    } else {
+      setIsBottomMaximized(true)
+      setBottomHeight(maxBottomHeightForMaximize)
+    }
   }
 
   return (
@@ -194,38 +233,77 @@ const ModernLayout = ({
           isCollapsed={leftCollapsed}
           onToggle={onLeftToggle}
           defaultWidth={leftWidth}
+          minWidth={200}
+          maxWidth={typeof window !== 'undefined' ? window.innerWidth * 0.5 : 800}
           side="left"
         >
           {leftPanel}
         </CollapsiblePanel>
 
         {/* Center Area */}
-        <div className="flex-1 flex flex-col relative">
-          {centerPanel}
+        <div className="flex-1 flex flex-col relative min-h-0 min-w-0 overflow-hidden">
+          <div className="flex-1 min-h-0 overflow-hidden">
+            {centerPanel}
+          </div>
           
           {/* Bottom Panel */}
           <motion.div
             initial={false}
             animate={{ 
-              height: bottomCollapsed ? 0 : bottomHeight,
+              height: bottomCollapsed ? 0 : (isBottomMaximized ? maxBottomHeightForMaximize : bottomHeight),
               opacity: bottomCollapsed ? 0 : 1
             }}
-            transition={{ duration: 0.2, ease: 'easeInOut' }}
-            className="relative bg-slate-800 border-t border-slate-700 overflow-hidden"
+            transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+            className="relative bg-slate-800 border-t border-slate-700 overflow-hidden flex-shrink-0"
+            style={{ 
+              minHeight: bottomCollapsed ? 0 : minBottomHeight,
+              maxHeight: maxBottomHeight
+            }}
           >
             {!bottomCollapsed && (
               <>
                 <div className="flex items-center justify-between p-3 border-b border-slate-700 bg-slate-750">
                   <div className="flex items-center gap-2">
-                    <h3 className="text-sm font-medium text-slate-200">Console & Script</h3>
+                    {bottomPanelTabs && bottomPanelTabs.length > 0 ? (
+                      <div className="flex gap-1">
+                        {bottomPanelTabs.map((tab) => (
+                          <button
+                            key={tab.id}
+                            onClick={() => onTabChange?.(tab.id)}
+                            className={`px-3 py-1.5 text-xs font-medium rounded transition-colors ${
+                              activeTab === tab.id
+                                ? 'bg-emerald-600 text-white'
+                                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-700'
+                            }`}
+                          >
+                            {tab.label}
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <h3 className="text-sm font-medium text-slate-200">Console & Script</h3>
+                    )}
                   </div>
-                  <button
-                    onClick={onBottomToggle}
-                    className="p-2 hover:bg-slate-700 rounded-lg transition-colors"
-                    title="Collapse panel"
-                  >
-                    <ChevronDown className="h-4 w-4 text-slate-400" />
-                  </button>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={toggleBottomMaximize}
+                      className="p-2 hover:bg-slate-700 rounded-lg transition-colors"
+                      title={isBottomMaximized ? "Restore panel size" : "Maximize panel"}
+                    >
+                      {isBottomMaximized ? (
+                        <Minimize2 className="h-4 w-4 text-slate-400" />
+                      ) : (
+                        <Maximize2 className="h-4 w-4 text-slate-400" />
+                      )}
+                    </button>
+                    <button
+                      onClick={onBottomToggle}
+                      className="p-2 hover:bg-slate-700 rounded-lg transition-colors"
+                      title="Collapse panel"
+                    >
+                      <ChevronDown className="h-4 w-4 text-slate-400" />
+                    </button>
+                  </div>
                 </div>
                 <div className="h-full overflow-auto">
                   {bottomPanel}
@@ -234,6 +312,12 @@ const ModernLayout = ({
                   direction="vertical-top" 
                   onResize={handleBottomResize}
                   className="top-0"
+                />
+                {/* Double-click to maximize - larger hit area on top */}
+                <div
+                  onDoubleClick={toggleBottomMaximize}
+                  className="absolute top-0 left-0 right-0 h-8 cursor-ns-resize z-25"
+                  title="Double-click to maximize/restore"
                 />
               </>
             )}
@@ -258,6 +342,8 @@ const ModernLayout = ({
           isCollapsed={rightCollapsed}
           onToggle={onRightToggle}
           defaultWidth={rightWidth}
+          minWidth={200}
+          maxWidth={typeof window !== 'undefined' ? window.innerWidth * 0.5 : 800}
           side="right"
         >
           {rightPanel}

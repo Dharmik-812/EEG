@@ -275,6 +275,10 @@ const db = {
       const res = await pool.query(s, p)
       return res.rows[0]
     }
+    // Ensure memory is initialized
+    if (!mem) {
+      initMemory()
+    }
     return memGet(sql, params)
   },
   async all(sql, ...params) {
@@ -282,6 +286,10 @@ const db = {
       const { sql: s, params: p } = toPg(sql, params)
       const res = await pool.query(s, p)
       return res.rows
+    }
+    // Ensure memory is initialized
+    if (!mem) {
+      initMemory()
     }
     return memAll(sql, params)
   },
@@ -291,13 +299,18 @@ const db = {
       const res = await pool.query(s, p)
       return { rowCount: res.rowCount }
     }
+    // Ensure memory is initialized
+    if (!mem) {
+      initMemory()
+    }
     return memRun(sql, params)
   },
 }
 
 async function init() {
   if (mode === 'pg') {
-    pool = new Pool({ connectionString: DATABASE_URL, ssl: DATABASE_URL.includes('supabase.co') ? { rejectUnauthorized: false } : undefined })
+    try {
+      pool = new Pool({ connectionString: DATABASE_URL, ssl: DATABASE_URL.includes('supabase.co') ? { rejectUnauthorized: false } : undefined })
     const schema = `
     CREATE TABLE IF NOT EXISTS users (
       id TEXT PRIMARY KEY,
@@ -445,26 +458,78 @@ async function init() {
       createdAt TEXT NOT NULL
     );
     `
-    await pool.query(schema)
-    await pool.query(`
-      CREATE INDEX IF NOT EXISTS idx_friend_requests_to_status ON friend_requests (toId, status);
-      CREATE INDEX IF NOT EXISTS idx_friend_requests_from_status ON friend_requests (fromId, status);
-      CREATE INDEX IF NOT EXISTS idx_friendships_aId ON friendships (aId);
-      CREATE INDEX IF NOT EXISTS idx_friendships_bId ON friendships (bId);
-      CREATE INDEX IF NOT EXISTS idx_dm_messages_thread_created ON dm_messages (threadKey, createdAt);
-      CREATE INDEX IF NOT EXISTS idx_group_members_group ON group_members (groupId);
-      CREATE INDEX IF NOT EXISTS idx_group_members_user ON group_members (userId);
-      CREATE INDEX IF NOT EXISTS idx_group_messages_group_created ON group_messages (groupId, createdAt);
-      CREATE INDEX IF NOT EXISTS idx_group_chats_name ON group_chats (name);
-      CREATE INDEX IF NOT EXISTS idx_group_chats_description ON group_chats (description);
-      CREATE INDEX IF NOT EXISTS idx_bans_user ON bans (userId);
-      CREATE INDEX IF NOT EXISTS idx_reports_status ON reports (status);
-    `)
-    return
+      await pool.query(schema)
+      await pool.query(`
+        CREATE INDEX IF NOT EXISTS idx_friend_requests_to_status ON friend_requests (toId, status);
+        CREATE INDEX IF NOT EXISTS idx_friend_requests_from_status ON friend_requests (fromId, status);
+        CREATE INDEX IF NOT EXISTS idx_friendships_aId ON friendships (aId);
+        CREATE INDEX IF NOT EXISTS idx_friendships_bId ON friendships (bId);
+        CREATE INDEX IF NOT EXISTS idx_dm_messages_thread_created ON dm_messages (threadKey, createdAt);
+        CREATE INDEX IF NOT EXISTS idx_group_members_group ON group_members (groupId);
+        CREATE INDEX IF NOT EXISTS idx_group_members_user ON group_members (userId);
+        CREATE INDEX IF NOT EXISTS idx_group_messages_group_created ON group_messages (groupId, createdAt);
+        CREATE INDEX IF NOT EXISTS idx_group_chats_name ON group_chats (name);
+        CREATE INDEX IF NOT EXISTS idx_group_chats_description ON group_chats (description);
+        CREATE INDEX IF NOT EXISTS idx_bans_user ON bans (userId);
+        CREATE INDEX IF NOT EXISTS idx_reports_status ON reports (status);
+      `)
+      // Test the connection
+      await pool.query('SELECT 1')
+      console.log('✅ Database connected successfully')
+      return
+    } catch (error) {
+      console.error('❌ Failed to connect to database:', error.message)
+      console.warn('⚠️  Falling back to in-memory database mode')
+      // Fall back to memory mode
+      mode = 'memory'
+      pool = null
+      initMemory()
+      // Seed admin user after fallback
+      await seedDefaultAdmin()
+      return
+    }
   }
   // memory mode: initialize in-memory structures
   initMemory()
   console.warn('Database not configured. Using in-memory store for tests/health. Set DATABASE_URL for persistence.')
+  
+  // Seed default admin user in memory mode
+  await seedDefaultAdmin()
+}
+
+async function seedDefaultAdmin() {
+  // Only seed in memory mode
+  if (mode !== 'memory') return
+  
+  const bcrypt = require('bcryptjs')
+  const adminEmail = 'admin@aversoltix.com'
+  const adminPassword = 'admin123'
+  
+  // Check if admin already exists
+  const existing = await db.get('SELECT id FROM users WHERE email = ?', adminEmail)
+  if (existing) {
+    console.log('✅ Default admin user already exists')
+    return
+  }
+  
+  // Create admin user
+  const adminId = newId('u')
+  const passwordHash = bcrypt.hashSync(adminPassword, 10)
+  const createdAt = new Date().toISOString()
+  
+  await db.run('INSERT INTO users (id,name,email,passwordHash,bio,avatarUrl,createdAt) VALUES (?,?,?,?,?,?,?)', 
+    adminId, 
+    'Admin User', 
+    adminEmail, 
+    passwordHash, 
+    'System Administrator', 
+    '', 
+    createdAt
+  )
+  
+  console.log('✅ Default admin user created:')
+  console.log(`   Email: ${adminEmail}`)
+  console.log(`   Password: ${adminPassword}`)
 }
 
 function newId(prefix) {

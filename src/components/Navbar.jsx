@@ -16,6 +16,8 @@ const links = [
   { to: '/chat', label: 'Chatbot', category: 'primary', icon: MessageCircle },
   { to: '/editor', label: 'Editor', category: 'primary', icon: BookOpen },
   { to: '/dashboard', label: 'Dashboard', category: 'primary', hideForAdmin: true, icon: LayoutDashboard },
+  { to: '/messages', label: 'Messages', category: 'primary', requiresAuth: true, icon: MessageCircle },
+  { to: '/groups', label: 'Groups', category: 'primary', requiresAuth: true, icon: Users },
   // Secondary (will appear in the wheel)
   { to: '/leaderboard', label: 'Leaderboard', category: 'more', icon: Trophy },
   { to: '/badges', label: 'Badges', category: 'more', icon: Award },
@@ -199,7 +201,11 @@ export default function Navbar() {
         <div className="hidden lg:flex items-center gap-1" onClick={() => console.log('Desktop navbar active')}>
           {/* Primary Section: show only the main pages */}
           <div className="flex items-center gap-1">
-            {links.filter(l => l.category === 'primary' && !(l.hideForAdmin && currentUser?.role === 'admin')).map(l => (
+            {links.filter(l => 
+              l.category === 'primary' && 
+              !(l.hideForAdmin && currentUser?.role === 'admin') &&
+              !(l.requiresAuth && !currentUser)
+            ).map(l => (
               <LinkItem key={l.to} {...l} />
             ))}
           </div>
@@ -248,7 +254,10 @@ export default function Navbar() {
 <div className="w-full flex items-center justify-center overflow-hidden">
                       <CircularNavWheel
                         items={links
-                          .filter(l => !(l.hideForAdmin && currentUser?.role === 'admin'))
+                          .filter(l => 
+                            !(l.hideForAdmin && currentUser?.role === 'admin') &&
+                            !(l.requiresAuth && !currentUser)
+                          )
                           .map(l => ({ ...l }))}
                         currentPath={typeof window !== 'undefined' ? window.location.pathname : '/'}
                         onItemSelect={(item) => {
@@ -360,22 +369,23 @@ export default function Navbar() {
         {/* Medium screen navbar */}
         <div className="hidden md:flex lg:hidden items-center gap-1" onClick={() => console.log('Medium navbar active')}>
           <div className="flex items-center gap-1">
-            {links.slice(0, 3).filter(l => !(l.hideForAdmin && currentUser?.role === 'admin')).map(l => (
+            {links.filter(l => 
+              l.category === 'primary' && 
+              !(l.hideForAdmin && currentUser?.role === 'admin') &&
+              !(l.requiresAuth && !currentUser)
+            ).slice(0, 4).map(l => (
               <LinkItem key={l.to} {...l} />
             ))}
             {currentUser && (
               <>
-                <NavLink to="/chat-friends" className="nav-link px-2 py-2 rounded-xl hover:bg-emerald-50/30 dark:hover:bg-slate-800/50" data-ripple>
-                  <Users className="h-4 w-4" />
+                <NavLink to="/messages" className="nav-link px-2 py-2 rounded-xl hover:bg-emerald-50/30 dark:hover:bg-slate-800/50" data-ripple title="Messages">
+                  <MessageCircle className="h-4 w-4" />
                 </NavLink>
-                <NavLink to="/groups" className="nav-link px-2 py-2 rounded-xl hover:bg-emerald-50/30 dark:hover:bg-slate-800/50" data-ripple>
+                <NavLink to="/groups" className="nav-link px-2 py-2 rounded-xl hover:bg-emerald-50/30 dark:hover:bg-slate-800/50" data-ripple title="Groups">
                   <Users className="h-4 w-4" />
                 </NavLink>
               </>
             )}
-            <NavLink to="/chat" className="nav-link px-2 py-2 rounded-xl hover:bg-emerald-50/30 dark:hover:bg-slate-800/50" data-ripple>
-              <MessageCircle className="h-4 w-4" />
-            </NavLink>
           </div>
           
           <div className="w-px h-5 bg-gradient-to-b from-transparent via-emerald-300 to-transparent dark:via-slate-600 mx-1" />

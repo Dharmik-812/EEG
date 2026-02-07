@@ -7,7 +7,7 @@ import { useSubmissionsStore } from '../store/submissionsStore'
 import {
   Users, Gamepad2, BookOpen, Building, TrendingUp, GraduationCap, School,
   Shield, UserCheck, UserCog, Eye, Zap, Target, Leaf, Globe, TreePine,
-  Award, Eye as EyeIcon, ArrowRight
+  Award, Eye as EyeIcon, ArrowRight, Sprout, Rocket, Lightbulb, Star, BookOpen as BookOpenIcon
 } from 'lucide-react'
 import { useScrollReveal, useGSAP } from '../animations'
 
@@ -126,10 +126,10 @@ export default function About() {
 
   // Stats & community structures (intentionally explicit & verbose)
   const statsData = useMemo(() => [
-    { key: 'users', label: '👥 Users', value: analytics.totalUsers || 0, icon: Users, color: 'blue' },
-    { key: 'games', label: '🎮 Games', value: (approvedGames || []).length || 0, icon: Gamepad2, color: 'purple' },
-    { key: 'quizzes', label: '🧩 Quizzes', value: (approvedQuizzes || []).length || 0, icon: BookOpen, color: 'emerald' },
-    { key: 'institutions', label: '🏫 Institutions', value: analytics.totalInstitutions || 0, icon: Building, color: 'orange' }
+    { key: 'users', label: 'Users', value: analytics.totalUsers || 0, icon: Users, color: 'blue' },
+    { key: 'games', label: 'Games', value: (approvedGames || []).length || 0, icon: Gamepad2, color: 'purple' },
+    { key: 'quizzes', label: 'Quizzes', value: (approvedQuizzes || []).length || 0, icon: BookOpen, color: 'emerald' },
+    { key: 'institutions', label: 'Institutions', value: analytics.totalInstitutions || 0, icon: Building, color: 'orange' }
   ], [analytics, approvedGames, approvedQuizzes])
 
   const communityData = useMemo(() => [
@@ -332,7 +332,7 @@ export default function About() {
                 animate={{ rotate: 360 }}
                 transition={{ duration: 28, repeat: Infinity, ease: 'linear' }}
               >
-                🌱
+                <Sprout className="h-8 w-8 text-white" />
               </motion.div>
 
               <motion.h2
@@ -356,17 +356,23 @@ export default function About() {
 
               <motion.div className="mt-8 grid grid-cols-3 gap-4" initial="hidden" whileInView="enter" viewport={{ once: true }}>
                 <motion.div className="text-center p-4 bg-white/6 rounded-xl" variants={popIn(0.25, 0.3)}>
-                  <motion.div className="text-2xl mb-2" initial={{ y: 8 }} animate={{ y: 0, transition: { delay: 0.3 } }}>🎮</motion.div>
+                  <motion.div className="mb-2 flex justify-center" initial={{ y: 8 }} animate={{ y: 0, transition: { delay: 0.3 } }}>
+                    <Gamepad2 className="h-6 w-6 text-emerald-400" />
+                  </motion.div>
                   <div className="text-sm font-medium">Gamified</div>
                 </motion.div>
 
                 <motion.div className="text-center p-4 bg-white/6 rounded-xl" variants={popIn(0.35, 0.35)}>
-                  <motion.div className="text-2xl mb-2" initial={{ y: 8 }} animate={{ y: 0, transition: { delay: 0.34 } }}>🌍</motion.div>
+                  <motion.div className="mb-2 flex justify-center" initial={{ y: 8 }} animate={{ y: 0, transition: { delay: 0.34 } }}>
+                    <Globe className="h-6 w-6 text-emerald-400" />
+                  </motion.div>
                   <div className="text-sm font-medium">Global Impact</div>
                 </motion.div>
 
                 <motion.div className="text-center p-4 bg-white/6 rounded-xl" variants={popIn(0.45, 0.35)}>
-                  <motion.div className="text-2xl mb-2" initial={{ y: 8 }} animate={{ y: 0, transition: { delay: 0.38 } }}>📚</motion.div>
+                  <motion.div className="mb-2 flex justify-center" initial={{ y: 8 }} animate={{ y: 0, transition: { delay: 0.38 } }}>
+                    <BookOpenIcon className="h-6 w-6 text-emerald-400" />
+                  </motion.div>
                   <div className="text-sm font-medium">Educational</div>
                 </motion.div>
               </motion.div>
@@ -389,7 +395,10 @@ export default function About() {
             </motion.div>
 
             <motion.div initial="hidden" whileInView="enter" viewport={{ once: true }} variants={fadeUp(0.32)}>
-              <h3 className="text-2xl font-bold mb-4 text-teal-600">🌟 Impact</h3>
+              <h3 className="text-2xl font-bold mb-4 text-teal-600 flex items-center gap-2">
+                <Star className="h-6 w-6" />
+                Impact
+              </h3>
               <p className="text-lg text-slate-600 dark:text-slate-300 leading-relaxed">
                 Through our platform, students don't just learn about environmental issues—they develop the knowledge, skills, and motivation to become part of the solution.
               </p>
@@ -416,24 +425,26 @@ export default function About() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {[
             {
-              icon: '🚀',
+              icon: Rocket,
               title: 'Innovation',
               desc: 'Pushing boundaries to create revolutionary learning experiences that captivate and educate.',
               gradient: 'from-purple-500 to-pink-600'
             },
             {
-              icon: '🤝',
+              icon: Users,
               title: 'Collaboration',
               desc: 'Building bridges between educators, students, and communities to amplify our collective impact.',
               gradient: 'from-blue-500 to-cyan-600'
             },
             {
-              icon: '🌱',
+              icon: Sprout,
               title: 'Sustainability',
               desc: 'Every decision we make considers its impact on our planet and future generations.',
               gradient: 'from-green-500 to-emerald-600'
             }
-          ].map((val, i) => (
+          ].map((val, i) => {
+            const IconComponent = val.icon
+            return (
             <motion.div
               className="group relative p-8 bg-white/8 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl h-full overflow-hidden"
               key={i}
@@ -444,8 +455,8 @@ export default function About() {
               whileHover={{ y: -10 }}
             >
               <div className={`absolute inset-0 bg-gradient-to-br ${val.gradient} opacity-0 group-hover:opacity-8 transition-opacity duration-500`} />
-              <motion.div className="text-5xl mb-6 relative z-10" whileHover={{ scale: 1.12, rotate: 6 }} transition={{ type: 'spring', stiffness: 360 }}>
-                {val.icon}
+              <motion.div className="mb-6 relative z-10 flex justify-center" whileHover={{ scale: 1.12, rotate: 6 }} transition={{ type: 'spring', stiffness: 360 }}>
+                <IconComponent className="h-12 w-12 text-emerald-400" />
               </motion.div>
 
               <div className="relative z-10">
@@ -460,7 +471,8 @@ export default function About() {
                 transition={{ duration: 2 + i * 0.5, repeat: Infinity, delay: i * 0.3 }}
               />
             </motion.div>
-          ))}
+            )
+          })}
         </div>
       </div>
     </section>

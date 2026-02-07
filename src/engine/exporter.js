@@ -134,7 +134,14 @@ export function buildWebHTML(project) {
       ctx.fillRect(0,0,canvas.width,canvas.height)
       const layers = scene.layers && scene.layers.length ? scene.layers : [{ id: null }]
       for(const layer of layers){
-        const ents = scene.entities.filter(en => (en.layerId||null) === (layer.id||null))
+        // Sort entities by collider layer property (higher layer = drawn on top)
+        const ents = scene.entities
+          .filter(en => (en.layerId||null) === (layer.id||null))
+          .sort((a, b) => {
+            const layerA = a.components?.collider?.layer ?? 0
+            const layerB = b.components?.collider?.layer ?? 0
+            return layerA - layerB
+          })
         // tilemaps first
         for(const e of ents.filter(en=>en.components?.tilemap)){
           const t=e.components.transform, tm=e.components.tilemap

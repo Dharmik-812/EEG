@@ -38,7 +38,7 @@ const defaultProject = () => ({
       background: '#e6f7f1',
       bgm: null,
       bgmVolume: 0.6,
-      layers: [ { id: 'layer-default', name: 'Layer 1' } ],
+      layers: [{ id: 'layer-default', name: 'Layer 1' }],
       entities: [
         {
           id: 'e-1',
@@ -58,7 +58,7 @@ const defaultProject = () => ({
   ],
   assets: seedAssets(), // {id, name, type:'image'|'audio'|'script', src}
   startSceneId: 'scene-1',
-  input: { left: ['ArrowLeft','KeyA'], right: ['ArrowRight','KeyD'], up: ['ArrowUp','KeyW'], down: ['ArrowDown','KeyS'], action: ['Space'] },
+  input: { left: ['ArrowLeft', 'KeyA'], right: ['ArrowRight', 'KeyD'], up: ['ArrowUp', 'KeyW'], down: ['ArrowDown', 'KeyS'], action: ['Space'] },
 })
 
 export const useEditorStore = create(
@@ -85,15 +85,15 @@ export const useEditorStore = create(
             if (!Array.isArray(s.entities)) throw new Error('Invalid scene entities')
             for (const e of s.entities) {
               if (!e || typeof e.id !== 'string' || typeof e.components !== 'object') throw new Error('Invalid entity')
-              const allowed = new Set(['transform','sprite','text','ui','rigidbody','collider','tilemap','script','emitter','audioSource'])
-              for (const k of Object.keys(e.components)) if (!allowed.has(k)) throw new Error('Unsupported component: '+k)
+              const allowed = new Set(['transform', 'sprite', 'text', 'ui', 'rigidbody', 'collider', 'tilemap', 'script', 'emitter', 'audioSource'])
+              for (const k of Object.keys(e.components)) if (!allowed.has(k)) throw new Error('Unsupported component: ' + k)
             }
           }
           if (proj.assets && !Array.isArray(proj.assets)) throw new Error('Invalid assets')
           if (Array.isArray(proj.assets)) {
             for (const a of proj.assets) {
               if (typeof a.id !== 'string' || typeof a.src !== 'string') throw new Error('Invalid asset')
-              if (a.type !== 'image' && a.type !== 'audio') throw new Error('Unsupported asset type: '+a.type)
+              if (a.type !== 'image' && a.type !== 'audio') throw new Error('Unsupported asset type: ' + a.type)
             }
           }
           return { project: { ...proj, version: proj.version || 1, updatedAt: Date.now() }, selectedEntityId: null, selectedSceneId: proj.startSceneId || proj.scenes[0]?.id, history: [], redo: [] }
@@ -108,7 +108,7 @@ export const useEditorStore = create(
       toggleGrid: () => set(state => ({ grid: !state.grid })),
       setMode: (m) => set({ mode: m }),
       setCamera: (x, y) => set({ camera: { x, y } }),
-      pushHistory: () => set(state => ({ history: [...state.history.slice(-29), JSON.stringify(state.project) ], redo: [] })),
+      pushHistory: () => set(state => ({ history: [...state.history.slice(-29), JSON.stringify(state.project)], redo: [] })),
       undo: () => set(state => {
         if (state.history.length === 0) return {}
         const prev = state.history[state.history.length - 1]
@@ -141,20 +141,58 @@ export const useEditorStore = create(
         return { project: { ...state.project, updatedAt: Date.now(), scenes: [...state.project.scenes, { id, name, width: 960, height: 540, background: '#e6f7f1', entities: [] }] } }
       }),
 
-      selectEntity: (id) => set({ selectedEntityId: id }),
-      addEntity: (kind = 'sprite') => set(state => {
+      selectEntity: (id) => {
+        if (id === null) {
+          console.groupCollapsed('selectEntity(null) called')
+          console.trace()
+          console.groupEnd()
+        }
+        set({ selectedEntityId: id })
+      },
+      addEntity: (kindOrEntity = 'sprite') => set(state => {
         get().pushHistory()
         const scene = get().currentScene()
-        const id = `e-${Date.now()}`
-        const layerId = scene.layers?.[0]?.id || 'layer-default'
-        const base = { id, layerId, parentId: null, name: kind === 'text' ? 'Text' : (kind==='tilemap'?'Tilemap':'Sprite'), components: { transform: { x: 50, y: 50, w: 100, h: 100, rotation: 0 } } }
-        if (kind === 'sprite') base.components.sprite = { fill: '#34d399' }
-        if (kind === 'text') base.components.text = { value: 'Hello Earth', size: 24, color: '#065f46' }
-        if (kind === 'tilemap') base.components.tilemap = { tileWidth: 32, tileHeight: 32, cols: Math.floor((scene.width-40)/32), rows: Math.floor((scene.height-40)/32), tilesetAssetId: null, paintIndex: 0, data: Array(Math.floor((scene.width-40)/32)*Math.floor((scene.height-40)/32)).fill(-1) }
+
+        let newEntity;
+
+        // Handle direct entity object (e.g. from drag & drop)
+        if (typeof kindOrEntity === 'object' && kindOrEntity !== null) {
+          newEntity = { ...kindOrEntity }
+          if (!newEntity.id) newEntity.id = `e-${Date.now()}`
+          if (!newEntity.layerId) newEntity.layerId = scene.layers?.[0]?.id || 'layer-default'
+          if (!newEntity.parentId) newEntity.parentId = null
+        } else {
+          // Handle string kind (e.g. 'sprite', 'text')
+          const kind = kindOrEntity
+          const id = `e-${Date.now()}`
+          const layerId = scene.layers?.[0]?.id || 'layer-default'
+
+          newEntity = {
+            id,
+            layerId,
+            parentId: null,
+            name: kind === 'text' ? 'Text' : (kind === 'tilemap' ? 'Tilemap' : 'Sprite'),
+            components: {
+              transform: { x: 50, y: 50, w: 100, h: 100, rotation: 0 }
+            }
+          }
+
+          if (kind === 'sprite') newEntity.components.sprite = { fill: '#34d399' }
+          if (kind === 'text') newEntity.components.text = { value: 'Hello Earth', size: 24, color: '#065f46' }
+          if (kind === 'tilemap') newEntity.components.tilemap = {
+            tileWidth: 32, tileHeight: 32,
+            cols: Math.floor((scene.width - 40) / 32),
+            rows: Math.floor((scene.height - 40) / 32),
+            tilesetAssetId: null,
+            paintIndex: 0,
+            data: Array(Math.floor((scene.width - 40) / 32) * Math.floor((scene.height - 40) / 32)).fill(-1)
+          }
+        }
+
         const updated = { ...state.project, updatedAt: Date.now() }
         const idx = updated.scenes.findIndex(s => s.id === scene.id)
-        updated.scenes[idx] = { ...scene, entities: [...scene.entities, base] }
-        return { project: updated, selectedEntityId: id }
+        updated.scenes[idx] = { ...scene, entities: [...scene.entities, newEntity] }
+        return { project: updated, selectedEntityId: newEntity.id }
       }),
       addSpriteWithAsset: (assetId, x = 50, y = 50, w = 100, h = 100) => set(state => {
         get().pushHistory()
@@ -174,10 +212,10 @@ export const useEditorStore = create(
         if (!id) return {}
         const sidx = state.project.scenes.findIndex(s => s.id === scene.id)
         // Only reorder within same layer
-        const layerId = scene.entities.find(e=>e.id===id)?.layerId || null
-        const sameLayer = scene.entities.filter(e=>e.layerId===layerId)
-        const indices = sameLayer.map(e=>scene.entities.findIndex(x=>x.id===e.id))
-        const i = indices.indexOf(scene.entities.findIndex(e=>e.id===id))
+        const layerId = scene.entities.find(e => e.id === id)?.layerId || null
+        const sameLayer = scene.entities.filter(e => e.layerId === layerId)
+        const indices = sameLayer.map(e => scene.entities.findIndex(x => x.id === e.id))
+        const i = indices.indexOf(scene.entities.findIndex(e => e.id === id))
         if (i === -1) return {}
         const j = Math.max(0, Math.min(indices.length - 1, i + dir))
         if (i === j) return {}
@@ -200,17 +238,33 @@ export const useEditorStore = create(
         updated.scenes[idx] = { ...scene, entities: scene.entities.filter(e => e.id !== id) }
         return { project: updated, selectedEntityId: null }
       }),
-      updateSelected: (path, value) => set(state => {
-        get().pushHistory()
+      updateSelected: (path, value, pushToHistory = true) => set(state => {
+        if (pushToHistory) get().pushHistory()
         const scene = get().currentScene()
         const id = state.selectedEntityId
-        if (!id) return {}
-        const updated = { ...state.project, updatedAt: Date.now() }
+        if (!id) return state
+
+        // Proper immutable update
+        const updated = {
+          ...state.project,
+          scenes: [...state.project.scenes],
+          updatedAt: Date.now()
+        }
+
         const sidx = updated.scenes.findIndex(s => s.id === scene.id)
-        const eidx = scene.entities.findIndex(e => e.id === id)
-        const entity = { ...scene.entities[eidx] }
+        if (sidx === -1) return state
+
+        const newScene = { ...updated.scenes[sidx] }
+        newScene.entities = [...newScene.entities]
+
+        const eidx = newScene.entities.findIndex(e => e.id === id)
+        if (eidx === -1) return state
+
+        const entity = { ...newScene.entities[eidx] }
+
         const compKey = path[0]
         const propPath = path.slice(1)
+
         // Special case for entity-level props
         if (compKey === '$entity') {
           let target = entity
@@ -218,16 +272,22 @@ export const useEditorStore = create(
           target[path[path.length - 1]] = value
         } else {
           entity.components = { ...entity.components }
-          entity.components[compKey] = { ...entity.components[compKey] }
-          let target = entity.components[compKey]
-          for (let i = 0; i < propPath.length - 1; i++) target = target[propPath[i]]
-          target[propPath[propPath.length - 1]] = value
+          if (entity.components[compKey]) {
+            entity.components[compKey] = { ...entity.components[compKey] }
+            let target = entity.components[compKey]
+            for (let i = 0; i < propPath.length - 1; i++) target = target[propPath[i]]
+            target[propPath[propPath.length - 1]] = value
+          }
         }
-        const newScene = { ...scene }
-        newScene.entities = [...scene.entities]
+
         newScene.entities[eidx] = entity
         updated.scenes[sidx] = newScene
-        return { project: updated }
+
+        return {
+          ...state,
+          project: updated,
+          selectedEntityId: id
+        }
       }),
 
       addComponent: (kind) => set(state => {
@@ -240,10 +300,10 @@ export const useEditorStore = create(
         const eidx = scene.entities.findIndex(e => e.id === id)
         const entity = { ...scene.entities[eidx] }
         entity.components = { ...entity.components }
-        const t = entity.components.transform || { x:0, y:0, w:100, h:100, rotation:0 }
+        const t = entity.components.transform || { x: 0, y: 0, w: 100, h: 100, rotation: 0 }
         const defaults = {
           rigidbody: { vx: 0, vy: 0, ax: 0, ay: 0, gravity: 0, friction: 0 },
-          collider: { type: 'aabb', w: t.w, h: t.h, circle: { r: Math.floor(Math.max(t.w, t.h)/2) }, points: [{x:-t.w/2,y:-t.h/2},{x:t.w/2,y:-t.h/2},{x:t.w/2,y:t.h/2},{x:-t.w/2,y:t.h/2}] },
+          collider: { type: 'aabb', w: t.w, h: t.h, circle: { r: Math.floor(Math.max(t.w, t.h) / 2) }, points: [{ x: -t.w / 2, y: -t.h / 2 }, { x: t.w / 2, y: -t.h / 2 }, { x: t.w / 2, y: t.h / 2 }, { x: -t.w / 2, y: t.h / 2 }] },
           script: { code: "function onUpdate(event, payload, api) { /* called every frame */ }\nfunction onCollision(event, payload, api) { /* payload.other */ }\nfunction onClick(event, payload, api) { /* ... */ }" },
           audioSource: { assetId: null, volume: 1.0, loop: false },
           ui: { type: 'panel', label: 'Button', textColor: '#ffffff', textSize: 16, fill: '#0ea5e9', value: 0, min: 0, max: 100, checked: false, assetId: null, anchor: { x: 'center', y: 'center' } },
@@ -251,7 +311,7 @@ export const useEditorStore = create(
           timeline: { duration: 5, playing: false, loop: true, t: 0, tracks: { transform: { x: [], y: [], rotation: [] } } },
         }
         if (!defaults[kind]) return {}
-        entity.components[kind] = { ...defaults[kind], ...(entity.components[kind]||{}) }
+        entity.components[kind] = { ...defaults[kind], ...(entity.components[kind] || {}) }
         const newScene = { ...scene }
         newScene.entities = [...scene.entities]
         newScene.entities[eidx] = entity
@@ -284,7 +344,7 @@ export const useEditorStore = create(
         const eidx = scene.entities.findIndex(e => e.id === entityId)
         if (eidx === -1) return {}
         const ent = { ...scene.entities[eidx] }
-        const col = { ...(ent.components.collider || { type:'polygon', points: [] }) }
+        const col = { ...(ent.components.collider || { type: 'polygon', points: [] }) }
         col.points = [...(col.points || [])]
         if (!col.points[index]) return {}
         col.points[index] = { x, y }
@@ -301,7 +361,7 @@ export const useEditorStore = create(
         const eidx = scene.entities.findIndex(e => e.id === entityId)
         if (eidx === -1) return {}
         const ent = { ...scene.entities[eidx] }
-        const col = { ...(ent.components.collider || { type:'polygon', points: [] }) }
+        const col = { ...(ent.components.collider || { type: 'polygon', points: [] }) }
         col.type = 'polygon'
         col.points = [...(col.points || []), { x, y }]
         ent.components = { ...ent.components, collider: col }
@@ -317,7 +377,7 @@ export const useEditorStore = create(
         const eidx = scene.entities.findIndex(e => e.id === entityId)
         if (eidx === -1) return {}
         const ent = { ...scene.entities[eidx] }
-        const col = { ...(ent.components.collider || { type:'polygon', points: [] }) }
+        const col = { ...(ent.components.collider || { type: 'polygon', points: [] }) }
         col.points = [...(col.points || [])]
         col.points.pop()
         ent.components = { ...ent.components, collider: col }
@@ -378,7 +438,7 @@ export const useEditorStore = create(
       removeLayer: (layerId) => set(state => {
         get().pushHistory()
         const scene = get().currentScene()
-        if ((scene.layers||[]).length <= 1) return {}
+        if ((scene.layers || []).length <= 1) return {}
         const updated = { ...state.project, updatedAt: Date.now() }
         const sidx = updated.scenes.findIndex(s => s.id === scene.id)
         const layers = (scene.layers || []).filter(l => l.id !== layerId)
@@ -422,6 +482,45 @@ export const useEditorStore = create(
         if (childId === parentId) return {}
         const entities = scene.entities.map(e => e.id === childId ? { ...e, parentId: parentId || null } : e)
         const updated = { ...state.project }
+        updated.scenes[sidx] = { ...scene, entities }
+        return { project: updated }
+      }),
+      duplicateEntity: (entityId) => set(state => {
+        get().pushHistory()
+        const scene = get().currentScene()
+        const entity = scene.entities.find(e => e.id === entityId)
+        if (!entity) return {}
+        
+        // Deep clone entity
+        const duplicated = JSON.parse(JSON.stringify(entity))
+        duplicated.id = `e-${Date.now()}`
+        duplicated.name = `${entity.name || 'Entity'} (Copy)`
+        
+        // Recursively duplicate children
+        const duplicateChildren = (parentId) => {
+          const children = scene.entities.filter(e => e.parentId === parentId)
+          return children.map(child => {
+            const childCopy = JSON.parse(JSON.stringify(child))
+            childCopy.id = `e-${Date.now()}`
+            childCopy.parentId = duplicated.id
+            return childCopy
+          })
+        }
+        
+        const newChildren = duplicateChildren(entityId)
+        const allDuplicated = [duplicated, ...newChildren]
+        
+        const updated = { ...state.project, updatedAt: Date.now() }
+        const idx = updated.scenes.findIndex(s => s.id === scene.id)
+        updated.scenes[idx] = { ...scene, entities: [...scene.entities, ...allDuplicated] }
+        return { project: updated, selectedEntityId: duplicated.id }
+      }),
+      renameEntity: (entityId, newName) => set(state => {
+        get().pushHistory()
+        const scene = get().currentScene()
+        const sidx = state.project.scenes.findIndex(s => s.id === scene.id)
+        const entities = scene.entities.map(e => e.id === entityId ? { ...e, name: newName } : e)
+        const updated = { ...state.project, updatedAt: Date.now() }
         updated.scenes[sidx] = { ...scene, entities }
         return { project: updated }
       }),
@@ -586,8 +685,8 @@ export const useEditorStore = create(
         const tl = { ...(ent.components.timeline || { duration: 5, loop: true, t: 0, tracks: { transform: {} } }) }
         tl.tracks = { ...(tl.tracks || {}), transform: { ...(tl.tracks?.transform || {}) } }
         const arr = [...(tl.tracks.transform[prop] || [])]
-        arr.push({ time: Math.max(0, Number(time)||0), value })
-        arr.sort((a,b)=>a.time-b.time)
+        arr.push({ time: Math.max(0, Number(time) || 0), value })
+        arr.sort((a, b) => a.time - b.time)
         tl.tracks.transform[prop] = arr
         ent.components = { ...ent.components, timeline: tl }
         const entities = [...scene.entities]
@@ -628,23 +727,40 @@ export const useEditorStore = create(
       toggleSnapToGrid: () => set(state => ({ snapToGrid: !state.snapToGrid })),
       gridSize: 32,
       setGridSize: (size) => set({ gridSize: size }),
-      
+
       // Entity management for enhanced components
-      updateEntity: (id, entity) => set(state => {
-        get().pushHistory()
+      updateEntity: (id, entity, pushToHistory = true) => set(state => {
+        if (pushToHistory) get().pushHistory()
         const scene = get().currentScene()
-        if (!scene) return {}
-        const updated = { ...state.project }
+        if (!scene) return state
+
+        // Proper immutable update
+        const updated = {
+          ...state.project,
+          scenes: [...state.project.scenes]
+        }
+
         const sidx = updated.scenes.findIndex(s => s.id === scene.id)
-        const eidx = scene.entities.findIndex(e => e.id === id)
-        if (eidx === -1) return {}
-        const newScene = { ...scene }
-        newScene.entities = [...scene.entities]
+        if (sidx === -1) return state
+
+        const newScene = { ...updated.scenes[sidx] }
+        newScene.entities = [...newScene.entities]
+
+        const eidx = newScene.entities.findIndex(e => e.id === id)
+        if (eidx === -1) return state
+
         newScene.entities[eidx] = entity
         updated.scenes[sidx] = newScene
-        return { project: updated }
+        updated.updatedAt = Date.now()
+
+        // Return state with explicit selectedEntityId preservation
+        return {
+          ...state,
+          project: updated,
+          selectedEntityId: id
+        }
       }),
-      
+
       removeEntity: (id) => set(state => {
         get().pushHistory()
         const scene = get().currentScene()
@@ -657,7 +773,48 @@ export const useEditorStore = create(
         return { project: updated, selectedEntityId: id === state.selectedEntityId ? null : state.selectedEntityId }
       }),
     }),
-    { name: 'aversoltix_editor' }
+    {
+      name: 'aversoltix_editor',
+      partialize: (state) => ({
+        project: state.project,
+        zoom: state.zoom,
+        grid: state.grid,
+        camera: state.camera,
+        mode: state.mode,
+        history: state.history,
+        redo: state.redo,
+        snapToGrid: state.snapToGrid,
+        gridSize: state.gridSize,
+        transformMode: state.transformMode,
+        selectedSceneId: state.selectedSceneId
+      }),
+      storage: {
+        getItem: (name) => {
+          const str = localStorage.getItem(name)
+          if (!str) return null
+          return JSON.parse(str)
+        },
+        setItem: (name, value) => {
+          try {
+            localStorage.setItem(name, JSON.stringify(value))
+          } catch (e) {
+            if (e.name === 'QuotaExceededError' || e.code === 22) {
+              console.warn('LocalStorage quota exceeded. Attempting to clear history...')
+              try {
+                // Try to save without history/redo
+                const cleanState = { ...value, state: { ...value.state, history: [], redo: [] } }
+                localStorage.setItem(name, JSON.stringify(cleanState))
+              } catch (e2) {
+                console.error('Critical: LocalStorage is full and cannot be recovered automatically.', e2)
+              }
+            } else {
+              console.error('LocalStorage error:', e)
+            }
+          }
+        },
+        removeItem: (name) => localStorage.removeItem(name),
+      }
+    }
   )
 )
 

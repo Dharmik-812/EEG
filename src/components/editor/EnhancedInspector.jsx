@@ -37,7 +37,7 @@ const PropertyEditor = ({ property, value, onChange, type = 'text' }) => {
           step="0.1"
         />
       )
-    
+
     case 'vector2':
       return (
         <div className="grid grid-cols-2 gap-1">
@@ -63,7 +63,7 @@ const PropertyEditor = ({ property, value, onChange, type = 'text' }) => {
           </div>
         </div>
       )
-    
+
     case 'color':
       return (
         <div className="flex gap-2">
@@ -82,22 +82,21 @@ const PropertyEditor = ({ property, value, onChange, type = 'text' }) => {
           />
         </div>
       )
-    
+
     case 'boolean':
       return (
         <button
           onClick={() => handleChange(!value)}
-          className={`flex items-center gap-2 px-3 py-1 rounded text-sm font-medium transition-colors ${
-            value 
-              ? 'bg-emerald-500 text-white' 
+          className={`flex items-center gap-2 px-3 py-1 rounded text-sm font-medium transition-colors ${value
+              ? 'bg-emerald-500 text-white'
               : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
-          }`}
+            }`}
         >
           {value ? <ToggleRight className="h-4 w-4" /> : <ToggleLeft className="h-4 w-4" />}
           {value ? 'True' : 'False'}
         </button>
       )
-    
+
     case 'select':
       return (
         <select
@@ -109,7 +108,7 @@ const PropertyEditor = ({ property, value, onChange, type = 'text' }) => {
           {/* Options would be passed as prop */}
         </select>
       )
-    
+
     case 'slider':
       return (
         <div className="space-y-1">
@@ -128,7 +127,7 @@ const PropertyEditor = ({ property, value, onChange, type = 'text' }) => {
           />
         </div>
       )
-    
+
     default:
       return (
         <input
@@ -159,7 +158,7 @@ const ComponentPanel = ({ component, entity, onUpdate, onRemove }) => {
 
   const renderProperties = () => {
     const properties = []
-    
+
     switch (component.type) {
       case 'transform':
         properties.push(
@@ -171,7 +170,7 @@ const ComponentPanel = ({ component, entity, onUpdate, onRemove }) => {
           { key: 'scale', label: 'Scale', value: component.scale || 1, type: 'number' }
         )
         break
-        
+
       case 'sprite':
         properties.push(
           { key: 'assetId', label: 'Asset', value: component.assetId, type: 'select' },
@@ -181,7 +180,7 @@ const ComponentPanel = ({ component, entity, onUpdate, onRemove }) => {
           { key: 'flipY', label: 'Flip Y', value: component.flipY, type: 'boolean' }
         )
         break
-        
+
       case 'text':
         properties.push(
           { key: 'content', label: 'Text Content', value: component.content, type: 'text' },
@@ -191,7 +190,7 @@ const ComponentPanel = ({ component, entity, onUpdate, onRemove }) => {
           { key: 'align', label: 'Alignment', value: component.align || 'center', type: 'select' }
         )
         break
-        
+
       case 'collider':
         properties.push(
           { key: 'type', label: 'Shape', value: component.type || 'box', type: 'select' },
@@ -199,7 +198,7 @@ const ComponentPanel = ({ component, entity, onUpdate, onRemove }) => {
           { key: 'layer', label: 'Layer', value: component.layer || 0, type: 'number' }
         )
         break
-        
+
       default:
         Object.keys(component).forEach(key => {
           if (key !== 'type') {
@@ -207,13 +206,13 @@ const ComponentPanel = ({ component, entity, onUpdate, onRemove }) => {
               key,
               label: key.charAt(0).toUpperCase() + key.slice(1),
               value: component[key],
-              type: typeof component[key] === 'number' ? 'number' : 
-                   typeof component[key] === 'boolean' ? 'boolean' : 'text'
+              type: typeof component[key] === 'number' ? 'number' :
+                typeof component[key] === 'boolean' ? 'boolean' : 'text'
             })
           }
         })
     }
-    
+
     return properties
   }
 
@@ -231,16 +230,16 @@ const ComponentPanel = ({ component, entity, onUpdate, onRemove }) => {
             onClick={() => setIsExpanded(!isExpanded)}
             className="p-1 hover:bg-slate-200 dark:hover:bg-slate-600 rounded"
           >
-            {isExpanded ? 
-              <ChevronDown className="h-4 w-4" /> : 
+            {isExpanded ?
+              <ChevronDown className="h-4 w-4" /> :
               <ChevronRight className="h-4 w-4" />
             }
           </button>
-          
+
           <componentType.icon className={`h-4 w-4 ${colorClass}`} />
           <span className="font-medium text-sm">{componentType.name}</span>
         </div>
-        
+
         <div className="flex items-center gap-1">
           <button
             onClick={() => setIsEnabled(!isEnabled)}
@@ -249,7 +248,7 @@ const ComponentPanel = ({ component, entity, onUpdate, onRemove }) => {
           >
             {isEnabled ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
           </button>
-          
+
           <button
             onClick={() => onRemove(component.type)}
             className="p-1 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded"
@@ -259,7 +258,7 @@ const ComponentPanel = ({ component, entity, onUpdate, onRemove }) => {
           </button>
         </div>
       </div>
-      
+
       {/* Component Properties */}
       <AnimatePresence>
         {isExpanded && (
@@ -304,10 +303,10 @@ export default function EnhancedInspector() {
 
   const currentScene = project?.scenes?.[0]
   const entity = selectedEntity && currentScene ? currentScene.entities?.find(e => e.id === selectedEntity) : null
-  
+
   const handleComponentUpdate = useCallback((componentType, updatedComponent) => {
     if (!entity) return
-    
+
     const updatedEntity = {
       ...entity,
       components: {
@@ -315,32 +314,33 @@ export default function EnhancedInspector() {
         [componentType]: updatedComponent
       }
     }
-    
-    updateEntity?.(selectedEntity, updatedEntity)
+
+    // Don't push to history on every change to prevent state thrashing
+    updateEntity?.(selectedEntity, updatedEntity, false)
   }, [entity, selectedEntity, updateEntity])
 
   const handleComponentRemove = useCallback((componentType) => {
     if (!entity) return
-    
+
     const updatedComponents = { ...entity.components }
     delete updatedComponents[componentType]
-    
+
     const updatedEntity = {
       ...entity,
       components: updatedComponents
     }
-    
+
     updateEntity?.(selectedEntity, updatedEntity)
   }, [entity, selectedEntity, updateEntity])
 
   const handleAddComponent = useCallback((componentType) => {
     if (!entity) return
-    
+
     const defaultComponent = {
       type: componentType.id,
       ...getDefaultComponentData(componentType.id)
     }
-    
+
     const updatedEntity = {
       ...entity,
       components: {
@@ -348,7 +348,7 @@ export default function EnhancedInspector() {
         [componentType.id]: defaultComponent
       }
     }
-    
+
     updateEntity?.(selectedEntity, updatedEntity)
     setShowAddComponent(false)
   }, [entity, selectedEntity, updateEntity])
@@ -394,7 +394,7 @@ export default function EnhancedInspector() {
             </button>
           </div>
         </div>
-        
+
         {/* Entity Info */}
         <div className="space-y-2">
           <div>
@@ -412,7 +412,7 @@ export default function EnhancedInspector() {
               placeholder="Entity Name"
             />
           </div>
-          
+
           <div>
             <label className="block text-xs font-medium text-slate-600 dark:text-slate-300 mb-1">
               Entity ID
@@ -425,7 +425,7 @@ export default function EnhancedInspector() {
             />
           </div>
         </div>
-        
+
         {/* Search Components */}
         <div className="mt-3">
           <div className="relative">

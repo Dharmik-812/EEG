@@ -4,7 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "concurrently \"npm run dev:frontend\" \"npm run server\"",
+    "dev:frontend": "vite",
+    "server": "cd server && npm run dev",
     "build": "vite build",
     "build:analyze": "vite build && npx size-limit",
     "size": "npx size-limit",
@@ -49,6 +51,7 @@
     "@vercel/node": "^5.4.1",
     "@vitejs/plugin-react-swc": "^4.0.1",
     "autoprefixer": "^10.4.20",
+    "concurrently": "^9.2.1",
     "eslint": "^9.35.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",

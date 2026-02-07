@@ -1,5 +1,8 @@
 // Updates animation state and frame indices
 export class AnimationSystem {
+  /**
+   * @param {import('../Engine').Engine} engine
+   */
   constructor(engine) { this.engine = engine }
   update(scene, dt) {
     for (const e of scene.entities) {
