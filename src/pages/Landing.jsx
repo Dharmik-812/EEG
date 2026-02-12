@@ -68,14 +68,14 @@ const testimonialsData = [
     avatarIcon: 'zap'
   },
   {
-    name: "Aryan",
+    name: "Sameera",
     role: "High School Student",
     school: "Future Leaders School",
     content: "Earning badges and competing on leaderboards makes learning about the environment addictive!",
     avatarIcon: 'trophy'
   },
   {
-    name: "Henil",
+    name: "Neelam",
     role: "Chemistry Teacher",
     school: "Innovation High",
     content: "The platform beautifully explains carbon cycles and chemical processes. My students love the visual approach.",
@@ -83,7 +83,7 @@ const testimonialsData = [
   },
 
   {
-    name: "Hir",
+    name: "Hilal",
     role: "Marine Biology Student",
     school: "Ocean Studies University",
     content: "The ocean conservation modules opened my eyes to marine ecosystems. The underwater simulations are incredible!",
@@ -125,7 +125,7 @@ const testimonialsData = [
     avatarIcon: 'wheat'
   },
   {
-    name: "Paula",
+    name: "Bhavya",
     role: "International Student",
     school: "Global Green University",
     content: "AverSoltix helped me understand environmental issues from a global perspective. The diversity is amazing!",
