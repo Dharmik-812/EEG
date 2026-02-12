@@ -6,6 +6,7 @@ import Card from '../components/Card'
 import { useAuthStore } from '../store/authStore'
 import { useSubmissionsStore } from '../store/submissionsStore'
 import { useFeedbackStore } from '../store/feedbackStore'
+import { useAdminRequestStore } from '../store/adminRequestStore'
 import toast from 'react-hot-toast'
 import {
   Users, School, GraduationCap, BookOpen, TrendingUp,
@@ -137,6 +138,16 @@ export default function Admin() {
     getSystemLogs: s.getSystemLogs
   }))
 
+  const {
+    requests: adminRequests,
+    updateAdminRequestStatus,
+    getPendingAdminRequests,
+  } = useAdminRequestStore(s => ({
+    requests: s.requests,
+    updateAdminRequestStatus: s.updateAdminRequestStatus,
+    getPendingAdminRequests: s.getPendingAdminRequests,
+  }))
+
   if (!currentUser || currentUser.role !== 'admin') {
     return <Navigate to="/login" replace />
   }
@@ -145,6 +156,7 @@ export default function Admin() {
   const institutions = getInstitutions()
   const totalGames = (approvedGames?.length || 0) + (pendingGames?.length || 0)
   const totalQuizzes = (approvedQuizzes?.length || 0) + (pendingQuizzes?.length || 0)
+  const pendingAdminCount = getPendingAdminRequests().length
   const countsByRole = {
     admin: analytics.roleDistribution.admin || 0,
     visitor: analytics.roleDistribution.visitor || 0,
@@ -158,18 +170,19 @@ export default function Admin() {
   useEffect(() => {
     const interval = setInterval(() => {
       setSystemMetrics(prev => ({
-          ...prev,
-          cpu: Math.max(20, Math.min(90, prev.cpu + (Math.random() - 0.5) * 6)),
-          memory: Math.max(30, Math.min(95, prev.memory + (Math.random() - 0.5) * 5)),
-          storage: Math.max(10, Math.min(80, prev.storage + (Math.random() - 0.5) * 3)),
-          bandwidth: Math.max(40, Math.min(100, prev.bandwidth + (Math.random() - 0.5) * 10)),
-          activeUsers: Math.max(100, Math.min(500, prev.activeUsers + Math.floor((Math.random() - 0.5) * 10))),
-          totalRequests: prev.totalRequests + Math.floor(Math.random() * 30),
-          avgResponseTime: Math.max(50, Math.min(300, prev.avgResponseTime + (Math.random() - 0.5) * 25)),
-          errorRate: Math.max(0, Math.min(5, prev.errorRate + (Math.random() - 0.5) * 0.3)),
-          uptime: Math.max(95, Math.min(100, prev.uptime + (Math.random() - 0.5) * 0.05))
-        }))
-    }, 8000)
+        ...prev,
+        cpu: Math.max(20, Math.min(90, prev.cpu + (Math.random() - 0.5) * 6)),
+        memory: Math.max(30, Math.min(95, prev.memory + (Math.random() - 0.5) * 5)),
+        storage: Math.max(10, Math.min(80, prev.storage + (Math.random() - 0.5) * 3)),
+        bandwidth: Math.max(40, Math.min(100, prev.bandwidth + (Math.random() - 0.5) * 10)),
+        activeUsers: Math.max(100, Math.min(500, prev.activeUsers + Math.floor((Math.random() - 0.5) * 10))),
+        totalRequests: prev.totalRequests + Math.floor(Math.random() * 30),
+        avgResponseTime: Math.max(50, Math.min(300, prev.avgResponseTime + (Math.random() - 0.5) * 25)),
+        errorRate: Math.max(0, Math.min(5, prev.errorRate + (Math.random() - 0.5) * 0.3)),
+        uptime: Math.max(95, Math.min(100, prev.uptime + (Math.random() - 0.5) * 0.05))
+      }))
+    }, 30000) // update every 30s instead of ~8s to reduce visual refresh
+
     return () => clearInterval(interval)
   }, [])
 
@@ -295,12 +308,18 @@ export default function Admin() {
         >
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             <div className="space-y-4">
-              <h1 className="text-4xl lg:text-5xl font-black text-slate-800 dark:text-white leading-tight">
-                Welcome back,{' '}
-                <span className="bg-gradient-to-r from-emerald-600 via-blue-600 to-purple-600 bg-clip-text text-transparent">
-                  {currentUser?.name || 'Admin'}
-                </span>!
-                <span className="inline-block ml-2 text-3xl">⚡</span>
+              <h1 className="text-4xl lg:text-5xl font-black text-slate-800 dark:text-white leading-tight flex items-center gap-3 flex-wrap">
+                <span>
+                  Welcome back,{' '}
+                  <span className="bg-gradient-to-r from-emerald-600 via-blue-600 to-purple-600 bg-clip-text text-transparent">
+                    {currentUser?.name || 'Admin'}
+                  </span>
+                  !
+                </span>
+                <span className="inline-flex items-center gap-2 rounded-full border border-emerald-300/70 bg-white/80 px-3 py-1 text-sm font-semibold text-emerald-700 shadow-sm dark:border-emerald-700 dark:bg-slate-900 dark:text-emerald-200">
+                  <Zap className="h-4 w-4" />
+                  Admin console
+                </span>
               </h1>
 
               <div className="flex flex-wrap items-center gap-3">
@@ -359,7 +378,7 @@ export default function Admin() {
             { id: 'content', label: 'Content Review', icon: BookOpen, color: 'purple', count: pendingGames.length + pendingQuizzes.length },
             { id: 'institutions', label: 'Institutions', icon: Building, color: 'emerald', count: institutions.length },
             { id: 'system', label: 'System Health', icon: Server, color: 'orange', status: systemMetrics.uptime > 99 ? 'Excellent' : 'Good' },
-]), [analytics.totalUsers, pendingGames.length, pendingQuizzes.length, institutions.length, systemMetrics.uptime]).map((action, i) => {
+          ]), [analytics.totalUsers, pendingGames.length, pendingQuizzes.length, institutions.length, systemMetrics.uptime]).map((action, i) => {
             const Icon = action.icon
             const colorClasses = {
               blue: { bg: 'bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/10 dark:to-blue-800/20', icon: 'bg-blue-500', hover: 'hover:shadow-blue-500/20' },
@@ -2124,6 +2143,125 @@ export default function Admin() {
             ))
           )}
         </div>
+      </Card>
+
+      {/* Pending Admin Approvals */}
+      <Card>
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <div>
+            <div className="flex items-center gap-2">
+              <Shield className="h-5 w-5 text-emerald-600" />
+              <h3 className="font-semibold text-slate-800 dark:text-slate-100">
+                Pending Admin Approvals
+              </h3>
+            </div>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              Teacher requests to become administrators. Each request has a stable ID for easy reference.
+            </p>
+          </div>
+          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-1 text-[11px] font-semibold text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200">
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+            {pendingAdminCount} pending
+          </span>
+        </div>
+
+        {adminRequests.length === 0 ? (
+          <div className="py-8 text-center text-slate-500 dark:text-slate-400">
+            <CheckCircle className="mx-auto mb-3 h-10 w-10 text-emerald-400" />
+            <p className="font-medium">No admin requests yet</p>
+            <p className="text-xs">Teacher admin applications will appear here as they are submitted.</p>
+          </div>
+        ) : (
+          <div className="space-y-3 max-h-80 overflow-y-auto pr-1">
+            {adminRequests
+              .slice()
+              .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+              .map(req => (
+                <motion.div
+                  key={req.id}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="rounded-xl border border-slate-200 bg-slate-50/80 p-3 text-xs dark:border-slate-700 dark:bg-slate-900/80"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <p className="font-semibold text-slate-800 dark:text-slate-100">
+                        {req.userName || 'Unknown teacher'}
+                      </p>
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                        {req.userEmail} • {req.role?.replace('-', ' ')}
+                      </p>
+                      {req.institution?.name && (
+                        <p className="mt-0.5 text-[11px] text-slate-500 dark:text-slate-400">
+                          {req.institution.name} ({req.institution.type})
+                        </p>
+                      )}
+                    </div>
+                    <div className="text-right text-[10px] text-slate-500 dark:text-slate-400">
+                      <div className="font-mono text-[10px] text-slate-700 dark:text-slate-200">
+                        #{req.id}
+                      </div>
+                      <div>{new Date(req.createdAt).toLocaleDateString()}</div>
+                    </div>
+                  </div>
+
+                  <div className="mt-2 rounded-lg bg-white/90 px-2.5 py-1.5 text-[11px] text-slate-700 dark:bg-slate-800 dark:text-slate-200">
+                    <div className="mb-1 flex items-center justify-between">
+                      <span className="font-semibold">Scope</span>
+                      <span
+                        className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                          req.scope === 'institution'
+                            ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200'
+                            : 'bg-sky-100 text-sky-800 dark:bg-sky-900/40 dark:text-sky-200'
+                        }`}
+                      >
+                        {req.scope === 'institution' ? 'Institution-wide' : 'Class / section'}
+                      </span>
+                    </div>
+                    <p className="line-clamp-4 whitespace-pre-wrap">
+                      {req.reason}
+                    </p>
+                  </div>
+
+                  <div className="mt-2 flex items-center justify-between gap-2">
+                    <span
+                      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                        req.status === 'pending'
+                          ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200'
+                          : req.status === 'approved'
+                          ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200'
+                          : 'bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-200'
+                      }`}
+                    >
+                      {req.status.charAt(0).toUpperCase() + req.status.slice(1)}
+                    </span>
+                    <div className="flex gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          updateAdminRequestStatus({ id: req.id, status: 'rejected' })
+                          toast.success('Request marked as rejected.')
+                        }}
+                        className="rounded-lg border border-rose-200 bg-white px-2 py-1 text-[10px] font-semibold text-rose-700 hover:bg-rose-50 dark:border-rose-800 dark:bg-slate-900 dark:text-rose-200"
+                      >
+                        Reject
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          updateAdminRequestStatus({ id: req.id, status: 'approved' })
+                          toast.success('Admin request approved — remember to update the user role.')
+                        }}
+                        className="rounded-lg bg-emerald-600 px-2.5 py-1 text-[10px] font-semibold text-white hover:bg-emerald-700"
+                      >
+                        Approve
+                      </button>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+          </div>
+        )}
       </Card>
 
       {/* Recently Approved Content */}

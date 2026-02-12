@@ -194,6 +194,17 @@ export const useAuthStore = create(
         await api.adminUnbanUser({ userId })
         return true
       },
+      // Local-only user role updates (used by Admin panel)
+      updateUserRole: (userId, newRole) => {
+        set(state => ({
+          users: (state.users || []).map(u =>
+            u.id === userId ? { ...u, role: newRole } : u
+          ),
+          currentUser: state.currentUser?.id === userId
+            ? { ...state.currentUser, role: newRole }
+            : state.currentUser
+        }))
+      },
     }),
     { name: 'aversoltix_auth' }
   )

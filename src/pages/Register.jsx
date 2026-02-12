@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { useAuthStore } from '../store/authStore'
+import { useAdminRequestStore } from '../store/adminRequestStore'
 import toast from 'react-hot-toast'
 import { useNavigate, Link } from 'react-router-dom'
 import Card from '../components/Card'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Rocket, Eye, EyeOff, Stars, TreePine, Leaf, Globe, Award, Gamepad2, Users, GraduationCap, School, User, BookOpen, Sprout } from 'lucide-react'
+import { Rocket, Eye, EyeOff, Stars, Globe, Award, Gamepad2, Users, GraduationCap, School, User, BookOpen, Sprout, ShieldQuestion } from 'lucide-react'
 import SEO from '../components/SEO.jsx'
 
 const USER_ROLES = [
@@ -47,6 +48,7 @@ const USER_ROLES = [
 
 export default function Register() {
   const { register } = useAuthStore(s => ({ register: s.register }))
+  const { submitAdminRequest } = useAdminRequestStore()
   const [step, setStep] = useState(1)
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
@@ -54,6 +56,9 @@ export default function Register() {
   const [role, setRole] = useState('visitor')
   const [institution, setInstitution] = useState({ name: '', code: '', location: '', type: '' })
   const [showPwd, setShowPwd] = useState(false)
+  const [showAdminDialog, setShowAdminDialog] = useState(false)
+  const [adminScope, setAdminScope] = useState('class')
+  const [adminReason, setAdminReason] = useState('')
   const navigate = useNavigate()
 
   const isTeacher = role === 'school-teacher' || role === 'college-teacher'
@@ -440,6 +445,45 @@ export default function Register() {
                   )}
                 </motion.button>
               </div>
+
+              {/* Admin application CTA for teachers */}
+              {isTeacher && step === 3 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                  className="mt-2 rounded-2xl border border-emerald-100 dark:border-emerald-800 bg-emerald-50/60 dark:bg-emerald-900/20 p-4 flex flex-col gap-3"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="mt-0.5 rounded-xl bg-emerald-500/90 p-2 text-white shadow-sm">
+                      <ShieldQuestion className="h-5 w-5" />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold text-emerald-800 dark:text-emerald-100">
+                        Interested in becoming an administrator?
+                      </p>
+                      <p className="mt-1 text-xs text-emerald-900/80 dark:text-emerald-100/80">
+                        Apply for elevated permissions to manage your class or entire institution on AverSoltix.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <p className="text-[11px] text-emerald-900/70 dark:text-emerald-100/70">
+                      Your request goes to the platform admin panel under <span className="font-semibold">Pending Admin Approvals</span>.
+                    </p>
+                    <motion.button
+                      type="button"
+                      whileHover={{ scale: 1.03 }}
+                      whileTap={{ scale: 0.97 }}
+                      onClick={() => setShowAdminDialog(true)}
+                      className="inline-flex items-center gap-2 rounded-full border border-emerald-400/70 bg-white/80 px-3 py-1.5 text-xs font-semibold text-emerald-700 shadow-sm hover:bg-emerald-50 dark:bg-slate-900/80 dark:text-emerald-200"
+                    >
+                      <ShieldQuestion className="h-3.5 w-3.5" />
+                      Apply to be an administrator
+                    </motion.button>
+                  </div>
+                </motion.div>
+              )}
               
               <motion.div 
                 initial={{ opacity: 0 }} 
@@ -470,6 +514,166 @@ export default function Register() {
                 </p>
               </motion.div>
             </form>
+
+            {/* Admin application dialog */}
+            <AnimatePresence>
+              {showAdminDialog && (
+                <motion.div
+                  className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                >
+                  <motion.div
+                    initial={{ scale: 0.9, y: 16, opacity: 0 }}
+                    animate={{ scale: 1, y: 0, opacity: 1 }}
+                    exit={{ scale: 0.9, y: 16, opacity: 0 }}
+                    transition={{ type: 'spring', stiffness: 260, damping: 22 }}
+                    className="max-w-lg w-full mx-4 rounded-2xl bg-white/95 dark:bg-slate-900/95 border border-emerald-100/70 dark:border-emerald-800/60 shadow-2xl"
+                  >
+                    <div className="border-b border-slate-200/70 dark:border-slate-800/70 px-5 py-4 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="inline-flex h-7 w-7 items-center justify-center rounded-xl bg-emerald-500 text-white shadow-sm">
+                          <ShieldQuestion className="h-4 w-4" />
+                        </span>
+                        <div>
+                          <p className="text-sm font-semibold text-slate-900 dark:text-slate-50">
+                            Apply to become an administrator
+                          </p>
+                          <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                            This request will be reviewed by an existing admin.
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setShowAdminDialog(false)}
+                        className="rounded-full px-2 py-1 text-xs text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
+                      >
+                        Esc
+                      </button>
+                    </div>
+
+                    <div className="px-5 py-4 space-y-4">
+                      <div className="grid gap-3 sm:grid-cols-[minmax(0,2fr)_minmax(0,1.4fr)]">
+                        <div className="space-y-1">
+                          <label className="text-xs font-medium text-slate-700 dark:text-slate-300">
+                            Why do you want to become an administrator?
+                          </label>
+                          <textarea
+                            value={adminReason}
+                            onChange={e => setAdminReason(e.target.value)}
+                            rows={4}
+                            className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white/90 dark:bg-slate-900/90 px-3 py-2 text-xs text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none"
+                            placeholder="Describe how you’ll use admin tools to support your class or institution."
+                          />
+                        </div>
+                        <div className="space-y-3">
+                          <div className="space-y-1">
+                            <label className="text-xs font-medium text-slate-700 dark:text-slate-300">
+                              Admin scope
+                            </label>
+                            <div className="grid grid-cols-1 gap-2 text-xs">
+                              <button
+                                type="button"
+                                onClick={() => setAdminScope('class')}
+                                className={`rounded-xl border px-3 py-2 text-left transition-all ${
+                                  adminScope === 'class'
+                                    ? 'border-emerald-500 bg-emerald-50 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-100'
+                                    : 'border-slate-200 bg-slate-50 text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200'
+                                }`}
+                              >
+                                <div className="font-semibold">My class / section</div>
+                                <div className="mt-0.5 text-[11px] text-emerald-900/80 dark:text-emerald-100/80">
+                                  Manage quizzes and games just for your own classes.
+                                </div>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setAdminScope('institution')}
+                                className={`rounded-xl border px-3 py-2 text-left transition-all ${
+                                  adminScope === 'institution'
+                                    ? 'border-emerald-500 bg-emerald-50 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-100'
+                                    : 'border-slate-200 bg-slate-50 text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200'
+                                }`}
+                              >
+                                <div className="font-semibold">
+                                  Entire {role.includes('school') ? 'school' : 'college'}
+                                </div>
+                                <div className="mt-0.5 text-[11px] text-emerald-900/80 dark:text-emerald-100/80">
+                                  Institution-wide visibility and management tools.
+                                </div>
+                              </button>
+                            </div>
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-xs font-medium text-slate-700 dark:text-slate-300">
+                              This will be sent as:
+                            </label>
+                            <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-[11px] text-slate-600 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                              <div className="font-semibold">{name || 'Your name'}</div>
+                              <div>{email || 'your-email@example.com'}</div>
+                              {institution?.name && (
+                                <div className="mt-1 text-[10px] text-slate-500">
+                                  {institution.name} • {role.includes('school') ? 'School' : 'College'} teacher
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between gap-3 border-t border-slate-200/70 dark:border-slate-800/70 px-5 py-3">
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                        You can always request again later if this is declined.
+                      </p>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setShowAdminDialog(false)}
+                          className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (!adminReason.trim()) {
+                              toast.error('Please tell us why you want admin access.')
+                              return
+                            }
+                            try {
+                              submitAdminRequest({
+                                userId: email,
+                                userName: name,
+                                userEmail: email,
+                                role,
+                                institution: needsInstitution && institution.name ? {
+                                  ...institution,
+                                  type: role.includes('school') ? 'school' : 'college'
+                                } : null,
+                                scope: adminScope,
+                                reason: adminReason.trim(),
+                              })
+                              toast.success('Admin request submitted for review.')
+                              setShowAdminDialog(false)
+                              setAdminReason('')
+                              setAdminScope('class')
+                            } catch (err) {
+                              toast.error('Unable to submit request right now.')
+                            }
+                          }}
+                          className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-emerald-700"
+                        >
+                          Submit request
+                        </button>
+                      </div>
+                    </div>
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </Card>
         </motion.div>
       </section>
