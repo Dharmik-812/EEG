@@ -90,10 +90,18 @@ const testimonialsData = [
     avatarIcon: 'fish'
   },
   {
+    name: "Omar",
+    role: "Environmental Science Student",
+    school: "Green Tech University",
+    content: "AverSoltix transformed how I understand climate change. The interactive games make complex topics so much clearer!",
+    avatarIcon: 'sprout'
+  },
+
+  {
     name: "Abdullah",
     role: "Physics Teacher",
     school: "Science Pioneers Academy",
-    content: "Teaching energy conservation has never been easier. The platform makes abstract concepts tangible.",
+    content: "Teaching energy conservation has never dbeen easier. The platform makes abstract concepts tangible.",
     avatarIcon: 'microscope'
   },
   {
