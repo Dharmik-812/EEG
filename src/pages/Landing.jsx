@@ -47,14 +47,14 @@ const testimonialsData = [
     avatarIcon: 'butterfly'
   },
   {
-    name: "Riya",
+    name: "Yamim",
     role: "Sustainability Coordinator",
     school: "EcoVision College",
     content: "The gamified approach keeps our students engaged for hours. They're learning while having fun!",
     avatarIcon: 'leaf'
   },
   {
-    name: "Sneha",
+    name: "Kartik",
     role: "Environmental Club President",
     school: "Eco Warriors College",
     content: "We use AverSoltix for our club activities. It's amazing how it connects classroom learning with real action.",
