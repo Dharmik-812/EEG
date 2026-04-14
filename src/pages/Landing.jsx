@@ -61,7 +61,7 @@ const testimonialsData = [
     avatarIcon: 'globe'
   },
   {
-    name: "Prit",
+    name: "Farhat",
     role: "Engineering Student",
     school: "Tech Institute",
     content: "The renewable energy challenges helped me understand solar and wind power like never before!",
